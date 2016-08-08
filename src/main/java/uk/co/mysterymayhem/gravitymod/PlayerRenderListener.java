@@ -16,7 +16,7 @@ public class PlayerRenderListener {
     private EntityPlayer player = null;
     private boolean rotationNeedsUndo = false;
 
-    @SubscribeEvent
+    //@SubscribeEvent
     public void onRender(RenderPlayerEvent.Pre event) {
         EntityPlayer entityPlayer = event.getEntityPlayer();
         if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(entityPlayer)) {
@@ -52,7 +52,7 @@ public class PlayerRenderListener {
 
     }
 
-    @SubscribeEvent
+    //@SubscribeEvent
     public void onRender(RenderPlayerEvent.Post event) {
         if (this.rotationNeedsUndo) {
             this.rotationNeedsUndo = false;
