@@ -1,19 +1,14 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
 
 /**
  * Created by Mysteryem on 2016-08-07.
@@ -25,7 +20,7 @@ public class MovementInterceptionListener {
 //    @SubscribeEvent
 //    public void onGravityChange(GravityTransitionEvent event) {
 //        if (event.side == Side.CLIENT) {
-//            if (GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown())
+//            if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown())
 //            if (GravityManagerClient.isClientUpsideDown() != event.newGravityIsUpsideDown) {
 //
 //            }
@@ -35,7 +30,7 @@ public class MovementInterceptionListener {
 
     private boolean setOnGroundInEndPhase = false;
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPlayerUpdate(PlayerTickEvent event) {
         //if (event.side == Side.CLIENT) {
             switch (event.phase) {
@@ -43,7 +38,7 @@ public class MovementInterceptionListener {
                     //System.out.println("Below: " + event.player.worldObj.getBlockState(new BlockPos(event.player)).getBlock().getUnlocalizedName() + " at " + new BlockPos(event.player));
                     //System.out.println("Above: " + event.player.worldObj.getBlockState(new BlockPos(event.player).add(0, event.player.height + 1, 0)).getBlock() + " at " + new BlockPos(event.player).add(0, event.player.height + 1, 0));
                     //if (GravityManagerClient.isClientUpsideDown()) {
-                    if (GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown(event.player)) {
+                    if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.player)) {
                         BlockPos posAbovePlayersHead = new BlockPos(event.player).add(0, event.player.height + 1, 0);
                         IBlockState blockState = event.player.worldObj.getBlockState(posAbovePlayersHead);
                         AxisAlignedBB collisionBoundingBox = blockState.getCollisionBoundingBox(event.player.worldObj, posAbovePlayersHead);
@@ -67,7 +62,7 @@ public class MovementInterceptionListener {
 //                            }
                             event.player.motionY = 0;
                             event.player.fallDistance = 0;
-
+                            this.setOnGroundInEndPhase = true;
                         }
 
                         else if (!event.player.onGround && !event.player.capabilities.isFlying) {
@@ -85,10 +80,20 @@ public class MovementInterceptionListener {
 
                             event.player.handleWaterMovement();
                         }
+                        if (event.player.posY > (255 + 64)) {
+                            //event.player.kill();
+                            event.player.attackEntityFrom(DamageSource.outOfWorld, 4.0F);
+                        }
                     }
                     break;
                 case END:
                     //TODO: See if adding a player.onGround = true here will fix sprinting
+                    if(this.setOnGroundInEndPhase) {
+                        event.player.onGround = true;
+                        event.player.isAirBorne = false;
+                        event.player.fallDistance = 0;
+                        this.setOnGroundInEndPhase = false;
+                    }
                     break;
             }
         //}
@@ -98,7 +103,7 @@ public class MovementInterceptionListener {
     public void onLivingJump(LivingEvent.LivingJumpEvent event) {
         if (event.getEntity() instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer)event.getEntity();
-            if (GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown(player)) {
+            if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(player)) {
                 player.motionY *= -1;
             }
         }

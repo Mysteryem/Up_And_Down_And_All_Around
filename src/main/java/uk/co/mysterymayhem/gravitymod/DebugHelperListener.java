@@ -30,7 +30,7 @@ public class DebugHelperListener {
         if (itemStack != null) {
             Item item = itemStack.getItem();
             if (item.equals(Items.ARROW)) {
-                if (!GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown(event.getEntityPlayer())) {
+                if (!GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.getEntityPlayer())) {
                     MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent (
                             true,
                             event.getEntityPlayer(),
@@ -39,7 +39,7 @@ public class DebugHelperListener {
                 }
             }
             else if (item.equals(Items.BLAZE_ROD)) {
-                if (GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown(event.getEntityPlayer())) {
+                if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.getEntityPlayer())) {
                     MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent (
                             false,
                             event.getEntityPlayer(),

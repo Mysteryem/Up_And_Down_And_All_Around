@@ -1,9 +1,6 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.renderer.EntityRenderer;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -32,7 +29,7 @@ public class MouseInterceptionListener {
         if (Display.isActive()
                 && mc.inGameHasFocus
                 && mc.thePlayer.getRidingEntity() == null
-                && GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown(mc.thePlayer)
+                && GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(mc.thePlayer)
                 //&& GravityManagerClient.isClientUpsideDown()
                 && event.phase == TickEvent.Phase.START) {
             mc.mouseHelper = wrapper;

@@ -1,18 +1,16 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 import scala.collection.parallel.ParIterableLike;
-import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 /**
  * Used to control/record the gravity of all players
@@ -20,26 +18,50 @@ import java.util.HashSet;
  * Created by Mysteryem on 2016-08-04.
  */
 @SideOnly(Side.CLIENT)
-public class GravityManagerClient extends GravityManagerServer {
+public class GravityManagerClient extends GravityManagerCommon {
 
     public boolean isClientUpsideDown() {
         return this.isPlayerUpsideDown(Minecraft.getMinecraft().thePlayer);
     }
 
-    public void setClientUpsideDown(boolean upsideDown) {
-        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
-        //if(this.setPlayerUpsideDown(Minecraft.getMinecraft().thePlayer, upsideDown)) {
-        GameSettings settings = Minecraft.getMinecraft().gameSettings;
+    private boolean leftAndRightKeyBindsSwapped = false;
+
+    private void swapLeftAndRightKeyBinds(GameSettings settings) {
         KeyBinding keyBindLeft = settings.keyBindLeft;
         settings.keyBindLeft = settings.keyBindRight;
         settings.keyBindRight = keyBindLeft;
+        leftAndRightKeyBindsSwapped = !leftAndRightKeyBindsSwapped;
+    }
 
+    public void setClientUpsideDown(boolean upsideDown) {
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayerSP player = mc.thePlayer;
         if (upsideDown) {
-            player.eyeHeight = player.height - player.eyeHeight;
+            if (!this.leftAndRightKeyBindsSwapped) {
+                this.swapLeftAndRightKeyBinds(mc.gameSettings);
+            }
+            player.eyeHeight = player.height - player.getDefaultEyeHeight();
         } else {
-            player.eyeHeight = player.height - player.eyeHeight;
+            if (this.leftAndRightKeyBindsSwapped) {
+                this.swapLeftAndRightKeyBinds(mc.gameSettings);
+            }
+            player.eyeHeight = player.getDefaultEyeHeight();
         }
-        //}
+    }
+
+    @SubscribeEvent
+    public void onDisconnectFromServer(ClientDisconnectionFromServerEvent event) {
+        this.resetClient();
+    }
+
+    public void resetClient() {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (leftAndRightKeyBindsSwapped) {
+            this.swapLeftAndRightKeyBinds(mc.gameSettings);
+        }
+        this.playersUpsideDown.clear();
+        EntityPlayerSP thePlayer = mc.thePlayer;
+        thePlayer.eyeHeight = thePlayer.getDefaultEyeHeight();
     }
 
 //    @Override
@@ -59,14 +81,18 @@ public class GravityManagerClient extends GravityManagerServer {
 //    }
 
     @Override
-    public void handleServerPacket(String nameOfPlayerAffected, boolean gravityIsNowUpsideDown) {
+    public void handleSinglePlayerUpdateServerPacket(String nameOfPlayerAffected, boolean gravityIsNowUpsideDown) {
         if (Minecraft.getMinecraft().thePlayer.getName().equals(nameOfPlayerAffected)) {
             setClientUpsideDown(gravityIsNowUpsideDown);
         }
-        else {
-            this.setPlayerUpsideDown(nameOfPlayerAffected, gravityIsNowUpsideDown);
-        }
+        this.setPlayerUpsideDown(nameOfPlayerAffected, gravityIsNowUpsideDown);
+    }
 
+    @Override
+    public void handleMultiplePlayerInitialiseServerPacket(Collection<String> playersWhoAreUpsideDown) {
+        for(String playerName : playersWhoAreUpsideDown) {
+            this.handleSinglePlayerUpdateServerPacket(playerName, true);
+        }
     }
 
     //TODO: Remove players from the 'UPSIDE_DOWN' set when they log out?

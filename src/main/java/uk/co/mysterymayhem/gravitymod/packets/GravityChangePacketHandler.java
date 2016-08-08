@@ -8,12 +8,12 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 /**
  * Created by Mysteryem on 2016-08-07.
  */
-public class WhatsUpPacketHandler {
+public class GravityChangePacketHandler {
     private static int packetID = 0;
 
     public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(GravityMod.MOD_ID);
 
-    public WhatsUpPacketHandler() {
+    public GravityChangePacketHandler() {
     }
 
     public static int nextID() {
@@ -21,6 +21,6 @@ public class WhatsUpPacketHandler {
     }
 
     public static void registerMessages() {
-        INSTANCE.registerMessage(WhatsUpMessage.WhatsUpMessageHandler.class, WhatsUpMessage.class, nextID(), Side.CLIENT);
+        INSTANCE.registerMessage(GravityChangeMessage.WhatsUpMessageHandler.class, GravityChangeMessage.class, nextID(), Side.CLIENT);
     }
 }

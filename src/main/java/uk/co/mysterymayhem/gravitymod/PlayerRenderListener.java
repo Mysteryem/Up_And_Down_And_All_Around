@@ -1,10 +1,8 @@
 package uk.co.mysterymayhem.gravitymod;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -21,13 +19,15 @@ public class PlayerRenderListener {
     @SubscribeEvent
     public void onRender(RenderPlayerEvent.Pre event) {
         EntityPlayer entityPlayer = event.getEntityPlayer();
-        if (GravityMod.proxy.gravityManagerServer.isPlayerUpsideDown(entityPlayer)) {
+        if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(entityPlayer)) {
             this.rotationNeedsUndo = true;
 
             GlStateManager.pushMatrix();
+            GlStateManager.translate(event.getX(), event.getY(), event.getZ());
             GlStateManager.rotate(180, 1, 0, 0);
             GlStateManager.rotate(180, 0, 1, 0);
             GlStateManager.translate(0, -entityPlayer.height, 0);
+            GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
 
             this.player = entityPlayer;
             player.rotationYawHead *= -1;
