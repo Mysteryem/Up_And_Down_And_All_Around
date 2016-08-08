@@ -1,0 +1,16 @@
+[
+{
+  "modid": "mysttmtgravitymod",
+  "name": "Up and Down (but not all around :( )",
+  "description": "Mod that lets you turn your gravity upside down.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Mysteryem"],
+  "credits": "McJty for the highly useful modding tutorials",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
