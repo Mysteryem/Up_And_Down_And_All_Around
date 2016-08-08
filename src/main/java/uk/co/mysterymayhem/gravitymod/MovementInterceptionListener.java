@@ -2,6 +2,8 @@ package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -9,6 +11,11 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 
 /**
  * Created by Mysteryem on 2016-08-07.
@@ -27,6 +34,24 @@ public class MovementInterceptionListener {
 //        }
 //
 //    }
+    private MethodHandle getterNetHandlerPlayServer$floatingTickCount = null;
+    private MethodHandle setterNetHandlerPlayServer$floatingTickCount = null;
+
+    public MovementInterceptionListener() {
+        this.initMethodHandles();
+    }
+
+    public void initMethodHandles() {
+        if (getterNetHandlerPlayServer$floatingTickCount == null && setterNetHandlerPlayServer$floatingTickCount == null) {
+            try {
+                Field floatingTickCount = ReflectionHelper.findField(NetHandlerPlayServer.class, "floatingTickCount", "field_147365_f");
+                getterNetHandlerPlayServer$floatingTickCount = MethodHandles.lookup().unreflectGetter(floatingTickCount);
+                setterNetHandlerPlayServer$floatingTickCount = MethodHandles.lookup().unreflectSetter(floatingTickCount);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     private boolean setOnGroundInEndPhase = false;
 
@@ -76,6 +101,19 @@ public class MovementInterceptionListener {
                             }
                             else {
                                 event.player.addVelocity(0, 0.16, 0);
+                                // Prevent players getting kicked for flying when falling upwards for a long time
+                                if (event.player instanceof EntityPlayerMP) {
+                                    EntityPlayerMP playerMP = (EntityPlayerMP)event.player;
+                                    try {
+                                        int floatingTickCount = (Integer)this.getterNetHandlerPlayServer$floatingTickCount.invoke(playerMP.connection);
+                                        if (floatingTickCount > 0) {
+                                            floatingTickCount--;
+                                            this.setterNetHandlerPlayServer$floatingTickCount.invoke(playerMP.connection, floatingTickCount);
+                                        }
+                                    } catch (Throwable throwable) {
+                                        throw new RuntimeException(throwable);
+                                    }
+                                }
                             }
 
                             event.player.handleWaterMovement();
