@@ -61,7 +61,10 @@ public class GravityManagerClient extends GravityManagerCommon {
         }
         this.playersUpsideDown.clear();
         EntityPlayerSP thePlayer = mc.thePlayer;
-        thePlayer.eyeHeight = thePlayer.getDefaultEyeHeight();
+        // How can this be null?
+        if (thePlayer != null) {
+            thePlayer.eyeHeight = thePlayer.getDefaultEyeHeight();
+        }
     }
 
 //    @Override
