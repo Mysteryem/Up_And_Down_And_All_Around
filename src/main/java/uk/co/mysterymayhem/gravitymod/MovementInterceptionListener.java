@@ -63,6 +63,7 @@ public class MovementInterceptionListener {
 
     private boolean setOnGroundInEndPhase = false;
 
+    //TODO: Going to need a rewrite to fix sprinting probably, also, no way that this method will be able to work for gravity directions that are not "UP"
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPlayerUpdate(PlayerTickEvent event) {
         //if (event.side == Side.CLIENT) {

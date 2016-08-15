@@ -20,6 +20,7 @@ public class PlayerRenderListener {
     private EntityPlayer player = null;
     private boolean rotationNeedsUndo = false;
 
+    //TODO: begin replacing with differing transformations based on EnumGravityDirection
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRender(RenderLivingEvent.Pre<EntityPlayer> event) {
         EntityLivingBase entity = event.getEntity();

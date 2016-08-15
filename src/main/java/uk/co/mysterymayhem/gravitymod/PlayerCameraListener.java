@@ -15,6 +15,7 @@ import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
 @SideOnly(Side.CLIENT)
 public class PlayerCameraListener {
 
+    //TODO: Begin replacing with rotations as defined in EnumGravityDirection
     @SubscribeEvent
     public void onCameraSetup(CameraSetup event) {
         if (GravityCapability.getGravityDirection(Minecraft.getMinecraft().thePlayer) == EnumGravityDirection.UP) {

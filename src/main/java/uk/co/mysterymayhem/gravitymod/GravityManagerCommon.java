@@ -100,43 +100,6 @@ public class GravityManagerCommon {
         }
     }
 
-
-
-//    @SubscribeEvent
-//    public void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
-//        if (event.player instanceof EntityPlayerMP) {
-//            GravityChangePacketHandler.INSTANCE.sendTo(
-//                    new GravityChangeMessage(event.player.getName(), GravityCapability.getGravityDirection(event.player)),
-//                    (EntityPlayerMP) event.player
-//            );
-//        }
-//    }
-
-//    @SubscribeEvent
-//    public void onPlayerLogOut(PlayerLoggedOutEvent event) {
-//        boolean stateChanged = this.setPlayerUpsideDown(event.player, false);
-//
-//        if(stateChanged) {
-//            this.sendUpdatePacketToDimension(event.player, false);
-//        }
-//    }
-
-    //Gravity will now ALWAYS reset to normal upon respawning as the nbt stored on the player will be lost
-    //when the player respawns, the default of normal gravity will be added
-//    @SubscribeEvent
-//    public void onPlayerRespawn(PlayerRespawnEvent event) {
-//        if (!isPlayerUpsideDown(event.player)) {
-//            return;
-//        }
-//        else {
-//            boolean stateChanged = this.setPlayerUpsideDown(event.player, false);
-//
-//            if (stateChanged) {
-//                this.sendUpdatePacketToDimension(event.player, false);
-//            }
-//        }
-//    }
-
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onPlayerTick(PlayerTickEvent event) {
         if (event.side == Side.SERVER) {
@@ -168,6 +131,8 @@ public class GravityManagerCommon {
     public void handlePacket(GravityChangeMessage message, MessageContext context) {
         switch(message.getPacketType()) {
             case CLIENT_REQUEST_GRAVITY_OF_PLAYER:
+                //TODO: Move all packet handling logic into this method (using the context to get the worldthread when needed), return type will need to change!
+                // This is handled in the GravityChangeMessage.WhatsUpMessageHandler class currently so as to minimise response time
                 break;
             default:
                 break;

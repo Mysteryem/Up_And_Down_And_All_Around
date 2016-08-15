@@ -72,11 +72,6 @@ public class GravityChangeMessage implements IMessage {
                 readChars[i] = buf.readChar();
             }
             gravityChangeMessage.toSend = String.valueOf(readChars);
-        }),
-        SERVER_RESPONSE_TO_GRAVITY_REQUEST((gravityChangeMessage, buf) -> {
-
-        }, (gravityChangeMessage, buf) -> {
-
         });
 
         private final BiConsumer<GravityChangeMessage, ByteBuf> toBytesFunction;
@@ -133,7 +128,6 @@ public class GravityChangeMessage implements IMessage {
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        //(PacketType.values()[buf.readInt()]).fromBytesFunction.accept(this, buf);
         int packetTypeOrdinal = buf.readInt();
         PacketType type = PacketType.values()[packetTypeOrdinal];
         this.packetType = type;
@@ -155,19 +149,7 @@ public class GravityChangeMessage implements IMessage {
                 return new GravityChangeMessage(message.toSend, gravityDirection);
             }
             FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> GravityMod.proxy.getGravityManager().handlePacket(message, ctx));
-            //FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> handle(message, ctx));
             return null;
         }
-
-//        private void handle(GravityChangeMessage message, MessageContext ctx) {
-//            switch(message.packetType) {
-//                case SINGLE:
-//                    GravityMod.proxy.gravityManagerCommon.handleSinglePlayerUpdateServerPacket(message.toSend, message.newGravityDirection);
-//                    break;
-//                case ALL_UPSIDE_DOWN:
-//                    GravityMod.proxy.gravityManagerCommon.handleMultiplePlayerInitialiseServerPacket(message.toSendMultiple);
-//                    break;
-//            }
-//        }
     }
 }
