@@ -22,5 +22,6 @@ public class GravityChangePacketHandler {
 
     public static void registerMessages() {
         INSTANCE.registerMessage(GravityChangeMessage.WhatsUpMessageHandler.class, GravityChangeMessage.class, nextID(), Side.CLIENT);
+        INSTANCE.registerMessage(GravityChangeMessage.WhatsUpMessageHandler.class, GravityChangeMessage.class, nextID(), Side.SERVER);
     }
 }

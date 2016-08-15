@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraftforge.common.MinecraftForge;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
 import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
 
 /**
@@ -10,6 +11,7 @@ public class CommonProxy {
     public GravityManagerCommon gravityManagerCommon;
 
     public void preInit() {
+        GravityCapability.registerCapability();
         this.registerGravityManager();
         GravityChangePacketHandler.registerMessages();
         ModItems.initItems();

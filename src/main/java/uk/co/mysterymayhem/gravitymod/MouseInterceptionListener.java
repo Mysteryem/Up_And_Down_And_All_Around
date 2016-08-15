@@ -8,6 +8,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.Display;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -28,9 +29,7 @@ public class MouseInterceptionListener {
         Minecraft mc = Minecraft.getMinecraft();
         if (Display.isActive()
                 && mc.inGameHasFocus
-                && mc.thePlayer.getRidingEntity() == null
-                && GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(mc.thePlayer)
-                //&& GravityManagerClient.isClientUpsideDown()
+                && GravityCapability.getGravityDirection(mc.thePlayer) == EnumGravityDirection.UP
                 && event.phase == TickEvent.Phase.START) {
             mc.mouseHelper = wrapper;
             this.cleanupNeeded = true;

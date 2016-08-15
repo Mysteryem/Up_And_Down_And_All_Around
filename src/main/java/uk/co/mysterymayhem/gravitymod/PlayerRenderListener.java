@@ -9,6 +9,7 @@ import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
 
 /**
  * Created by Mysteryem on 2016-08-07.
@@ -24,7 +25,7 @@ public class PlayerRenderListener {
         EntityLivingBase entity = event.getEntity();
         if (entity instanceof EntityPlayer) {
             EntityPlayer entityPlayer = (EntityPlayer)entity;
-            if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(entityPlayer)) {
+            if (GravityCapability.getGravityDirection(entityPlayer) == EnumGravityDirection.UP) {
                 this.rotationNeedsUndo = true;
 
                 GlStateManager.pushMatrix();

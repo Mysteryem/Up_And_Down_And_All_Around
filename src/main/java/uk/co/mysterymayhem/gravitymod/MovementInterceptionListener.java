@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -12,6 +13,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -53,6 +55,12 @@ public class MovementInterceptionListener {
         }
     }
 
+    //@SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlayerUpdate2(PlayerTickEvent event) {
+
+    }
+
+
     private boolean setOnGroundInEndPhase = false;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -63,7 +71,7 @@ public class MovementInterceptionListener {
                     //System.out.println("Below: " + event.player.worldObj.getBlockState(new BlockPos(event.player)).getBlock().getUnlocalizedName() + " at " + new BlockPos(event.player));
                     //System.out.println("Above: " + event.player.worldObj.getBlockState(new BlockPos(event.player).add(0, event.player.height + 1, 0)).getBlock() + " at " + new BlockPos(event.player).add(0, event.player.height + 1, 0));
                     //if (GravityManagerClient.isClientUpsideDown()) {
-                    if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.player)) {
+                    if (GravityCapability.getGravityDirection(event.player) == EnumGravityDirection.UP) {
                         BlockPos posAbovePlayersHead = new BlockPos(event.player).add(0, event.player.height + 1, 0);
                         IBlockState blockState = event.player.worldObj.getBlockState(posAbovePlayersHead);
                         AxisAlignedBB collisionBoundingBox = blockState.getCollisionBoundingBox(event.player.worldObj, posAbovePlayersHead);
@@ -79,6 +87,9 @@ public class MovementInterceptionListener {
                         event.player.isAirBorne = !event.player.onGround;
 
                         if(event.player.onGround) {
+                            BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos = BlockPos.PooledMutableBlockPos.retain(event.player.posX, event.player.getEntityBoundingBox().maxY + 1.0D, event.player.posZ);
+                            Block block = event.player.worldObj.getBlockState(blockpos$pooledmutableblockpos).getBlock();
+                            //block.slipperiness;
                             //System.out.println("On ground");
 //                            if (event.player == Minecraft.getMinecraft().thePlayer) {
 //                                if(Minecraft.getMinecraft().thePlayer.movementInput.jump) {
@@ -141,7 +152,7 @@ public class MovementInterceptionListener {
     public void onLivingJump(LivingEvent.LivingJumpEvent event) {
         if (event.getEntity() instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer)event.getEntity();
-            if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(player)) {
+            if (GravityCapability.getGravityDirection(player) == EnumGravityDirection.UP) {
                 player.motionY *= -1;
             }
         }

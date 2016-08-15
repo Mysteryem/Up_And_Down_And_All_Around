@@ -14,39 +14,39 @@ import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
  */
 public class DebugHelperListener {
 
-    @SubscribeEvent
-    public void onItemUse(PlayerInteractEvent event) {
-        if (event.getEntityPlayer().worldObj.isRemote) {
-            System.out.println("PlayerInteractEvent Side: " + event.getSide());
-        }
-        if (event.getSide() != Side.SERVER) {
-            return;
-        }
-        //TODO: Remove?
-        if (event.getEntityPlayer().getRidingEntity() != null) {
-            return;
-        }
-        ItemStack itemStack = event.getItemStack();
-        if (itemStack != null) {
-            Item item = itemStack.getItem();
-            if (item.equals(Items.ARROW)) {
-                if (!GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.getEntityPlayer())) {
-                    MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent (
-                            true,
-                            event.getEntityPlayer(),
-                            event.getSide()
-                    ));
-                }
-            }
-            else if (item.equals(Items.BLAZE_ROD)) {
-                if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.getEntityPlayer())) {
-                    MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent (
-                            false,
-                            event.getEntityPlayer(),
-                            event.getSide()
-                    ));
-                }
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public void onItemUse(PlayerInteractEvent event) {
+//        if (event.getEntityPlayer().worldObj.isRemote) {
+//            System.out.println("PlayerInteractEvent Side: " + event.getSide());
+//        }
+//        if (event.getSide() != Side.SERVER) {
+//            return;
+//        }
+//        //TODO: Remove?
+//        if (event.getEntityPlayer().getRidingEntity() != null) {
+//            return;
+//        }
+//        ItemStack itemStack = event.getItemStack();
+//        if (itemStack != null) {
+//            Item item = itemStack.getItem();
+//            if (item.equals(Items.ARROW)) {
+//                if (!GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.getEntityPlayer())) {
+//                    MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent (
+//                            true,
+//                            event.getEntityPlayer(),
+//                            event.getSide()
+//                    ));
+//                }
+//            }
+//            else if (item.equals(Items.BLAZE_ROD)) {
+//                if (GravityMod.proxy.gravityManagerCommon.isPlayerUpsideDown(event.getEntityPlayer())) {
+//                    MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent (
+//                            false,
+//                            event.getEntityPlayer(),
+//                            event.getSide()
+//                    ));
+//                }
+//            }
+//        }
+//    }
 }

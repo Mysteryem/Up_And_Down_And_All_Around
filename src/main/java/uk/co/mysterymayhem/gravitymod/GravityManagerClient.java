@@ -1,14 +1,25 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.fml.client.FMLClientHandler;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 import scala.collection.parallel.ParIterableLike;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
+import uk.co.mysterymayhem.gravitymod.packets.GravityChangeMessage;
+import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
 
 import java.util.Collection;
 
@@ -20,8 +31,23 @@ import java.util.Collection;
 @SideOnly(Side.CLIENT)
 public class GravityManagerClient extends GravityManagerCommon {
 
-    public boolean isClientUpsideDown() {
-        return this.isPlayerUpsideDown(Minecraft.getMinecraft().thePlayer);
+//    public boolean isClientUpsideDown() {
+//        return this.isPlayerUpsideDown(Minecraft.getMinecraft().thePlayer);
+//    }
+
+    public EnumGravityDirection getClientGravity() {
+        return GravityCapability.getGravityDirection(Minecraft.getMinecraft().thePlayer);
+    }
+
+    public void setClientGravity(EnumGravityDirection direction) {
+        GravityCapability.setGravityDirection(Minecraft.getMinecraft().thePlayer, direction);
+
+        if (direction == EnumGravityDirection.UP) {
+            setClientUpsideDown(true);
+        }
+        else if (direction == EnumGravityDirection.DOWN) {
+            setClientUpsideDown(false);
+        }
     }
 
     private boolean leftAndRightKeyBindsSwapped = false;
@@ -54,6 +80,19 @@ public class GravityManagerClient extends GravityManagerCommon {
         this.resetClient();
     }
 
+    @SubscribeEvent
+    public void onEntityJoinWorld(EntityJoinWorldEvent event) {
+        if (event.getWorld().isRemote) {
+            Entity entity = event.getEntity();
+            if (entity instanceof EntityOtherPlayerMP) {
+                EntityPlayer player = (EntityPlayer)entity;
+                //DEBUG
+                //FMLLog.info("Requesting gravity data for %s", player.getName());
+                this.sendRequestToServer(player.getName());
+            }
+        }
+    }
+
     public void resetClient() {
         Minecraft mc = Minecraft.getMinecraft();
         if (leftAndRightKeyBindsSwapped) {
@@ -83,20 +122,57 @@ public class GravityManagerClient extends GravityManagerCommon {
 //        }
 //    }
 
+//    @Override
+//    public void handleSinglePlayerUpdateServerPacket(String nameOfPlayerAffected, EnumGravityDirection newGravityDirection) {
+//        if (Minecraft.getMinecraft().thePlayer.getName().equals(nameOfPlayerAffected)) {
+//            setClientGravity(newGravityDirection);
+//        }
+//        this.setPlayerUpsideDown(nameOfPlayerAffected, newGravityDirection);
+//    }
+
+//    @Override
+//    public void handleMultiplePlayerInitialiseServerPacket(Collection<String> playersWhoAreUpsideDown) {
+//        for(String playerName : playersWhoAreUpsideDown) {
+//            this.handleSinglePlayerUpdateServerPacket(playerName, true);
+//        }
+//    }
+
     @Override
-    public void handleSinglePlayerUpdateServerPacket(String nameOfPlayerAffected, boolean gravityIsNowUpsideDown) {
-        if (Minecraft.getMinecraft().thePlayer.getName().equals(nameOfPlayerAffected)) {
-            setClientUpsideDown(gravityIsNowUpsideDown);
+    public void handlePacket(GravityChangeMessage message, MessageContext context) {
+        switch(message.getPacketType()) {
+            case SINGLE:
+//                //DEBUG
+//                FMLLog.info("Received gravity data for %s", message.getStringData());
+                String playerName = message.getStringData();
+                if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
+                    this.setClientGravity(message.getNewGravityDirection());
+                }
+                GravityCapability.setGravityCapability(playerName, message.getNewGravityDirection(), Minecraft.getMinecraft().theWorld);
+                break;
+            default:
+                super.handlePacket(message, context);
+                break;
         }
-        this.setPlayerUpsideDown(nameOfPlayerAffected, gravityIsNowUpsideDown);
+
+    }
+
+    public void sendRequestToServer(String nameOfPlayerRequested) {
+        GravityChangePacketHandler.INSTANCE.sendToServer(new GravityChangeMessage(nameOfPlayerRequested));
     }
 
     @Override
-    public void handleMultiplePlayerInitialiseServerPacket(Collection<String> playersWhoAreUpsideDown) {
-        for(String playerName : playersWhoAreUpsideDown) {
-            this.handleSinglePlayerUpdateServerPacket(playerName, true);
+    public EnumGravityDirection getGravityDirection(String playerName) {
+        if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
+            return this.getClientGravity();
         }
+        return GravityCapability.getGravityDirection(playerName, FMLClientHandler.instance().getWorldClient());
     }
 
-    //TODO: Remove players from the 'UPSIDE_DOWN' set when they log out?
+    @Override
+    public void setGravitydirection(String playerName, EnumGravityDirection direction) {
+        if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
+            this.setClientGravity(direction);
+        }
+        GravityCapability.setGravityCapability(playerName, direction, FMLClientHandler.instance().getWorldClient());
+    }
 }
