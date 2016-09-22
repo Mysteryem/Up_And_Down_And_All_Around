@@ -4,10 +4,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.DamageSource;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
@@ -15,40 +13,56 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.packets.GravityChangeMessage;
 import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
 import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
-import java.util.HashSet;
-
 /**
  * Created by Mysteryem on 2016-08-04.
  */
 public class GravityManagerCommon {
-    protected final HashSet<String> playersUpsideDown = new HashSet<>();
+//    protected final HashSet<String> playersUpsideDown = new HashSet<>();
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onGravityTransition(GravityTransitionEvent event) {
-        if (event.side == Side.SERVER) {
-            final GravityCapability.IGravityCapability capability = GravityCapability.getGravityCapability(event.player);;
-            final EnumGravityDirection currentDirection = capability.getDirection();
-            boolean stateChanged = currentDirection != event.newGravityDirection;
+//    @SubscribeEvent(priority = EventPriority.LOWEST)
+//    public void onGravityTransition(GravityTransitionEvent event) {
+//        //FMLLog.info("Received gravityTransitionEvent");
+//        if (event.side == Side.SERVER) {
+//            FMLLog.info("GravityTransitionEvent is server side");
+////            final GravityCapability.IGravityCapability capability = GravityCapability.getGravityCapability(event.player);
+//            final EnumGravityDirection currentDirection = GravityCapability.getGravityDirection(event.player);
+//            boolean stateChanged = currentDirection != event.newGravityDirection;
+//
+//            if(stateChanged) {
+//                FMLLog.info("Gravity has changed to " + event.newGravityDirection + " from " + currentDirection);
+//                GravityCapability.setGravityDirection(event.player, event.newGravityDirection);
+////                capability.setDirection(event.newGravityDirection);
+//                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection);
+//            }
+//        }
+//    }
 
-            if(stateChanged) {
-                capability.setDirection(event.newGravityDirection);
+    public void doGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player) {
+        EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
+        if (oldDirection != newDirection) {
+            GravityTransitionEvent.Server event = new GravityTransitionEvent.Server.Pre(newDirection, oldDirection, player);
+            if (!MinecraftForge.EVENT_BUS.post(event)) {
+                GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection);
                 this.sendUpdatePacketToDimension(event.player, event.newGravityDirection);
+                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Post(newDirection, oldDirection, player));
             }
         }
     }
+
 
     @SubscribeEvent
     public void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
             GravityChangePacketHandler.INSTANCE.sendTo(
-                    new GravityChangeMessage(event.player.getName(), GravityCapability.getGravityDirection(event.player)),
+                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player)),
                     (EntityPlayerMP) event.player
             );
         }
@@ -58,7 +72,7 @@ public class GravityManagerCommon {
     public void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.player instanceof EntityPlayerMP) {
             GravityChangePacketHandler.INSTANCE.sendTo(
-                    new GravityChangeMessage(event.player.getName(), GravityCapability.getGravityDirection(event.player)),
+                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player)),
                     (EntityPlayerMP) event.player
             );
         }
@@ -75,12 +89,20 @@ public class GravityManagerCommon {
         if (clone instanceof EntityPlayerMP && original instanceof EntityPlayerMP) {
             if (event.isWasDeath()) {
                 GravityChangePacketHandler.INSTANCE.sendTo(
-                        new GravityChangeMessage(clone.getName(), GravityCapability.getGravityDirection(clone)),
+                        new GravityChangeMessage(clone.getName(), GravityDirectionCapability.getGravityDirection(clone)),
                         (EntityPlayerMP) clone
                 );
             }
             else {
-                GravityCapability.setGravityDirection(clone, GravityCapability.getGravityDirection(original));
+                EntityPlayerMP cloneMP = (EntityPlayerMP)clone;
+                EntityPlayerMP originalMP = (EntityPlayerMP)original;
+
+                EnumGravityDirection originalDirection = GravityDirectionCapability.getGravityDirection(original);
+
+                // When a player entity enters the world, they are given a GravityCapability which defaults to DOWN
+                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Clone.Pre(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
+                GravityDirectionCapability.setGravityDirection(clone, originalDirection);
+                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Clone.Post(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
             }
         }
 
@@ -93,29 +115,23 @@ public class GravityManagerCommon {
         Entity entity = event.getEntity();
         if (entity instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer)entity;
-            EnumGravityDirection gravityDirection = GravityCapability.getGravityDirection(player);
+            EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(player);
             if (gravityDirection != EnumGravityDirection.DOWN) {
                 player.capabilities.allowFlying = true;
             }
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOW)
+    //@SubscribeEvent(priority = EventPriority.LOW)
     public void onPlayerTick(PlayerTickEvent event) {
         if (event.side == Side.SERVER) {
             if (event.phase == TickEvent.Phase.START) {
                 ItemStack itemStack = event.player.inventory.armorInventory[0];
                 if (itemStack != null && itemStack.getItem() == ModItems.antiGravityBoots) {
-                    EnumGravityDirection gravityDirection = GravityCapability.getGravityDirection(event.player);
-                    if (gravityDirection != EnumGravityDirection.UP) {
-                        MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent(EnumGravityDirection.UP, event.player, Side.SERVER));
-                    }
+                    doGravityTransition(EnumGravityDirection.UP, (EntityPlayerMP)event.player);
                 }
                 else {
-                    EnumGravityDirection gravityDirection = GravityCapability.getGravityDirection(event.player);
-                    if (gravityDirection != EnumGravityDirection.DOWN) {
-                        MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent(EnumGravityDirection.DOWN, event.player, Side.SERVER));
-                    }
+                    doGravityTransition(EnumGravityDirection.DOWN, (EntityPlayerMP)event.player);
                 }
             }
         }
@@ -140,10 +156,10 @@ public class GravityManagerCommon {
     }
 
     public EnumGravityDirection getGravityDirection(String playerName) {
-        return GravityCapability.getGravityDirection(playerName, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
+        return GravityDirectionCapability.getGravityDirection(playerName, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
     }
 
-    public void setGravitydirection(String playerName, EnumGravityDirection direction) {
-        GravityCapability.setGravityCapability(playerName, direction, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
-    }
+//    public void setGravityDirection(String playerName, EnumGravityDirection direction) {
+//        GravityCapability.setGravityCapability(playerName, direction, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
+//    }
 }

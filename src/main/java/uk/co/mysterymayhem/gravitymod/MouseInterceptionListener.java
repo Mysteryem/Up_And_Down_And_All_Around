@@ -1,15 +1,15 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.Display;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 
+//TODO: Remove and see if the rotatePitch and rotateYaw methods are useful
 /**
  * Created by Mysteryem on 2016-08-04.
  */
@@ -24,12 +24,12 @@ public class MouseInterceptionListener {
         this.wrapper = new MouseHelperWrapper(Minecraft.getMinecraft().mouseHelper);
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    //@SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onClientRenderTick(RenderTickEvent event){
         Minecraft mc = Minecraft.getMinecraft();
         if (Display.isActive()
                 && mc.inGameHasFocus
-                && GravityCapability.getGravityDirection(mc.thePlayer) == EnumGravityDirection.UP
+                && GravityDirectionCapability.getGravityDirection(mc.thePlayer) == EnumGravityDirection.UP
                 && event.phase == TickEvent.Phase.START) {
             mc.mouseHelper = wrapper;
             this.cleanupNeeded = true;

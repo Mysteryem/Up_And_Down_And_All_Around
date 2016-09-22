@@ -84,5 +84,7 @@ processResources
 }
 
 manifest {
-    attributes 'FMLAT': 'accessTransformer.cfg'
+    attributes 'FMLCorePlugin': 'uk.co.mysterymayhem.gravitymod.asm.FMLLoadingPlugin',
+            'FMLCorePluginContainsFMLMod': 'true',
+            'FMLAT': 'mysttmtgravitymod_at.cfg'
 }

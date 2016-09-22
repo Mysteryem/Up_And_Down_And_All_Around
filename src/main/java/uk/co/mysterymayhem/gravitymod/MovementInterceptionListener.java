@@ -2,23 +2,21 @@ package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 
+//TODO: Remove
 /**
  * Created by Mysteryem on 2016-08-07.
  */
@@ -55,16 +53,18 @@ public class MovementInterceptionListener {
         }
     }
 
-    //@SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPlayerUpdate2(PlayerTickEvent event) {
-
-    }
+//    @SubscribeEvent(priority = EventPriority.LOWEST)
+//    public void onPlayerUpdate2(PlayerTickEvent event) {
+//        //boolean debugOnGround = event.player.isCollided
+//        event.player.onGround = event.player.isCollided;
+//        event.player.isAirBorne = !event.player.isCollided;
+//    }
 
 
     private boolean setOnGroundInEndPhase = false;
 
     //TODO: Going to need a rewrite to fix sprinting probably, also, no way that this method will be able to work for gravity directions that are not "UP"
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    //@SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPlayerUpdate(PlayerTickEvent event) {
         //if (event.side == Side.CLIENT) {
             switch (event.phase) {
@@ -72,7 +72,7 @@ public class MovementInterceptionListener {
                     //System.out.println("Below: " + event.player.worldObj.getBlockState(new BlockPos(event.player)).getBlock().getUnlocalizedName() + " at " + new BlockPos(event.player));
                     //System.out.println("Above: " + event.player.worldObj.getBlockState(new BlockPos(event.player).add(0, event.player.height + 1, 0)).getBlock() + " at " + new BlockPos(event.player).add(0, event.player.height + 1, 0));
                     //if (GravityManagerClient.isClientUpsideDown()) {
-                    if (GravityCapability.getGravityDirection(event.player) == EnumGravityDirection.UP) {
+                    if (GravityDirectionCapability.getGravityDirection(event.player) == EnumGravityDirection.UP) {
                         BlockPos posAbovePlayersHead = new BlockPos(event.player).add(0, event.player.height + 1, 0);
                         IBlockState blockState = event.player.worldObj.getBlockState(posAbovePlayersHead);
                         AxisAlignedBB collisionBoundingBox = blockState.getCollisionBoundingBox(event.player.worldObj, posAbovePlayersHead);
@@ -149,13 +149,13 @@ public class MovementInterceptionListener {
         //}
     }
 
-    @SubscribeEvent
-    public void onLivingJump(LivingEvent.LivingJumpEvent event) {
-        if (event.getEntity() instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer)event.getEntity();
-            if (GravityCapability.getGravityDirection(player) == EnumGravityDirection.UP) {
-                player.motionY *= -1;
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public void onLivingJump(LivingEvent.LivingJumpEvent event) {
+//        if (event.getEntity() instanceof EntityPlayer) {
+//            EntityPlayer player = (EntityPlayer)event.getEntity();
+//            if (GravityCapability.getGravityDirection(player) == EnumGravityDirection.UP) {
+//                player.motionY *= -1;
+//            }
+//        }
+//    }
 }

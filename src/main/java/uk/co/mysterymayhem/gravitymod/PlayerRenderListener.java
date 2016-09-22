@@ -5,11 +5,11 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 
 /**
  * Created by Mysteryem on 2016-08-07.
@@ -20,32 +20,41 @@ public class PlayerRenderListener {
     private EntityPlayer player = null;
     private boolean rotationNeedsUndo = false;
 
-    //TODO: begin replacing with differing transformations based on EnumGravityDirection
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    private boolean needToPop = false;
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onRender(RenderLivingEvent.Pre<EntityPlayer> event) {
         EntityLivingBase entity = event.getEntity();
         if (entity instanceof EntityPlayer) {
             EntityPlayer entityPlayer = (EntityPlayer)entity;
-            if (GravityCapability.getGravityDirection(entityPlayer) == EnumGravityDirection.UP) {
-                this.rotationNeedsUndo = true;
+            EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(entityPlayer);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(event.getX(), event.getY(), event.getZ());
+            gravityDirection.applyOtherPlayerRenderTransformations(entityPlayer);
+            GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
+            this.needToPop = true;
 
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(event.getX(), event.getY(), event.getZ());
-                GlStateManager.rotate(180, 1, 0, 0);
-                GlStateManager.rotate(180, 0, 1, 0);
-                GlStateManager.translate(0, -entityPlayer.height, 0);
-                GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
-
-                this.player = entityPlayer;
-                player.rotationYawHead *= -1;
-                player.rotationYaw *= -1;
-                player.rotationPitch *= -1;
-                player.prevRotationPitch *= -1;
-                player.prevRotationYaw *= -1;
-                player.renderYawOffset *= -1;
-                player.prevRenderYawOffset *= -1;
-                player.prevRotationYawHead *= -1;
-            }
+//            if (GravityCapability.getGravityDirection(entityPlayer) == EnumGravityDirection.UP) {
+//                this.rotationNeedsUndo = true;
+//
+//                GlStateManager.pushMatrix();
+//                GlStateManager.translate(event.getX(), event.getY(), event.getZ());
+//                EnumGravityDirection.UP.applyRenderTransformations(entityPlayer);
+////                GlStateManager.rotate(180, 1, 0, 0);
+////                GlStateManager.rotate(180, 0, 1, 0);
+//                GlStateManager.translate(0, -entityPlayer.height, 0);
+//                GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
+//
+//                this.player = entityPlayer;
+////                player.rotationYawHead *= -1;
+////                player.rotationYaw *= -1;
+////                player.rotationPitch *= -1;
+////                player.prevRotationPitch *= -1;
+////                player.prevRotationYaw *= -1;
+////                player.renderYawOffset *= -1;
+////                player.prevRenderYawOffset *= -1;
+////                player.prevRotationYawHead *= -1;
+//            }
 
             //if (entityPlayer == Minecraft.getMinecraft().thePlayer)
 
@@ -60,16 +69,20 @@ public class PlayerRenderListener {
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public void onRender(RenderLivingEvent.Post<EntityPlayer> event) {
-        if (this.rotationNeedsUndo) {
-            this.rotationNeedsUndo = false;
-            player.rotationYawHead *= -1;
-            player.rotationYaw *= -1;
-            player.rotationPitch *= -1;
-            player.prevRotationPitch *= -1;
-            player.prevRotationYaw *= -1;
-            player.renderYawOffset *= -1;
-            player.prevRenderYawOffset *= -1;
-            player.prevRotationYawHead *= -1;
+//        if (this.rotationNeedsUndo) {
+//            this.rotationNeedsUndo = false;
+//            player.rotationYawHead *= -1;
+//            player.rotationYaw *= -1;
+//            player.rotationPitch *= -1;
+//            player.prevRotationPitch *= -1;
+//            player.prevRotationYaw *= -1;
+//            player.renderYawOffset *= -1;
+//            player.prevRenderYawOffset *= -1;
+//            player.prevRotationYawHead *= -1;
+//
+//        }
+        if (this.needToPop) {
+            this.needToPop = false;
             GlStateManager.popMatrix();
         }
         //player.rotationYawHead -= 180;

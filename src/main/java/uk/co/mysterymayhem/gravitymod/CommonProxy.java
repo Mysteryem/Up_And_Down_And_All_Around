@@ -1,7 +1,7 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraftforge.common.MinecraftForge;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityCapability;
+import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
 
 /**
@@ -11,7 +11,7 @@ public class CommonProxy {
     public GravityManagerCommon gravityManagerCommon;
 
     public void preInit() {
-        GravityCapability.registerCapability();
+        GravityDirectionCapability.registerCapability();
         this.registerGravityManager();
         GravityChangePacketHandler.registerMessages();
         ModItems.initItems();
@@ -28,8 +28,8 @@ public class CommonProxy {
 
     public void registerListeners() {
         MinecraftForge.EVENT_BUS.register(this.getGravityManager());
-        //MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
-        MinecraftForge.EVENT_BUS.register(new MovementInterceptionListener());
+        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
+//        MinecraftForge.EVENT_BUS.register(new MovementInterceptionListener());
     }
 
     public GravityManagerCommon getGravityManager() {
