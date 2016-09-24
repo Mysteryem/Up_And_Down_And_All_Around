@@ -1,4 +1,4 @@
-# Up And Down And All Around
+# Up And Down And All Around - ↑ & ↓ & ↻
 ####(originally TMT_Gravity_Mod)
 A gravity mod originally made for The Modding Trials.
 
@@ -12,18 +12,21 @@ The newer versions of this mod aim to create a more robust system that both fixe
 
 ##Notes to other mod developers:
 
+###Motion
 A player's motion is considered relative to their current gravity direction. A Y motion of 1 while the player has Upwards gravity would result in the player moving downwards from the perspective of the world.
 
-A player's position is for the most part unchanged, the only thing of note is that for N/E/S/W gravity directions is that the player's position is in the same place as their eye position. This is so that vanilla code that uses ```player.posY + player.getEyeHeight()``` doesn't need to be fixed using ASM.
+###Position
+A player's position is for the most part unchanged, the only thing of note is that for N/E/S/W gravity directions is that the player's position is in the same place as their eye position. This is so that vanilla code that uses ```player.posY + player.getEyeHeight()``` doesn't need to be fixed using ASM. (in the future ```player.getEntityBoundingBox().minY + player.getEyeHeight()``` may also work, though currently does not)
 
-This mod makes heavy use out of its GravityAxisAlignedBB Class in order to avoid massive changes to vanilla classes. If your mod requires you to use your own class that extends AxisAlignedBB for player hitboxes, then it is likely that your mod will never be compatible with this mod.
+###Hitboxes
+This mod makes heavy use of its ```GravityAxisAlignedBB``` class in order to avoid massive changes to vanilla classes. If your mod requires you to use your own class that extends ```AxisAlignedBB``` for player hitboxes, then it is likely that your mod will never be compatible with this mod.
 
 ###ASM modifications
 This mod uses ASM to modify the following classes (if your mod also modifies these classes then there will be a chance that your mod is not compatible with this mod, though it may be possible to fix):
 - EntityPlayerMP
- - Superclass to EntityPlayerWithGravity
+ - Superclass -> EntityPlayerWithGravity
 - AbstractClientPlayer
- - Superclass to EntityPlayerWithGravity
+ - Superclass -> EntityPlayerWithGravity
 - EntityPlayerSP
  - onUpdateWalkingPlayer
  - onLivingUpdate
@@ -34,3 +37,5 @@ This mod uses ASM to modify the following classes (if your mod also modifies the
  - moveEntity
 - EntityLivingBase
  - moveEntityWithHeading
+- EntityRenderer
+ - orientCamera
