@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
+import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassReader;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassWriter;
@@ -12,6 +13,7 @@ import org.objectweb.asm.tree.*;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.PrimitiveClassName;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.ObjectClassName;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.function.Function;
@@ -44,6 +46,7 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
+        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
     }
 
 
@@ -83,6 +86,7 @@ public class Transformer implements IClassTransformer {
         if (function == null) {
             return bytes;
         } else {
+            System.out.println("[UpAndDownAndAllAround] Patching " + className);
             return function.apply(bytes);
         }
     }
@@ -128,6 +132,111 @@ public class Transformer implements IClassTransformer {
         }
 
         System.out.println("[UpAndDownAndAllAround] Injected super class into " + classNode.name);
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchEntityRenderer(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        boolean WorldClient$rayTraceBlocks_found = false;
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("orientCamera")) {
+//                ArrayList<LocalVariableNode> localVarsCopy = new ArrayList<>(methodNode.localVariables);
+//                localVarsCopy.sort((o1, o2) -> Integer.compare(o1.index, o2.index));
+//                localVarsCopy.forEach(localVariableNode -> {
+//                    FMLLog.info("name: " + localVariableNode.name + ", desc: " + localVariableNode.desc + ", index: " + localVariableNode.index);
+//                });
+
+                boolean foundEntityVar = false;
+                int entityVar = -1;
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext() && !WorldClient$rayTraceBlocks_found; ) {
+                    AbstractInsnNode next = iterator.next();
+                    if(!foundEntityVar && next instanceof VarInsnNode) {
+                        VarInsnNode varInsnNode = (VarInsnNode)next;
+                        if (varInsnNode.getOpcode() == Opcodes.ASTORE) {
+                            entityVar = varInsnNode.var;
+                            foundEntityVar = true;
+                        }
+                    }
+                    else if (foundEntityVar && next instanceof MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
+                        if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                && methodInsnNode.owner.equals("net/minecraft/client/multiplayer/WorldClient")
+                                && methodInsnNode.name.equals("rayTraceBlocks")
+                                && methodInsnNode.desc.equals("(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/RayTraceResult;")) {
+                            int index = 0;
+                            //y, z, x
+                            int[] localVariables = new int[3];
+                            AbstractInsnNode nodeToInsertAfter = null;
+
+                            while(index < 3) {
+                                AbstractInsnNode previous = iterator.previous();
+                                if (previous instanceof VarInsnNode) {
+                                    VarInsnNode varInsnNode = (VarInsnNode)previous;
+                                    if (varInsnNode.getOpcode() == Opcodes.DSTORE) {
+                                        localVariables[index] = varInsnNode.var;
+                                        if (index == 0) {
+                                            nodeToInsertAfter = previous;
+                                        }
+                                        index++;
+                                    }
+                                }
+                            }
+                            while(!WorldClient$rayTraceBlocks_found) {
+                                next = iterator.next();
+                                if (next == nodeToInsertAfter) {
+                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, entityVar)); //this.entity
+                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, localVariables[2])); //x
+                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, localVariables[0])); //y
+                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, localVariables[1])); //z
+                                    iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                            "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                            "adjustXYZ",
+                                            "(Lnet/minecraft/entity/Entity;DDD)[D",
+                                            false));
+
+                                    iterator.add(new InsnNode(Opcodes.DUP));
+                                    iterator.add(new InsnNode(Opcodes.DUP));
+
+                                    iterator.add(new InsnNode(Opcodes.ICONST_0));
+                                    iterator.add(new InsnNode(Opcodes.DALOAD));
+                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, localVariables[2])); //x = doubles[0]
+
+                                    iterator.add(new InsnNode(Opcodes.ICONST_2));
+                                    iterator.add(new InsnNode(Opcodes.DALOAD));
+                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, localVariables[1])); //z = doubles[0]
+
+                                    iterator.add(new InsnNode(Opcodes.ICONST_1));
+                                    iterator.add(new InsnNode(Opcodes.DALOAD));
+                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, localVariables[0])); //y = doubles[0]
+
+                                    WorldClient$rayTraceBlocks_found = true;
+                                }
+                            }
+
+//                            iterator.previous();// The INVOKEVIRTUAL we just found
+//                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 2));// Load the Entity
+//                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+//                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+//                                    "adjustVec",
+//                                    "(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
+//                                    false));
+//                            WorldClient$rayTraceBlocks_found = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!WorldClient$rayTraceBlocks_found) {
+            throw new RuntimeException("[UpAndDownAndAllAround] Could not find WorldClient::rayTraceBlocks in " + classNode.name + "::orientCamera");
+        }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);

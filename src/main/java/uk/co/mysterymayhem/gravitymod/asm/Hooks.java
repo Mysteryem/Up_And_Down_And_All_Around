@@ -253,6 +253,33 @@ public class Hooks {
         }
     }
 
+
+    public static Vec3d adjustVec(Vec3d normal, Entity entity) {
+        if (entity instanceof EntityPlayer) {
+            double x = entity.posX;
+            double y = entity.posY + entity.getEyeHeight();
+            double z = entity.posZ;
+
+            Vec3d vec3d = API.getGravityDirection((EntityPlayer) entity).adjustLookVec(normal);
+
+            entity.worldObj.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, normal.xCoord, normal.yCoord, normal.zCoord, 0, 0, 0);
+            entity.worldObj.spawnParticle(EnumParticleTypes.END_ROD, vec3d.xCoord, vec3d.yCoord, vec3d.zCoord, 0, 0, 0);
+            return vec3d;
+        }
+        else {
+            return normal;
+        }
+    }
+
+    //TODO: Where was the other place this is used?
+    /**
+     * ASM Hook used in EntityRenderer::orientCamera and somewhere else
+     * @param entity
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     */
     public static double[] adjustXYZ(Entity entity, double x, double y, double z) {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {

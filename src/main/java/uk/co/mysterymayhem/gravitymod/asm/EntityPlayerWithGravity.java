@@ -2,26 +2,9 @@ package uk.co.mysterymayhem.gravitymod.asm;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityBoat;
-import net.minecraft.entity.monster.EntityCreeper;
-import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.init.MobEffects;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -31,7 +14,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import sun.reflect.Reflection;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
@@ -39,8 +21,6 @@ import uk.co.mysterymayhem.gravitymod.util.reflection.LookupThief;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by Mysteryem on 2016-09-04.
@@ -120,7 +100,69 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         }
     }
 
-//    void makeAnglesRelative() {
+//
+//    /**
+//     *
+//     * @param vec
+//     * @return yaw, then pitch
+//     */
+//    float[] getRotationAndPitchFromVec(Vec3d vec) {
+//        Vec3d eyePosition = new Vec3d(this.posX, this.posY + this.getEyeHeight(), this.posZ);
+//        Vec3d target = eyePosition.add(vec);
+//
+////        double d0 = this.posX - this.entity.posX;
+////        double d0 = eyePosition.xCoord - target.xCoord;
+//        double d0 = vec.xCoord;
+////        double d1 = this.posY - (this.entity.posY + (double) this.entity.getEyeHeight());
+////        double d1 = eyePosition.yCoord - target.yCoord;
+//        double d1 = vec.yCoord;
+////        double d2 = this.posZ - this.entity.posZ;
+////        double d2 = eyePosition.zCoord - target.zCoord;
+//        double d2 = vec.zCoord;
+//        double d3 = (double) MathHelper.sqrt_double(d0 * d0 + d2 * d2);
+//        float yaw = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
+//        float pitch = (float) (-(MathHelper.atan2(d1, d3) * (180D / Math.PI)));
+//        return new float[]{yaw, pitch};
+////        this.entity.rotationPitch = this.updateRotation(this.entity.rotationPitch, f1, this.deltaLookPitch);
+////        this.entity.rotationYawHead = this.updateRotation(this.entity.rotationYawHead, f, this.deltaLookYaw);
+//    }
+//
+
+
+//    @Override
+//    public Vec3d getLook(float partialTicks) {
+////        Vec3d vectorForRotation;
+////        if (partialTicks == 1.0F) {
+////            vectorForRotation = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
+//////            return this.getVectorForRotation(this.rotationPitch, this.rotationYaw);
+////        } else {
+////            float interpolatedRotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * partialTicks;
+////            float interpolatedRotationYaw = this.prevRotationYawHead + (this.rotationYawHead - this.prevRotationYawHead) * partialTicks;
+////            vectorForRotation = this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+//////            return this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+////
+////        }
+////        return this.getGravityDirection().adjustLookVec(vectorForRotation);
+//        return Hooks.adjustLook(this, super.getLook(partialTicks));
+//    }
+//
+    @Override
+    public Vec3d getLook(float partialTicks) {
+        Vec3d vectorForRotation;
+        if (partialTicks == 1.0F) {
+            vectorForRotation = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
+    //            return this.getVectorForRotation(this.rotationPitch, this.rotationYaw);
+        } else {
+            float interpolatedRotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * partialTicks;
+            float interpolatedRotationYaw = this.prevRotationYawHead + (this.rotationYawHead - this.prevRotationYawHead) * partialTicks;
+            vectorForRotation = this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+    //            return this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+
+        }
+        return API.getGravityDirection(this).adjustLookVec(vectorForRotation);
+    }
+
+    //    void makeAnglesRelative() {
 //        if (!this.angleVarsAreRelative) {
 //            EnumGravityDirection gravityDirection = API.getGravityDirection(this);
 //            Vec3d headVec = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
@@ -169,34 +211,169 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 //            this.angleVarsAreRelative = false;
 //        }
 //    }
-//
-//    /**
-//     *
-//     * @param vec
-//     * @return yaw, then pitch
-//     */
-//    float[] getRotationAndPitchFromVec(Vec3d vec) {
-//        Vec3d eyePosition = new Vec3d(this.posX, this.posY + this.getEyeHeight(), this.posZ);
-//        Vec3d target = eyePosition.add(vec);
-//
-////        double d0 = this.posX - this.entity.posX;
-////        double d0 = eyePosition.xCoord - target.xCoord;
-//        double d0 = vec.xCoord;
-////        double d1 = this.posY - (this.entity.posY + (double) this.entity.getEyeHeight());
-////        double d1 = eyePosition.yCoord - target.yCoord;
-//        double d1 = vec.yCoord;
-////        double d2 = this.posZ - this.entity.posZ;
-////        double d2 = eyePosition.zCoord - target.zCoord;
-//        double d2 = vec.zCoord;
-//        double d3 = (double) MathHelper.sqrt_double(d0 * d0 + d2 * d2);
-//        float yaw = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
-//        float pitch = (float) (-(MathHelper.atan2(d1, d3) * (180D / Math.PI)));
-//        return new float[]{yaw, pitch};
-////        this.entity.rotationPitch = this.updateRotation(this.entity.rotationPitch, f1, this.deltaLookPitch);
-////        this.entity.rotationYawHead = this.updateRotation(this.entity.rotationYawHead, f, this.deltaLookYaw);
+
+//    @Override
+//    public void moveEntityWithHeading(float strafe, float forward) {
+////        this.makeRotationRelative();
+//        super.moveEntityWithHeading(strafe, forward);
+////        this.makeRotationAbsolute();
 //    }
 //
-//    /**
+//    private int relCount = 0;
+//    private int absCount = 0;
+//
+//    @SideOnly(Side.CLIENT)
+//    @Override
+//    public void setAngles(float yaw, float pitch) {
+//        this.makeRotationRelative();
+//        super.setAngles(yaw, pitch);
+//        this.makeRotationAbsolute();
+//    }
+//     void rotateAndBack() {
+//         if (this.worldObj.isRemote) {
+//             FMLLog.info("-----Starting-----");
+//             FMLLog.info("Making relative");
+//         }
+//         this.makeRotationRelative();
+//         if (this.worldObj.isRemote) {
+//             FMLLog.info("Making absolute");
+//         }
+//         this.makeRotationAbsolute();
+//         if (this.worldObj.isRemote) {
+//             FMLLog.info("=======Done=======");
+//         }
+//     }
+//
+//    void makeRotationRelative() {
+//        if (!this.angleVarsAreRelative) {
+//            if (this.worldObj.isRemote) {
+//                FMLLog.info("MakeREL, Absolute: (" + this.rotationPitch + ", " + this.prevRotationPitch + "), (" + this.rotationYaw + ", " + this.prevRotationYaw + "), (" + this.rotationYawHead + ", " + this.prevRotationYawHead + ")");
+//            }
+//            EnumGravityDirection gravityDirection = API.getGravityDirection(this);
+////            if (gravityDirection == EnumGravityDirection.DOWN) {
+////                this.motionVarsAreRelative = true;
+////                return;
+////            }
+//            Vec3d headVec = this.getPreciseVectorForRotation(this.rotationPitch, this.rotationYawHead);
+//            Vec3d bodyVec = this.getPreciseVectorForRotation(this.rotationPitch, this.rotationYaw);
+//            Vec3d prevHeadVec = this.getPreciseVectorForRotation(this.prevRotationPitch, this.prevRotationYawHead);
+//            Vec3d prevBodyVec = this.getPreciseVectorForRotation(this.prevRotationPitch, this.prevRotationYaw);
+//            headVec = gravityDirection.adjustLookVec(headVec);
+//            bodyVec = gravityDirection.adjustLookVec(bodyVec);
+//            prevHeadVec = gravityDirection.adjustLookVec(prevHeadVec);
+//            prevBodyVec = gravityDirection.adjustLookVec(prevBodyVec);
+//            float[] headVars = getPitchAndYawFromVec(headVec);
+//            float[] bodyVars = getPitchAndYawFromVec(bodyVec);
+//            float[] prevHeadVars = getPitchAndYawFromVec(prevHeadVec);
+//            float[] prevBodyVars = getPitchAndYawFromVec(prevBodyVec);
+//            this.rotationPitch = bodyVars[0];
+//            this.rotationYaw = bodyVars[1];
+//            this.rotationYawHead = headVars[1];
+//            this.prevRotationPitch = prevBodyVars[0];
+//            this.prevRotationYaw = prevBodyVars[1];
+//            this.prevRotationYawHead = prevHeadVars[1];
+//            this.angleVarsAreRelative = true;
+//            if (this.worldObj.isRemote) {
+//                FMLLog.info("MakeREL, Relative: (" + this.rotationPitch + ", " + this.prevRotationPitch + "), (" + this.rotationYaw + ", " + this.prevRotationYaw + "), (" + this.rotationYawHead + ", " + this.prevRotationYawHead + ")");
+//            }
+//        }
+//    }
+//
+//    void makeRotationAbsolute() {
+//        if (this.angleVarsAreRelative) {
+//            if (this.worldObj.isRemote) {
+//                FMLLog.info("MakeABS, Relative: (" + this.rotationPitch + ", " + this.prevRotationPitch + "), (" + this.rotationYaw + ", " + this.prevRotationYaw + "), (" + this.rotationYawHead + ", " + this.prevRotationYawHead + ")");
+//            }
+//            EnumGravityDirection gravityDirection = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection();
+////            if (gravityDirection == EnumGravityDirection.DOWN) {
+////                this.motionVarsAreRelative = true;
+////                return;
+////            }
+//            Vec3d headVec = this.getPreciseVectorForRotation(this.rotationPitch, this.rotationYawHead);
+//            Vec3d bodyVec = this.getPreciseVectorForRotation(this.rotationPitch, this.rotationYaw);
+//            Vec3d prevHeadVec = this.getPreciseVectorForRotation(this.prevRotationPitch, this.prevRotationYawHead);
+//            Vec3d prevBodyVec = this.getPreciseVectorForRotation(this.prevRotationPitch, this.prevRotationYaw);
+//            headVec = gravityDirection.adjustLookVec(headVec);
+//            bodyVec = gravityDirection.adjustLookVec(bodyVec);
+//            prevHeadVec = gravityDirection.adjustLookVec(prevHeadVec);
+//            prevBodyVec = gravityDirection.adjustLookVec(prevBodyVec);
+//            float[] headVars = getPitchAndYawFromVec(headVec);
+//            float[] bodyVars = getPitchAndYawFromVec(bodyVec);
+//            float[] prevHeadVars = getPitchAndYawFromVec(prevHeadVec);
+//            float[] prevBodyVars = getPitchAndYawFromVec(prevBodyVec);
+//            this.rotationPitch = bodyVars[0];
+//            this.rotationYaw = bodyVars[1];
+//            this.rotationYawHead = headVars[1];
+//            this.prevRotationPitch = prevBodyVars[0];
+//            this.prevRotationYaw = prevBodyVars[1];
+//            this.prevRotationYawHead = prevHeadVars[1];
+//            this.angleVarsAreRelative = false;
+//            if (this.worldObj.isRemote) {
+//                FMLLog.info("MakeABS, Absolute: (" + this.rotationPitch + ", " + this.prevRotationPitch + "), (" + this.rotationYaw + ", " + this.prevRotationYaw + "), (" + this.rotationYawHead + ", " + this.prevRotationYawHead + ")");
+//            }
+//        }
+//    }
+//
+//    private static final double ONE_HUNDRED_EIGHTY_OVER_PI = 180D/Math.PI;
+//    private static final double FRAC_BIAS;
+//    private static final double[] ASINE_TAB;
+//
+//    static {
+//        MethodHandles.Lookup lookup = LookupThief.INSTANCE.lookup(MathHelper.class);
+//        MethodHandle getFRAC_BIAS;
+//        MethodHandle getASINE_TAB;
+//        try {
+//            try {
+//                getFRAC_BIAS = lookup.findStaticGetter(MathHelper.class, "FRAC_BIAS", double.class);
+//            } catch (NoSuchFieldException e) {
+//                getFRAC_BIAS = lookup.findStaticGetter(MathHelper.class, "field_181163_d", double.class);
+//            }
+//            try {
+//                getASINE_TAB = lookup.findStaticGetter(MathHelper.class, "ASINE_TAB", double[].class);
+//            } catch (NoSuchFieldException e) {
+//                getASINE_TAB = lookup.findStaticGetter(MathHelper.class, "field_181164_e", double[].class);
+//            }
+//        } catch (NoSuchFieldException | IllegalAccessException e) {
+//            throw new RuntimeException(e);
+//        }
+//        try {
+//            FRAC_BIAS = (double)getFRAC_BIAS.invokeExact();
+//            ASINE_TAB = (double[])getASINE_TAB.invokeExact();
+//        } catch (Throwable throwable) {
+//            throw new RuntimeException(throwable);
+//        }
+//    }
+//
+//
+//    private static final double PI_OVER_180 = Math.PI/180D;
+//
+//    Vec3d getPreciseVectorForRotation(float pitch, float yaw) {
+//        double f = Math.cos(-yaw * PI_OVER_180 - Math.PI);
+//        double f1 = Math.sin(-yaw * PI_OVER_180 - Math.PI);
+//        double f2 = -Math.cos(-pitch * PI_OVER_180);
+//        double f3 = Math.sin(-pitch * PI_OVER_180);
+//        return new Vec3d((f1 * f2), f3, (f * f2));
+//    }
+//
+//    private static double fastASin(double value) {
+//        return Math.asin(value);
+////        if (value < 0) {
+////            return -ASINE_TAB[(int)Double.doubleToRawLongBits(-value + FRAC_BIAS)];
+////        }
+////        return ASINE_TAB[(int)Double.doubleToRawLongBits(value + FRAC_BIAS)];
+//    }
+//
+//    private static float[] getPitchAndYawFromVec(Vec3d vec3d) {
+//        double pitch = -(fastASin(vec3d.yCoord) * ONE_HUNDRED_EIGHTY_OVER_PI);
+//        double yaw = Math.atan2(-vec3d.xCoord, vec3d.zCoord) * ONE_HUNDRED_EIGHTY_OVER_PI;
+//        return new float[]{(float)pitch, (float)yaw};
+//    }
+//
+//    private static float[] getPitchAndYawFromVecSafe(Vec3d vec3d) {
+//        return getPitchAndYawFromVec(vec3d.normalize());
+//    }
+
+    //    /**
 //     //     * Adds 15% to the entity's yaw and subtracts 15% from the pitch. Clamps pitch from -90 to 90. Both arguments in
 //     //     * degrees.
 //     //     */
@@ -204,44 +381,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 ////    public void setAngles(float yaw, float pitch)
 ////    {
 ////        //make angles relative
-////        this.makeAnglesRelative();
+////        this.isRelative();
 ////        super.setAngles(yaw, pitch);
 ////        this.makeAnglesAbsolute();
 ////        //make angles absolute
 ////    }
-
-//    @Override
-//    public Vec3d getLook(float partialTicks) {
-////        Vec3d vectorForRotation;
-////        if (partialTicks == 1.0F) {
-////            vectorForRotation = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
-//////            return this.getVectorForRotation(this.rotationPitch, this.rotationYaw);
-////        } else {
-////            float interpolatedRotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * partialTicks;
-////            float interpolatedRotationYaw = this.prevRotationYawHead + (this.rotationYawHead - this.prevRotationYawHead) * partialTicks;
-////            vectorForRotation = this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
-//////            return this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
-////
-////        }
-////        return this.getGravityDirection().adjustLookVec(vectorForRotation);
-//        return Hooks.adjustLook(this, super.getLook(partialTicks));
-//    }
-//
-@Override
-public Vec3d getLook(float partialTicks) {
-    Vec3d vectorForRotation;
-    if (partialTicks == 1.0F) {
-        vectorForRotation = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
-//            return this.getVectorForRotation(this.rotationPitch, this.rotationYaw);
-    } else {
-        float interpolatedRotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * partialTicks;
-        float interpolatedRotationYaw = this.prevRotationYawHead + (this.rotationYawHead - this.prevRotationYawHead) * partialTicks;
-        vectorForRotation = this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
-//            return this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
-
-    }
-    return API.getGravityDirection(this).adjustLookVec(vectorForRotation);
-}
 
     @Override
     public void setEntityBoundingBox(AxisAlignedBB bb) {
@@ -316,6 +460,7 @@ public Vec3d getLook(float partialTicks) {
         }
     }
 
+    //TODO: ASM?
     @Override
     public boolean isEntityInsideOpaqueBlock()
     {
@@ -804,6 +949,7 @@ public Vec3d getLook(float partialTicks) {
         }
     }
 
+    //TODO: Could ASM or call super.setPosition() and then my own code?
     /**
      * Sets the x,y,z of the entity from the given parameters. Also seems to set up a bounding box.
      */
@@ -838,6 +984,9 @@ public Vec3d getLook(float partialTicks) {
         return result;
     }
 
+
+    //TODO: Work out what's wrong with my Access Transformer
+    // MethodHandles used in isOnLadder() as my Access Transformer doesn't want to work...
     private static final MethodHandle nextStepDistance_Get;
     private static final MethodHandle nextStepDistance_Set;
 
