@@ -3,13 +3,13 @@ package uk.co.mysterymayhem.gravitymod.asm;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
 import net.minecraft.util.*;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
@@ -21,6 +21,7 @@ import uk.co.mysterymayhem.gravitymod.util.reflection.LookupThief;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-09-04.
@@ -566,5 +567,13 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         else {
             return super.isOnLadder();
         }
+    }
+
+    //TODO: Replace with AT on the EntityPlayerSP method?
+    // Required so we can call this method from inside this package, this will end up calling EntityPlayerSP::func_189810_i instead
+    @SideOnly(Side.CLIENT)
+    protected void func_189810_i(float p_189810_1_, float p_189810_2_) {
+        FMLLog.warning("Erroneously tried to call func_189810_i(auto-jump method) from " + this);
+//        throw new RuntimeException("Unreachable code reached");
     }
 }

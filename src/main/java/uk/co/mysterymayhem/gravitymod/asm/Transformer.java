@@ -1,11 +1,11 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
-import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassReader;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.TraceClassVisitor;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.DeobfAwareString;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FieldInstruction;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.IDeobfAware;
@@ -13,7 +13,7 @@ import org.objectweb.asm.tree.*;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.PrimitiveClassName;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.ObjectClassName;
 
-import java.util.ArrayList;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.function.Function;
@@ -711,6 +711,8 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
+    private static final boolean DEBUG_AUTO_JUMP = false;
+
     //TODO: Instead of changing the field, call a method in Hooks that takes the aabb as an argument and returns GravityAxisAlignedBB.getOrigin().getY() or AxisAlignedBB.minY
     private static byte[] patchEntityPlayerSP(byte[] bytes) {
         ClassNode classNode = new ClassNode();
@@ -732,6 +734,10 @@ public class Transformer implements IClassTransformer {
 //        IDeobfAware onLivingUpdate = new DeobfAwareString("onLivingUpdate", "func_70636_d");
 
         for (MethodNode methodNode : classNode.methods) {
+            /*
+
+
+             */
             if (methodNode.name.equals("onUpdateWalkingPlayer")) {
                 System.out.println("[UpAndDownAndAllAround] Modifying EntityPlayerSP::onUpdateWalkingPlayer");
 
@@ -778,7 +784,12 @@ public class Transformer implements IClassTransformer {
                 } else {
                     throw new RuntimeException("[UpAndDownAndAllAround] Failed to find any instances of \"axisalignedbb.minY\" in " + classNode.name);
                 }
-            } else if (methodNode.name.equals("onLivingUpdate")) {
+            }
+            /*
+
+
+             */
+            else if (methodNode.name.equals("onLivingUpdate")) {
                 System.out.println("[UpAndDownAndAllAround] Modifying EntityPlayerSP::onLivingUpdate");
 
                 boolean error = true;
@@ -871,6 +882,10 @@ public class Transformer implements IClassTransformer {
                     onLivingUpdateModified = true;
                 }
             }
+            /*
+
+
+             */
             else if (methodNode.name.equals("isHeadspaceFree")) {
                 System.out.println("[UpAndDownAndAllAround] Modifying EntityPlayerSP::isHeadspaceFree");
                 InsnList instructions = methodNode.instructions;
@@ -895,11 +910,559 @@ public class Transformer implements IClassTransformer {
                 System.out.println("[UpAndDownAndAllAround] Replaced EntityPlayerSP::isHeadspaceFree with call to Hooks::isHeadspaceFree");
                 isHeadSpaceFreeModified = true;
             }
+            /*
+
+
+             */
+            else if (methodNode.name.equals("func_189810_i")) {
+                int addVectorReplacements = 0;
+                int blockPosUPCount = 0;
+                int blockPosUPCountI = 0;
+                boolean foundFirstBlockPosGetY = false;
+                //newPATCH #1
+                boolean patch1Complete = false;
+                //newPATCH #2
+                boolean patch2Complete = false;
+                //newPATCH #3
+                boolean patch3Complete = false;
+                //newPATCH #4
+                boolean patch4Complete = false;
+                //newPATCH #5 and #6.5
+                boolean patch5Complete = false;
+                int vec3d12_var = -1;
+                boolean patch6Complete = false;
+                boolean patch7Complete = false;
+                boolean patch8Complete = false;
+                boolean patch9Complete = false;
+                int axisAlignedBBmaxYCount = 0;
+                int axisAlignedBBminYCount = 0;
+
+                if (DEBUG_AUTO_JUMP) {
+                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                        AbstractInsnNode next = iterator.next();
+                        if (next instanceof LineNumberNode) {
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            iterator.add(new VarInsnNode(Opcodes.FLOAD, 1));
+                            iterator.add(new VarInsnNode(Opcodes.FLOAD, 2));
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "net/minecraft/client/entity/AbstractClientPlayer", "func_189810_i", "(FF)V", false));
+                            iterator.add(new InsnNode(Opcodes.RETURN));
+                        }
+                    }
+                }
+                else {
+                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                        AbstractInsnNode next = iterator.next();
+                        if (next instanceof MethodInsnNode) {
+                            MethodInsnNode methodInsnNode = (MethodInsnNode)next;
+                            //newPATCH #4
+                            if (patch3Complete
+                                    && !patch4Complete
+                                    && methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                    && methodInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
+                                    && methodInsnNode.name.equals("getEntityBoundingBox")
+                                    && methodInsnNode.desc.equals("()Lnet/minecraft/util/math/AxisAlignedBB;")) {
+                                iterator.remove();
+                                iterator.next();
+                                iterator.remove(); // GETFIELD net/minecraft/util/math/AxisAlignedBB.minY : D
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getOriginRelativePosY",
+                                        "(Lnet/minecraft/entity/Entity;)D",
+                                        false));
+                                iterator.next(); // DLOAD ? (likely 7)
+                                iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // Have to pass this to adjustVec as well
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "adjustVec",
+                                        "(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
+                                        false));
+                                patch4Complete = true;
+                            }
+                            //newPatch #5
+                            else if (patch4Complete
+                                    && !patch5Complete
+                                    && methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                    && methodInsnNode.owner.equals("net/minecraft/util/math/Vec3d")
+                                    && methodInsnNode.name.equals("scale")
+                                    && methodInsnNode.desc.equals("(D)Lnet/minecraft/util/math/Vec3d;")) {
+                                next = iterator.next();
+                                if (next instanceof VarInsnNode) {
+                                    // Should also be ASTORE
+                                    vec3d12_var = ((VarInsnNode)next).var;
+                                    patch5Complete = true;
+                                }
+                                else {
+                                    throw new RuntimeException("Expected a VarInsnNode after first usage of Vec3d::scale");
+                                }
+                            }
+                            //PATCH #1
+                            else if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                    && methodInsnNode.owner.equals("net/minecraft/util/math/Vec3d")
+                                    && methodInsnNode.name.equals("addVector")
+                                    && methodInsnNode.desc.equals("(DDD)Lnet/minecraft/util/math/Vec3d;")){
+                                iterator.remove();
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "addAdjustedVector",
+                                        "(Lnet/minecraft/util/math/Vec3d;DDDLnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
+                                        false));
+                                addVectorReplacements++;
+                            }
+                            //newPATCH #8
+                            else if (patch7Complete
+                                    && !patch8Complete
+                                    && methodInsnNode.getOpcode() == Opcodes.INVOKESPECIAL
+                                    && methodInsnNode.owner.equals("net/minecraft/util/math/AxisAlignedBB")
+                                    && methodInsnNode.name.equals("<init>")
+                                    && methodInsnNode.desc.equals("(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;)V")) {
+                                iterator.remove();
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "constructNewGAABBFrom2Vec3d",
+                                        "(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/AxisAlignedBB;",
+                                        false));
+                                patch8Complete = true;
+                            }
+                            //PATCH #3
+                            else if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                    && methodInsnNode.owner.equals("net/minecraft/util/math/BlockPos")
+                                    && methodInsnNode.name.equals("up")) {
+                                String desc = null;
+                                if (methodInsnNode.desc.equals("()Lnet/minecraft/util/math/BlockPos;")) {
+                                    desc = "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/BlockPos;";
+                                    blockPosUPCount++;
+                                }
+                                else if (methodInsnNode.desc.equals("(I)Lnet/minecraft/util/math/BlockPos;")) {
+                                    desc = "(Lnet/minecraft/util/math/BlockPos;ILnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/BlockPos;";
+                                    blockPosUPCountI++;
+                                }
+
+                                //Just in case there's ever some other 'up' method
+                                if (desc != null) {
+                                    iterator.remove();
+                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                    iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                            "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                            "getRelativeUpBlockPos",
+                                            desc,
+                                            false));
+                                }
+                            }
+                            //PATCH #4
+                            else if (!foundFirstBlockPosGetY
+                                    && methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                    && methodInsnNode.owner.equals("net/minecraft/util/math/BlockPos")
+                                    && methodInsnNode.name.equals("getY")
+                                    && methodInsnNode.desc.equals("()I")) {
+                                iterator.remove();
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getRelativeYOfBlockPos",
+                                        "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)I",
+                                        false));
+                                foundFirstBlockPosGetY = true;
+                            }
+
+                        }
+                        else if (next instanceof TypeInsnNode
+                                && next.getOpcode() == Opcodes.NEW) {
+                            TypeInsnNode typeInsnNode = (TypeInsnNode)next;
+                            //newPATCH #1
+                            if (!patch1Complete
+//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
+                                    && typeInsnNode.desc.equals("net/minecraft/util/math/Vec3d")) {
+                                iterator.remove();
+                                while(!patch1Complete) {
+                                    next = iterator.next();
+                                    if (next instanceof MethodInsnNode && next.getOpcode() == Opcodes.INVOKESPECIAL) {
+                                        iterator.remove();
+                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                                "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                                "getBottomOfEntity",
+                                                "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
+                                                false));
+                                        patch1Complete = true;
+                                    }
+                                    else {
+                                        iterator.remove();
+                                    }
+                                }
+                            }
+                            //newPATCH #7
+                            else if (!patch7Complete
+                                    && patch6Complete
+//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
+                                    && typeInsnNode.desc.equals("net/minecraft/util/math/AxisAlignedBB")) {
+                                iterator.remove();
+                                next = iterator.next();
+                                if (next instanceof InsnNode && next.getOpcode() == Opcodes.DUP) {
+                                    iterator.remove();
+                                    patch7Complete = true;
+                                }
+                                else {
+                                    //what
+                                    throw new RuntimeException("[UpAndDownAndAllAround] DUP instruction not found after expected NEW AxisAlignedBB");
+                                }
+                            }
+                            //newPATCH #6
+                            else if(patch5Complete
+                                    && !patch6Complete
+//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
+                                    && typeInsnNode.desc.equals("net/minecraft/util/math/BlockPos")) {
+                                iterator.remove();
+                                while(!patch6Complete) {
+                                    next = iterator.next();
+                                    if (next instanceof MethodInsnNode && next.getOpcode() == Opcodes.INVOKESPECIAL) {
+                                        iterator.remove();
+                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                                "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                                "getBlockPosAtTopOfPlayer",
+                                                "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/BlockPos;",
+                                                false));
+
+                                        //newPATCH #6.5
+                                        iterator.next(); //ASTORE ? (probably 17)
+                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, vec3d12_var));
+                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                                "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                                "adjustVec",
+                                                "(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
+                                                false));
+                                        iterator.add(new VarInsnNode(Opcodes.ASTORE, vec3d12_var));
+
+                                        patch6Complete = true;
+                                    }
+                                    else {
+                                        iterator.remove();
+                                    }
+                                }
+                            }
+                            //newPATCH #9
+                            else if(patch8Complete
+                                    && !patch9Complete
+//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
+                                    && typeInsnNode.desc.equals("net/minecraft/util/math/Vec3d")) {
+                                iterator.next(); // DUP
+                                iterator.next(); // DCONST_0
+                                next = iterator.next();
+                                if (next.getOpcode() == Opcodes.DCONST_1) {
+                                    iterator.remove();
+                                    iterator.add(new InsnNode(Opcodes.DCONST_0));
+                                }
+                                else {
+                                    throw new RuntimeException("Expecting DCONST_0 followed by DCONST_1, but instead got " + next);
+                                }
+                                iterator.next(); // DCONST_0
+                                iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
+
+                                iterator.add(new InsnNode(Opcodes.DCONST_0));
+                                iterator.add(new InsnNode(Opcodes.DCONST_1));
+                                iterator.add(new InsnNode(Opcodes.DCONST_0));
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "addAdjustedVector",
+                                        "(Lnet/minecraft/util/math/Vec3d;DDDLnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
+                                        false));
+
+                                patch9Complete = true;
+                            }
+
+                        }
+                        else if (next instanceof FieldInsnNode) {
+                            FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                            //newPATCH #2
+                            if (patch1Complete
+                                    && !patch2Complete
+                                    && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                    && fieldInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
+                                    && fieldInsnNode.name.equals("posX")
+                                    && fieldInsnNode.desc.equals("D")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getOriginRelativePosX",
+                                        "(Lnet/minecraft/entity/Entity;)D",
+                                        false));
+                                patch2Complete = true;
+                            }
+                            //newPATCH #3
+                            else if(patch2Complete
+                                    && !patch3Complete
+                                    && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                    && fieldInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
+                                    && fieldInsnNode.name.equals("posZ")
+                                    && fieldInsnNode.desc.equals("D")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getOriginRelativePosZ",
+                                        "(Lnet/minecraft/entity/Entity;)D",
+                                        false));
+                                patch3Complete = true;
+                            }
+                            //newPATCH #10
+                            else if (patch9Complete
+                                    && axisAlignedBBmaxYCount < 2
+                                    && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                    && fieldInsnNode.owner.equals("net/minecraft/util/math/AxisAlignedBB")
+                                    && fieldInsnNode.name.equals("maxY")
+                                    && fieldInsnNode.desc.equals("D")) {
+                                iterator.remove();
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getRelativeTopOfBB",
+                                        "(Lnet/minecraft/util/math/AxisAlignedBB;Lnet/minecraft/entity/Entity;)D",
+                                        false));
+                                axisAlignedBBmaxYCount++;
+                            }
+                            //newPATCH #11
+                            else if (axisAlignedBBmaxYCount == 2
+                                    && axisAlignedBBminYCount < 2
+                                    && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                    && fieldInsnNode.owner.equals("net/minecraft/util/math/AxisAlignedBB")
+                                    && fieldInsnNode.name.equals("minY")
+                                    && fieldInsnNode.desc.equals("D")) {
+                                iterator.remove();
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getRelativeBottomOfBB",
+                                        "(Lnet/minecraft/util/math/AxisAlignedBB;Lnet/minecraft/entity/Entity;)D",
+                                        false));
+                                axisAlignedBBminYCount++;
+                            }
+                        }
+                    }
+//                    addVectorReplacements
+//                    axisAlignedBBmaxYCount
+//                    axisAlignedBBminYCount
+//                    blockPosUPCount
+//                    blockPosUPCountI
+                    System.out.println("addVector: " + addVectorReplacements
+                            + "\nmaxY: " + axisAlignedBBmaxYCount
+                            + "\nminY: " + axisAlignedBBminYCount
+                            + "\nup(): " + blockPosUPCount
+                            + "\nup(int): " + blockPosUPCountI);
+                }
+            }
+            else if (methodNode.name.equals("moveEntity")) {
+                if (DEBUG_AUTO_JUMP) {
+                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                        AbstractInsnNode next = iterator.next();
+                        if (next instanceof LineNumberNode) {
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            iterator.add(new VarInsnNode(Opcodes.DLOAD, 1));
+                            iterator.add(new VarInsnNode(Opcodes.DLOAD, 3));
+                            iterator.add(new VarInsnNode(Opcodes.DLOAD, 5));
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "net/minecraft/client/entity/AbstractClientPlayer",
+                                    "moveEntity", "(DDD)V", false));
+                            iterator.add(new InsnNode(Opcodes.RETURN));
+                        }
+                    }
+                }
+                else {
+                    int prevRelativeXPos_var = -1;
+                    int prevRelativeZPos_var = -1;
+
+                    outerfor:
+                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                        AbstractInsnNode next = iterator.next();
+                        if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ALOAD) {
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            iterator.next(); // GETFIELD net/minecraft/client/entity/EntityPlayerSP.posX : D
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            iterator.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/client/entity/EntityPlayerSP", "posY", "D"));
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            iterator.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/client/entity/EntityPlayerSP", "posZ", "D"));
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                    "inverseAdjustXYZ", "(Lnet/minecraft/entity/Entity;DDD)[D", false));
+                            iterator.add(new InsnNode(Opcodes.DUP));
+                            iterator.add(new InsnNode(Opcodes.ICONST_0));
+                            iterator.add(new InsnNode(Opcodes.DALOAD));
+                            //next is DSTORE 7
+                            next = iterator.next();
+                            if (next instanceof VarInsnNode) {
+                                prevRelativeXPos_var = ((VarInsnNode)next).var;
+                            }
+                            else {
+                                throw new RuntimeException("Was expecting DSTORE _ after GETFIELD posX, instead got " + next);
+                            }
+
+                            while(true) {
+                                next = iterator.next();
+                                if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ALOAD) {
+                                    //ALOAD 0
+                                    iterator.remove();
+                                    iterator.next(); //GETFIELD net/minecraft/client/entity/EntityPlayerSP.posZ : D
+                                    iterator.remove();
+                                    iterator.add(new InsnNode(Opcodes.ICONST_2));
+                                    iterator.add(new InsnNode(Opcodes.DALOAD));
+                                    //next is DSTORE 9
+                                    next = iterator.next();
+                                    if (next instanceof VarInsnNode) {
+                                        prevRelativeZPos_var = ((VarInsnNode)next).var;
+                                    }
+                                    else {
+                                        throw new RuntimeException("Was expecting DSTORE _ after GETFIELD posZ, instead got " + next);
+                                    }
+
+                                    while(true) {
+                                        next = iterator.next();
+                                        if(next instanceof FieldInsnNode) {
+                                            FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                                            if (fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                                    && fieldInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
+                                                    && fieldInsnNode.name.equals("posX")
+                                                    && fieldInsnNode.desc.equals("D")) {
+                                                iterator.previous();
+                                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                                iterator.next(); // same GETFIELD instruction
+                                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                                iterator.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/client/entity/EntityPlayerSP", "posY", "D"));
+                                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                                iterator.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/client/entity/EntityPlayerSP", "posZ", "D"));
+                                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                                        "inverseAdjustXYZ", "(Lnet/minecraft/entity/Entity;DDD)[D", false));
+                                                iterator.add(new InsnNode(Opcodes.DUP));
+                                                iterator.add(new InsnNode(Opcodes.ICONST_2));
+                                                iterator.add(new InsnNode(Opcodes.DALOAD));
+                                                iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var));
+                                                iterator.add(new InsnNode(Opcodes.DSUB));
+                                                iterator.add(new VarInsnNode(Opcodes.DSTORE, prevRelativeZPos_var));
+                                                iterator.add(new InsnNode(Opcodes.ICONST_0));
+                                                iterator.add(new InsnNode(Opcodes.DALOAD));
+                                                iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeXPos_var));
+                                                iterator.add(new InsnNode(Opcodes.DSUB));
+                                                iterator.add(new InsnNode(Opcodes.D2F));
+                                                iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var));
+                                                iterator.add(new InsnNode(Opcodes.D2F));
+
+                                                while(true) {
+                                                    next = iterator.next();
+                                                    if (next.getOpcode() == Opcodes.INVOKEVIRTUAL) {
+                                                        //INVOKEVIRTUAL net/minecraft/client/entity/EntityPlayerSP.func_189810_i (FF)V // Auto-jump method
+                                                        break outerfor;
+                                                    }
+                                                    else {
+                                                        iterator.remove();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    /*
+                    // access flags 0x1
+                      public moveEntity(DDD)V
+                       L0
+                        LINENUMBER 602 L0
+                        ALOAD 0
+                        ALOAD 0
+                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posX : D
+                        ALOAD 0
+                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posY : D
+                        ALOAD 0
+                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posZ : D
+                        INVOKESTATIC uk/co/mysterymayhem/gravitymod/asm/Hooks.inverseAdjustXYZ (Lnet/minecraft/entity/Entity;DDD)[D
+                        DUP
+                        ICONST_0
+                        DALOAD
+                        DSTORE 7
+                       L1
+                        LINENUMBER 604 L2
+                        ICONST_2
+                        DALOAD
+                        DSTORE 9
+                       L2
+                        LINENUMBER 605 L3
+                        ALOAD 0
+                        DLOAD 1
+                        DLOAD 3
+                        DLOAD 5
+                        INVOKESPECIAL net/minecraft/entity/player/EntityPlayer.moveEntity (DDD)V
+                       L3
+                        LINENUMBER 606 L4
+                        ALOAD 0
+                          this
+                        ALOAD 0
+                          this, this
+                        ALOAD 0
+                          this, this, this
+                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posX : D
+                          this, this, posX
+                        ALOAD 0
+                          this, this, posX, this
+                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posY : D
+                          this, this, posX, posY
+                        ALOAD 0
+                          this, this, posX, posY, this
+                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posZ : D
+                          this, this, posX, posY, posZ
+                        INVOKESTATIC uk/co/mysterymayhem/gravitymod/asm/Hooks.inverseAdjustXYZ (Lnet/minecraft/entity/Entity;DDD)[D
+                          this, doubles
+                        DUP
+                          this, doubles, doubles
+                        ICONST_2
+                          this, doubles, doubles, 2
+                        DALOAD
+                          this, doubles, doubles[2](newRelZ)
+                        DLOAD 9
+                          this, doubles, doubles[2](newRelZ), d1(oldRelZ)
+                        DSUB
+                          this, doubles, doubles[2](newRelZ)-d1(oldRelZ)
+                        DSTORE 9
+                          this, doubles
+                        ICONST_0
+                          this, doubles, 0
+                        DALOAD
+                          this, doubles[0](newRelX)
+                        DLOAD 7
+                          this, doubles[0](newRelX), d0(oldRelX)
+                        DSUB
+                          this, doubles[0](newRelX)-d0(oldRelX)
+                        D2F
+                          this, (float)doubles[0](newRelX)-d0(oldRelX)
+                        DLOAD 9
+                          this, (float)doubles[0](newRelX)-d0(oldRelX), doubles[2](newRelZ)-d1(oldRelZ)
+                        D2F
+                          this, (float)doubles[0](newRelX)-d0(oldRelX), (float)doubles[2](newRelZ)-d1(oldRelZ)
+                        INVOKEVIRTUAL uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.func_189810_i (FF)V
+                          <empty>
+                       L4
+                        LINENUMBER 608 L6
+                        RETURN
+                       L5
+                     */
+                }
+            }
         }
 
         if (isHeadSpaceFreeModified && onLivingUpdateModified && onUpdateWalkingPlayerModified) {
-            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+//            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             classNode.accept(classWriter);
+
+//            byte[] modifiedBytes = classWriter.toByteArray();
+//
+//            ClassNode classNode2 = new ClassNode();
+//            ClassReader classReader2 = new ClassReader(modifiedBytes);
+//            PrintWriter writer = new PrintWriter(System.out);
+//            TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
+//            classReader2.accept(traceClassVisitor, 0);
+//            return modifiedBytes;
+
             return classWriter.toByteArray();
         }
         else {
