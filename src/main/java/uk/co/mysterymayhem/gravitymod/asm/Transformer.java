@@ -53,6 +53,8 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
         classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
         classNameToMethodMap.put("net.minecraft.client.particle.ParticleManager", Transformer::patchParticleManager);
+//        classNameToMethodMap.put("net.minecraft.client.renderer.RenderGlobal", Transformer::patchRenderGlobal);
+        classNameToMethodMap.put("net.minecraft.client.particle.Particle", Transformer::patchParticle);
     }
 
 
@@ -1566,10 +1568,10 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("renderLitParticles")) {
-                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW + ROTATIONPITCH);
-                break;
-            }
+//            if (methodNode.name.equals("renderLitParticles")) {
+//                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW + ROTATIONPITCH);
+//                break;
+//            }
             if (methodNode.name.equals("renderParticles")) {
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
@@ -1583,6 +1585,53 @@ public class Transformer implements IClassTransformer {
                             methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
                             methodInsnNode.name = "getNonGAffectedLook";
                             methodInsnNode.desc = "(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/util/math/Vec3d;";
+                        }
+                    }
+                }
+            }
+        }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchActiveRenderInfo(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("updateRenderInfo")) {
+                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW + ROTATIONPITCH);
+                break;
+            }
+        }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchParticle(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        outerfor:
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("renderParticle")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if(next instanceof VarInsnNode) {
+                        VarInsnNode varInsnNode = (VarInsnNode)next;
+                        if(varInsnNode.getOpcode() == Opcodes.ASTORE) {
+                            iterator.previous();
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); //passed entity argument
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                    "adjustVecs",
+                                    "([Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)[Lnet/minecraft/util/math/Vec3d;",
+                                    false));
+                            break outerfor;
                         }
                     }
                 }
@@ -1620,6 +1669,40 @@ public class Transformer implements IClassTransformer {
                 }
             }
         }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchRenderGlobal(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        outerfor:
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("getViewVector")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
+                        if (methodInsnNode.getOpcode() == Opcodes.INVOKESPECIAL
+                                && methodInsnNode.owner.equals("org/lwjgl/util/vector/Vector3f")
+                                && methodInsnNode.name.equals("<init>")
+                                && methodInsnNode.desc.equals("(FFF)V")) {
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // load the passed Entity argument
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                    "adjustViewVector",
+                                    "(Lorg/lwjgl/util/vector/Vector3f;Lnet/minecraft/entity/Entity;)Lorg/lwjgl/util/vector/Vector3f;",
+                                    false));
+                            break outerfor;
+                        }
+                    }
+                }
+            }
+        }
+
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
         return classWriter.toByteArray();

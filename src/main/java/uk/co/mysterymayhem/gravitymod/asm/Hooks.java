@@ -17,6 +17,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.SoundSystem;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
@@ -569,6 +570,38 @@ public class Hooks {
 //        else {
 //            return entity.getLook(partialticks);
 //        }
+    }
+
+    /**
+     * ASM Hook used in RenderGlobal::getViewVector, I think this might have something to do with terrain culling, not sure
+     * @param normal
+     * @param entity
+     * @return
+     */
+    @SideOnly(Side.CLIENT)
+    public static Vector3f adjustViewVector(Vector3f normal, Entity entity) {
+        double[] doubles = Hooks.adjustXYZ(entity, normal.getX(), normal.getY(), normal.getZ());
+
+        return new Vector3f((float)doubles[0], (float)doubles[1], (float)doubles[2]);
+    }
+
+    /**
+     * ASM Hook, to possibly be used in Particle:renderParticle
+     * @param vecs
+     * @param entity
+     * @return
+     */
+    @SideOnly(Side.CLIENT)
+    public static Vec3d[] adjustVecs(Vec3d[] vecs, Entity entity) {
+        if (entity instanceof EntityPlayer) {
+            EnumGravityDirection direction = API.getGravityDirection((EntityPlayer) entity);
+            if (direction != EnumGravityDirection.DOWN) {
+                for (int i = 0; i < vecs.length; i++) {
+                    vecs[i] = direction.adjustLookVec(vecs[i]);
+                }
+            }
+        }
+        return vecs;
     }
 
     @SideOnly(Side.CLIENT)
