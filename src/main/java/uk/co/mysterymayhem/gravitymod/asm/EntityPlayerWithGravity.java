@@ -117,6 +117,10 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         return API.getGravityDirection(this).adjustLookVec(vectorForRotation);
     }
 
+    public Vec3d getSuperLook(float partialTicks) {
+        return super.getLook(partialTicks);
+    }
+
     @Override
     public void setEntityBoundingBox(AxisAlignedBB bb) {
         bb = Hooks.replaceWithGravityAware(this, bb);
@@ -575,5 +579,13 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     protected void func_189810_i(float p_189810_1_, float p_189810_2_) {
         FMLLog.warning("Erroneously tried to call func_189810_i(auto-jump method) from " + this);
 //        throw new RuntimeException("Unreachable code reached");
+    }
+
+//    private static final double ONE_HUNDRED_EIGHTY_OVER_PI = 180/Math.PI;
+
+    @Override
+    public EnumFacing getHorizontalFacing() {
+        EnumFacing updated = EnumFacing.getHorizontal(MathHelper.floor_double((double) (Hooks.getAdjustedYaw(this) * 4.0F / 360.0F) + 0.5D) & 3);
+        return updated;
     }
 }

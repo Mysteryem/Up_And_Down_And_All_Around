@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
+import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassReader;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassWriter;
@@ -47,6 +48,11 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
         classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
+        classNameToMethodMap.put("net.minecraft.block.BlockChest", Transformer::patchBlockChestAndBlockCocoa);
+        classNameToMethodMap.put("net.minecraft.block.BlockCocoa", Transformer::patchBlockChestAndBlockCocoa);
+        classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
+        classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
+        classNameToMethodMap.put("net.minecraft.client.particle.ParticleManager", Transformer::patchParticleManager);
     }
 
 
@@ -86,8 +92,11 @@ public class Transformer implements IClassTransformer {
         if (function == null) {
             return bytes;
         } else {
-            System.out.println("[UpAndDownAndAllAround] Patching " + className);
+            FMLLog.info("[UpAndDownAndAllAround] Patching %s", className);
+//            System.out.println("[UpAndDownAndAllAround] Patching " + className);
+//            byte[] toReturn = function.apply(bytes);
             return function.apply(bytes);
+//            System.out.println("[UpAndDownAndAllAround] Patched " + className);
         }
     }
 
@@ -131,7 +140,7 @@ public class Transformer implements IClassTransformer {
 //            }
         }
 
-        System.out.println("[UpAndDownAndAllAround] Injected super class into " + classNode.name);
+        FMLLog.info("[UpAndDownAndAllAround] Injected super class into " + classNode.name);
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
@@ -393,7 +402,7 @@ public class Transformer implements IClassTransformer {
         }
 
         if (numReplaced > 0) {
-            System.out.println("[UpAndDownAndAllAround] Replaced " + numReplaced +
+            FMLLog.info("[UpAndDownAndAllAround] Replaced " + numReplaced +
                     " usages of AxisAlignedBB:calculate[XYZ]Offset with Hooks::reverse[XYZ]Offset in " + classNode.name + "::moveEntity");
         }
         else {
@@ -623,7 +632,7 @@ public class Transformer implements IClassTransformer {
 
         for (MethodNode methodNode : classNode.methods) {
             if (methodNode.name.equals("processPlayer")) {
-                System.out.println("Modifying NetHandlerPlayServer::processPlayer");
+                FMLLog.info("Modifying NetHandlerPlayServer::processPlayer");
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
@@ -634,12 +643,12 @@ public class Transformer implements IClassTransformer {
                                 && methodInsnNode.name.equals("moveEntity")
                                 && methodInsnNode.desc.equals("(DDD)V"))
                         {
-                            System.out.println("Found \"playerEntity.moveEntity(...)\"");
+                            FMLLog.info("Found \"playerEntity.moveEntity(...)\"");
                             methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
                             methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
                             methodInsnNode.name = "moveEntityAbsolute";
                             methodInsnNode.desc = "(Lnet/minecraft/entity/player/EntityPlayer;DDD)V";
-                            System.out.println("Replaced with \"Hooks.moveEntityAbsolute(...)\"");
+                            FMLLog.info("Replaced with \"Hooks.moveEntityAbsolute(...)\"");
                             foundMoveEntity = true;
                         }
                         else if (!foundHandleFalling
@@ -648,7 +657,7 @@ public class Transformer implements IClassTransformer {
                                 && methodInsnNode.name.equals("handleFalling")
                                 && methodInsnNode.desc.equals("(DZ)V"))
                         {
-                            System.out.println("Found \"playerEntity.handleFalling(...)\"");
+                            FMLLog.info("Found \"playerEntity.handleFalling(...)\"");
                             iterator.previous(); // INVOKEVIRTUAL handleFalling again
                             iterator.previous(); // INVOKEVIRTUAL isOnGround
                             iterator.previous(); // ALOAD 1 (CPacketPlayer method argument)
@@ -696,12 +705,12 @@ public class Transformer implements IClassTransformer {
         }
 
         if (foundMoveEntity) {
-            System.out.println("[UpAndDownAndAllAround] Replaced \"playerEntity.moveEntity(...)\" with \"Hooks.moveEntityAbsolute(...)\" in " + classNode.name +"::processPlayer");
+            FMLLog.info("[UpAndDownAndAllAround] Replaced \"playerEntity.moveEntity(...)\" with \"Hooks.moveEntityAbsolute(...)\" in " + classNode.name + "::processPlayer");
         } else {
             throw new RuntimeException("Could not find \"playerEntity.moveEntity(...)\" in " + classNode.name);
         }
         if (foundHandleFalling) {
-            System.out.println("[UpAndDownAndAllAround] Replaced \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\" with \"this.playerEntity.handleFalling(Hooks.netHandlerPlayServerHandleFallingYChange(playerEntity, d0, d3, d2), packetIn.isOnGround());\" in " + classNode.name + "::processPlayer");
+            FMLLog.info("[UpAndDownAndAllAround] Replaced \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\" with \"this.playerEntity.handleFalling(Hooks.netHandlerPlayServerHandleFallingYChange(playerEntity, d0, d3, d2), packetIn.isOnGround());\" in " + classNode.name + "::processPlayer");
         } else {
             throw new RuntimeException("Could not find \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\" in " + classNode.name +"::processPlayer");
         }
@@ -739,7 +748,7 @@ public class Transformer implements IClassTransformer {
 
              */
             if (methodNode.name.equals("onUpdateWalkingPlayer")) {
-                System.out.println("[UpAndDownAndAllAround] Modifying EntityPlayerSP::onUpdateWalkingPlayer");
+                FMLLog.info("[UpAndDownAndAllAround] Modifying EntityPlayerSP::onUpdateWalkingPlayer");
 
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
@@ -779,7 +788,7 @@ public class Transformer implements IClassTransformer {
                     }
                 }
                 if (numReplacements != 0) {
-                    System.out.println("[UpAndDownAndAllAround] Replaced \"axisalignedbb.minY\" with \"this.posY\" " + numReplacements + " time" + (numReplacements == 1 ? "" : "s") + " in " + classNode.name);
+                    FMLLog.info("[UpAndDownAndAllAround] Replaced \"axisalignedbb.minY\" with \"this.posY\" " + numReplacements + " time" + (numReplacements == 1 ? "" : "s") + " in " + classNode.name);
                     onUpdateWalkingPlayerModified = true;
                 } else {
                     throw new RuntimeException("[UpAndDownAndAllAround] Failed to find any instances of \"axisalignedbb.minY\" in " + classNode.name);
@@ -790,7 +799,7 @@ public class Transformer implements IClassTransformer {
 
              */
             else if (methodNode.name.equals("onLivingUpdate")) {
-                System.out.println("[UpAndDownAndAllAround] Modifying EntityPlayerSP::onLivingUpdate");
+                FMLLog.info("[UpAndDownAndAllAround] Modifying EntityPlayerSP::onLivingUpdate");
 
                 boolean error = true;
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
@@ -798,7 +807,7 @@ public class Transformer implements IClassTransformer {
                     if (next instanceof VarInsnNode) {
                         VarInsnNode varInsnNode = (VarInsnNode) next;
                         if (varInsnNode.var == 6 && varInsnNode.getOpcode() == Opcodes.ASTORE) {
-                            System.out.println("[UpAndDownAndAllAround] Found \"ASTORE 6\"");
+                            FMLLog.info("[UpAndDownAndAllAround] Found \"ASTORE 6\"");
 
                             VarInsnNode aLoad6 = new VarInsnNode(Opcodes.ALOAD, 6);
                             TypeInsnNode instanceofGravityAxisAlignedBB = new TypeInsnNode(Opcodes.INSTANCEOF, "uk/co/mysterymayhem/gravitymod/util/GravityAxisAlignedBB");
@@ -840,11 +849,11 @@ public class Transformer implements IClassTransformer {
                                                     && methodInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
                                                     && methodInsnNode.name.equals("getFoodStats")
                                                     && methodInsnNode.desc.equals("()Lnet/minecraft/util/FoodStats;")) {
-                                                System.out.println("[UpAndDownAndAllAround] Found \"this.getFoodStats\"");
+                                                FMLLog.info("[UpAndDownAndAllAround] Found \"this.getFoodStats\"");
                                                 for (; iterator.hasPrevious(); ) {
                                                     AbstractInsnNode previous = iterator.previous();
                                                     if (previous instanceof LabelNode) {
-                                                        System.out.println("[UpAndDownAndAllAround] Found previous Label");
+                                                        FMLLog.info("[UpAndDownAndAllAround] Found previous Label");
                                                         labelForGotoJumpInsnNode = (LabelNode) previous;
                                                         // ClassWriter is going to compute the frames, the commented out code is untested
 //                                                        for(;iterator.hasNext();) {
@@ -878,7 +887,7 @@ public class Transformer implements IClassTransformer {
                 if (error) {
                     throw new RuntimeException("[UpAndDownAndAllAround] Hook insertion into EntityPlayerSP::onLivingUpdate failed");
                 } else {
-                    System.out.println("[UpAndDownAndAllAround] Inserted an if statement and call to \"Hooks.pushEntityPlayerSPOutOfBlocks\" into \"EntityPlayerSP::onLivingUpdate\"");
+                    FMLLog.info("[UpAndDownAndAllAround] Inserted an if statement and call to \"Hooks.pushEntityPlayerSPOutOfBlocks\" into \"EntityPlayerSP::onLivingUpdate\"");
                     onLivingUpdateModified = true;
                 }
             }
@@ -887,7 +896,7 @@ public class Transformer implements IClassTransformer {
 
              */
             else if (methodNode.name.equals("isHeadspaceFree")) {
-                System.out.println("[UpAndDownAndAllAround] Modifying EntityPlayerSP::isHeadspaceFree");
+                FMLLog.info("[UpAndDownAndAllAround] Modifying EntityPlayerSP::isHeadspaceFree");
                 InsnList instructions = methodNode.instructions;
                 AbstractInsnNode label = instructions.get(0);
                 AbstractInsnNode lineNumber = instructions.get(1);
@@ -907,7 +916,7 @@ public class Transformer implements IClassTransformer {
                         false));
                 instructions.add(new InsnNode(Opcodes.IRETURN));
                 instructions.add(labelEnd);
-                System.out.println("[UpAndDownAndAllAround] Replaced EntityPlayerSP::isHeadspaceFree with call to Hooks::isHeadspaceFree");
+                FMLLog.info("[UpAndDownAndAllAround] Replaced EntityPlayerSP::isHeadspaceFree with call to Hooks::isHeadspaceFree");
                 isHeadSpaceFreeModified = true;
             }
             /*
@@ -1247,7 +1256,7 @@ public class Transformer implements IClassTransformer {
 //                    axisAlignedBBminYCount
 //                    blockPosUPCount
 //                    blockPosUPCountI
-                    System.out.println("addVector: " + addVectorReplacements
+                    FMLLog.info("addVector: " + addVectorReplacements
                             + "\nmaxY: " + axisAlignedBBmaxYCount
                             + "\nminY: " + axisAlignedBBminYCount
                             + "\nup(): " + blockPosUPCount
@@ -1469,6 +1478,151 @@ public class Transformer implements IClassTransformer {
             throw new RuntimeException("[UpAndDownAndAllAround] Modification of EntityPlayerSP failed, UpAndDownAndAllAround is probably being used with the wrong Minecraft version.");
         }
 
+    }
+
+    private static final int ROTATIONYAW = 0b1;
+    private static final int ROTATIONPITCH = 0b10;
+    private static final int PREVROTATIONYAW = 0b100;
+    private static final int PREVROTATIONPITCH = 0b1000;
+    private static final int ALL_ROTATION_VARS = ROTATIONYAW | ROTATIONPITCH | PREVROTATIONYAW | PREVROTATIONPITCH;
+
+    private static void patchMethodUsingRelativeRotations(MethodNode methodNode, int fieldBits) {
+        if (fieldBits == 0) {
+            return;
+        }
+
+        boolean changeRotationYaw = (fieldBits & ROTATIONYAW) == ROTATIONYAW;
+        boolean changeRotationPitch = (fieldBits & ROTATIONPITCH) == ROTATIONPITCH;
+        boolean changePrevRotationYaw = (fieldBits & PREVROTATIONYAW) == PREVROTATIONYAW;
+        boolean changePrevRotationPitch = (fieldBits & PREVROTATIONPITCH) == PREVROTATIONPITCH;
+
+        for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+            AbstractInsnNode next = iterator.next();
+            if (next.getOpcode() == Opcodes.GETFIELD && next instanceof FieldInsnNode) {
+                FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                // This will not pick up EntityOtherPlayerMP or EntityPlayerSP which are in net/minecraft/client/entity
+                if (fieldInsnNode.owner.startsWith("net/minecraft/entity/")
+                        && fieldInsnNode.desc.equals("F")) {
+                    if (changeRotationYaw && fieldInsnNode.name.equals("rotationYaw")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getAdjustedYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changeRotationPitch && fieldInsnNode.name.equals("rotationPitch")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getAdjustedPitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changePrevRotationYaw && fieldInsnNode.name.equals("prevRotationYaw")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getAdjustedPrevYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changePrevRotationPitch && fieldInsnNode.name.equals("prevRotationPitch")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getAdjustedPrevPitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                }
+            }
+        }
+    }
+
+    private static byte[] patchBlockChestAndBlockCocoa(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("onBlockPlacedBy")) {
+                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW);
+                break;
+            }
+        }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchBlockFenceGate(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("onBlockActivated")) {
+                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW);
+                break;
+            }
+        }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchParticleManager(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("renderLitParticles")) {
+                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW + ROTATIONPITCH);
+                break;
+            }
+            if (methodNode.name.equals("renderParticles")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
+                        if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                && methodInsnNode.owner.equals("net/minecraft/entity/Entity")
+                                && methodInsnNode.name.equals("getLook")
+                                && methodInsnNode.desc.equals("(F)Lnet/minecraft/util/math/Vec3d;")) {
+                            methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
+                            methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
+                            methodInsnNode.name = "getNonGAffectedLook";
+                            methodInsnNode.desc = "(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/util/math/Vec3d;";
+                        }
+                    }
+                }
+            }
+        }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchSoundManager(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+//            if (methodNode.name.equals("setListener")) {
+//                patchMethodUsingRelativeRotations(methodNode, ALL_ROTATION_VARS);
+//                break;
+//            }
+            if (methodNode.name.equals("setListener")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof  MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode) next;
+                        if (methodInsnNode.name.equals("setListenerOrientation")) {
+                            methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
+                            methodInsnNode.name = "setListenerOrientationHook";
+                            methodInsnNode.desc = "(Lpaulscode/sound/SoundSystem;FFFFFFLnet/minecraft/entity/player/EntityPlayer;)V";
+                            methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
+                            iterator.previous();
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // load EntityPlayer method argument
+                        }
+                    }
+                }
+            }
+        }
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
     }
 
 //    private static byte[] patchEntityPlayerClass(byte[] bytes) {

@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.asm;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.audio.SoundManager;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -16,6 +17,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import paulscode.sound.SoundSystem;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
@@ -414,6 +416,104 @@ public class Hooks {
         }
     }
 
+    //TODO: If we work out which two input x, y and z values are needed in lookVecWithDoubleAccuracy, we can skip calculating one of the doubles
+    /**
+     * ASM Hook used in
+     * BlockChest::onBlockPlacedBy (Mojang. Ahem. Entity::getHorizontalFacing.),
+     * BlockCocoa::onBlockPlacedBy
+     * BlockFenceGate::onBlockActivated
+     * SoundManager::setListener
+     * ParticleManager::renderLitParticles
+     * @param entity
+     * @return
+     */
+    public static float getAdjustedYaw(Entity entity) {
+//        return entity.rotationYaw;
+        final double yaw = entity.rotationYaw;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+//        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
+    //TODO: If we work out which input x, y and z value is needed in lookVecWithDoubleAccuracy, we can skip calculating two of the doubles
+    /**
+     * AMS Hook used in
+     * ParticleManager::renderLitParticles
+     * @param entity
+     * @return
+     */
+    public static float getAdjustedPitch(Entity entity) {
+//        return entity.rotationPitch;
+        final double yaw = entity.rotationYaw;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+//        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+    }
+
+    /**
+     * ASM Hook use in
+     * ParticleManager::renderLitParticles
+     * @param entity
+     * @return
+     */
+    public static float getAdjustedPrevYaw(Entity entity) {
+//        return entity.prevRotationYaw;
+        final double yaw = entity.prevRotationYaw;
+        final double pitch = entity.prevRotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+//        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
+    //TODO: If we work out which input x, y and z value is needed in lookVecWithDoubleAccuracy, we can skip calculating two of the doubles
+    /**
+     * AMS Hook used in
+     * ParticleManager::renderLitParticles
+     * @param entity
+     * @return
+     */
+    public static float getAdjustedPrevPitch(Entity entity) {
+//        return entity.prevRotationPitch;
+        final double yaw = entity.prevRotationYaw;
+        final double pitch = entity.prevRotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+//        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+    }
+
     public static float getCosOfAngleBetweenVecsOnRelativeXYPlane(Entity entity, Vec3d normal1, Vec3d normal2) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
@@ -459,6 +559,25 @@ public class Hooks {
         else {
             return new double[]{x,y,z};
         }
+    }
+
+    public static Vec3d getNonGAffectedLook(Entity entity, float partialticks) {
+        return entity.getLook(partialticks);
+//        if (entity instanceof EntityPlayerWithGravity) {
+//            return ((EntityPlayerWithGravity) entity).getSuperLook(partialticks);
+//        }
+//        else {
+//            return entity.getLook(partialticks);
+//        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void setListenerOrientationHook(SoundSystem soundSystem, float lookX, float lookY, float lookZ, float upX, float upY, float upZ, EntityPlayer player) {
+        EnumGravityDirection gravityDirection = API.getGravityDirection(player);
+        double[] d = gravityDirection.adjustXYZValues(lookX, lookY, lookZ);
+        double[] d1 = gravityDirection.adjustXYZValues(upX, upY, upZ);
+
+        soundSystem.setListenerOrientation((float)d[0], (float)d[1], (float)d[2], (float)d1[0], (float)d1[1], (float)d1[2]);
     }
 
     //TODO: Add to transformer
