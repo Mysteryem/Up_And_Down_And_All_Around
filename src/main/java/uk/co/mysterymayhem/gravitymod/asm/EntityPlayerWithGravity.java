@@ -3,11 +3,8 @@ package uk.co.mysterymayhem.gravitymod.asm;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.MobEffects;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -21,7 +18,6 @@ import uk.co.mysterymayhem.gravitymod.util.reflection.LookupThief;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-09-04.
@@ -100,6 +96,414 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             this.positionVarsAreRelative = false;
         }
     }
+
+    /*
+    v- Didn't work
+     */
+
+//    @Override
+//    public void moveEntityWithHeading(float strafe, float forward) {
+//        this.makeAngleVarsRelative();
+//        super.moveEntityWithHeading(strafe, forward);
+//        this.makeAngleVarsAbsolute();
+//    }
+//
+//    @SideOnly(Side.CLIENT)
+//    @Override
+//    public void setAngles(float yaw, float pitch) {
+//        this.makeAngleVarsRelative();
+//        double d = this.d_rotationPitch;
+//        double d1 = this.d_rotationYaw;
+//        this.d_rotationYaw = this.d_rotationYaw + yaw * 0.15D;
+//        this.d_rotationPitch = this.d_rotationPitch - pitch * 0.15D;
+//        this.d_rotationPitch = MathHelper.clamp_double(this.d_rotationPitch, -90.0F, 90.0F);
+//        this.d_prevRotationPitch += this.d_rotationPitch - d;
+//        this.d_prevRotationYaw += this.d_rotationYaw - d1;
+//
+//        float f = this.rotationPitch;
+//        float f1 = this.rotationYaw;
+//        float rotationYaw = (float)((double)this.rotationYaw + (double)yaw * 0.15D);
+//        float rotationPitch = (float)((double)this.rotationPitch - (double)pitch * 0.15D);
+//        rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90.0F, 90.0F);
+//        float prevRotationPitch = this.prevRotationPitch + this.rotationPitch - f;
+//        float prevRotationYaw = this.prevRotationYaw + this.rotationYaw - f1;
+//
+//        super.setAngles(yaw, pitch);
+//
+////        super.setAngles(yaw, pitch);
+////        if (this.rotationYaw < -180) {
+////            this.yawToReAdd = (this.rotationYaw + 180);
+////        }
+////        else if (this.rotationYaw > 180) {
+////            this.yawToReAdd = (this.rotationYaw - 180);
+////        }
+////        if (this.prevRotationYaw < -180) {
+////            this.prevYawToReAdd = (this.prevRotationYaw + 180);
+////        } else if (this.prevRotationYaw > 180) {
+////            this.prevYawToReAdd = (this.prevRotationYaw - 180);
+////        }
+//        this.makeAngleVarsAbsolute();
+//
+//        return;
+////        //
+////        this.makeAngleVarsRelative();
+////        //
+////        this.makeAngleVarsAbsolute();
+//    }
+//
+//    private double yawToReAddInRelative = 0;
+//    private double prevYawToReAddInRelative = 0;
+//    private double yawToReAddInAbsolute = 0;
+//    private double prevYawToReAddInAbsolute = 0;
+//    private double headYawToReAddInRelative = 0;
+//    private double prevHeadYawToReAddInRelative = 0;
+//    private double headYawToReAddInAbsolute = 0;
+//    private double prevHeadYawToReAddInAbsolute = 0;
+//    private double d_rotationYaw;
+//    private double d_rotationYawHead;
+//    private double d_rotationPitch;
+//    private double d_prevRotationYaw;
+//    private double d_prevRotationYawHead;
+//    private double d_prevRotationPitch;
+//
+//    private static final double PI_OVER_180 = Math.PI/180d;
+//
+//    public void makeAngleVarsRelative() {
+//
+//        if (!this.angleVarsAreRelative) {
+//            this.angleVarsAreRelative = true;
+//
+//            double pitch = this.rotationPitch;
+//
+//            double yaw = (pitch == 90) || (pitch == -90) ? this.d_rotationYaw : this.rotationYaw;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.yawToReAddInAbsolute = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.yawToReAddInAbsolute = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.yawToReAddInAbsolute = 0;
+//            }
+//
+//            double f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            double f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            double f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            double f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+////            Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+//            Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.rotationYaw = this.yawToReAddInRelative + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_rotationYaw = this.yawToReAddInRelative + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.rotationYaw = (float)this.d_rotationYaw;
+//
+////            this.rotationYaw = (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+////            this.rotationPitch = (float) -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.d_rotationPitch = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.rotationPitch = (float) this.d_rotationPitch;
+//
+//            pitch = this.prevRotationPitch;
+//
+//            yaw = (pitch == 90) || (pitch == -90) ? this.d_prevRotationYaw : this.prevRotationYaw;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.prevYawToReAddInAbsolute = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.prevYawToReAddInAbsolute = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.prevYawToReAddInAbsolute = 0;
+//            }
+//
+//
+//            f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+////            adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+//            adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.prevRotationYaw = this.prevYawToReAddInRelative + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_prevRotationYaw = this.prevYawToReAddInRelative + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.prevRotationYaw = (float)this.d_prevRotationYaw;
+////            this.prevRotationYaw = (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+////            this.prevRotationPitch = (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.d_prevRotationPitch = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.prevRotationPitch = (float)d_prevRotationPitch;
+//
+//            //head
+//            pitch = this.rotationPitch;
+//
+//            yaw = (pitch == 90) || (pitch == -90) ? this.d_rotationYawHead : this.rotationYawHead;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.headYawToReAddInAbsolute = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.headYawToReAddInAbsolute = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.headYawToReAddInAbsolute = 0;
+//            }
+//
+//
+//            f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+////            adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+//            adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.rotationYawHead = this.headYawToReAddInRelative + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_rotationYawHead = this.headYawToReAddInRelative + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.rotationYawHead = (float)d_rotationYawHead;
+////            this.prevRotationYaw = (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+////            this.prevRotationPitch = (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//
+//            //prevHead
+//            pitch = this.prevRotationPitch;
+//            yaw = (pitch == 90) || (pitch == -90) ? this.d_prevRotationYawHead : this.prevRotationYawHead;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.prevHeadYawToReAddInAbsolute = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.prevHeadYawToReAddInAbsolute = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.prevHeadYawToReAddInAbsolute = 0;
+//            }
+//
+//
+//            f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+////            adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+//            adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.prevRotationYawHead = this.prevHeadYawToReAddInRelative + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_prevRotationYawHead = this.prevHeadYawToReAddInRelative + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.prevRotationYawHead = (float)this.d_prevRotationYawHead;
+//        }
+//    }
+//
+//    public void makeAngleVarsAbsolute() {
+//
+//        if (this.angleVarsAreRelative) {
+//            this.angleVarsAreRelative = false;
+//            double pitch = this.rotationPitch;
+//
+//            double yaw = (pitch == 90) || (pitch == -90) ? this.d_rotationYaw : this.rotationYaw;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.yawToReAddInRelative = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.yawToReAddInRelative = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.yawToReAddInRelative = 0;
+//            }
+////            if (yaw <= -180 || yaw >= 180) {
+////                this.yawToReAdd = ((int)yaw/180) * 180;
+////            }
+////            else if (yaw > 180) {
+////                this.yawToReAdd = (float)(yaw - 180);
+////            }
+//
+//
+//
+//            double f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            double f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            double f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            double f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+//            Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+////        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.rotationYaw = this.yawToReAddInAbsolute + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_rotationYaw = this.yawToReAddInAbsolute + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.rotationYaw = (float)this.d_rotationYaw;
+////            this.rotationPitch = (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.d_rotationPitch = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.rotationPitch = (float)this.d_rotationPitch;
+//
+//            pitch = this.prevRotationPitch;
+//            yaw = (pitch == 90) || (pitch == -90) ? this.d_prevRotationYaw : this.prevRotationYaw;
+//
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.prevYawToReAddInRelative = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.prevYawToReAddInRelative = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.prevYawToReAddInRelative = 0;
+//            }
+////            if (yaw <= -180 || yaw >= 180) {
+////                this.prevYawToReAdd = ((int)yaw/180) * 180;
+////            }
+////            if (yaw < -180) {
+////                this.prevYawToReAdd = (float)(yaw + 180);
+////            } else if (yaw > 180) {
+////                this.prevYawToReAdd = (float)(yaw - 180);
+////            }
+//
+//
+//            f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            lookVecWithDoubleAccuracy = new Vec3d(f1 * f2, f3, f * f2);
+//
+//            adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+////            adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.prevRotationYaw = this.prevYawToReAddInAbsolute + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_prevRotationYaw = this.prevYawToReAddInAbsolute + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.prevRotationYaw = (float)this.d_prevRotationYaw;
+////            this.prevRotationPitch = (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.d_prevRotationPitch = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//            this.prevRotationPitch = (float)this.d_prevRotationPitch;
+//
+//            //head
+//            pitch = this.rotationPitch;
+//
+//            yaw = (pitch == 90) || (pitch == -90) ? this.d_rotationYawHead : this.rotationYawHead;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.headYawToReAddInRelative = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.headYawToReAddInRelative = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.headYawToReAddInRelative = 0;
+//            }
+//
+//
+//            f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+//            adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+////            adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.rotationYawHead = this.headYawToReAddInAbsolute + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_rotationYawHead = this.headYawToReAddInAbsolute + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.rotationYawHead = (float)this.d_rotationYawHead;
+////            this.prevRotationYaw = (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+////            this.prevRotationPitch = (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+//
+//            //prevHead
+//            pitch = this.prevRotationPitch;
+//            yaw = (pitch == 90) || (pitch == -90) ? this.d_prevRotationYawHead : this.prevRotationYawHead;
+//            if (yaw <= -180) {
+////                this.yawToReAdd = -360;
+//                this.prevHeadYawToReAddInRelative = 360 * (((int)(yaw-180))/360);
+//            }
+//            else if (yaw >= 180) {
+////                this.yawToReAdd = -720;
+//                this.prevHeadYawToReAddInRelative = 360 * (((int)(yaw+180))/360);
+//            }
+//            else {
+//                this.prevHeadYawToReAddInRelative = 0;
+//            }
+//
+//
+//            f = Math.cos(-yaw * (PI_OVER_180) - Math.PI);
+//            f1 = Math.sin(-yaw * (PI_OVER_180) - Math.PI);
+//            f2 = -Math.cos(-pitch * (PI_OVER_180));
+//            f3 = Math.sin(-pitch * (PI_OVER_180));
+//
+//            lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//
+//            adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, this);
+////            adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, this);
+////            this.prevRotationYawHead = this.prevHeadYawToReAddInAbsolute + (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.d_prevRotationYawHead = this.prevHeadYawToReAddInAbsolute + (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+//            this.prevRotationYawHead = (float)this.d_prevRotationYawHead;
+//        }
+//    }
+    /*
+    ^ Didn't work
+     */
+
+//    private float relativeRotationYaw;
+//    private float relativeRotationYawHead;
+//    private float relativeRotationPitch;
+//    private float relativePrevRotationYaw;
+//    private float relativePrevRotationYawHead;
+//    private float relativePrevRotationPitch;
+//
+//    private float lastKnownRotationYaw;
+//    private float lastKnownRotationYawHead;
+//    private float lastKnownRotationPitch;
+//    private float lastKnownPrevRotationYaw;
+//    private float lastKnownPrevRotationYawHead;
+//    private float lastKnownPrevRotationPitch;
+
+//    private void swapRotationVars() {
+//        float holder = rotationYaw;
+//        rotationYaw = relativeRotationYaw;
+//        relativeRotationYaw = holder;
+//
+//        holder = rotationYawHead;
+//        rotationYawHead = relativeRotationYawHead;
+//        relativeRotationYawHead = holder;
+//
+//        holder = rotationPitch;
+//        rotationPitch = relativeRotationPitch;
+//        relativeRotationPitch = holder;
+//
+//        holder = prevRotationYaw;
+//        prevRotationYaw = relativePrevRotationYaw;
+//        relativePrevRotationYaw = holder;
+//
+//        holder = prevRotationYawHead;
+//        prevRotationYawHead = relativePrevRotationYawHead;
+//        relativePrevRotationYawHead = holder;
+//
+//        holder = prevRotationPitch;
+//        prevRotationPitch = relativePrevRotationPitch;
+//        relativePrevRotationPitch = holder;
+//    }
+//
+//    void makeAngleVarsRelative() {
+//        if (!angleVarsAreRelative) {
+//            angleVarsAreRelative = true;
+//            swapRotationVars();
+//        }
+//    }
+//
+//    void makeAngleVarsAboslute() {
+//        if (angleVarsAreRelative) {
+//            angleVarsAreRelative = false;
+//            swapRotationVars();
+//        }
+//    }
 
     @Override
     public Vec3d getLook(float partialTicks) {
