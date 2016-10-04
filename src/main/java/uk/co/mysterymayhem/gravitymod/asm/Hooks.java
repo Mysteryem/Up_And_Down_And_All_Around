@@ -29,6 +29,18 @@ import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
  */
 public class Hooks {
 
+    public static void makeAnglesRelative(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            ((EntityPlayerWithGravity) entity).makeAngleVarsRelative();
+        }
+    }
+
+    public static void makeAnglesAbsolute(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            ((EntityPlayerWithGravity) entity).makeAngleVarsAbsolute();
+        }
+    }
+
     //TODO: Where is this used? Is it used in any ASM-ed code?
     public static void moveEntityAbsolute(EntityPlayer player, double x, double y, double z) {
         double[] doubles = API.getGravityDirection(player).getInverseAdjustMentFromDOWNDirection().adjustXYZValues(x, y, z);
@@ -386,7 +398,7 @@ public class Hooks {
 
     @SideOnly(Side.CLIENT)
     public static void runAutoJump(double oldRelativeX, double oldRelativeZ, EntityPlayerWithGravity player) {
-        double[] doubles = Hooks.adjustXYZ(player, player.posX, player.posY, player.posZ);
+        double[] doubles = Hooks.inverseAdjustXYZ(player, player.posX, player.posY, player.posZ);
         player.func_189810_i((float)(doubles[0] - oldRelativeX), (float)(doubles[2] - oldRelativeZ));
     }
 
@@ -445,6 +457,137 @@ public class Hooks {
         return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
     }
 
+    public static final int YAW = 0;
+    public static final int PITCH = 1;
+
+    public static double[] getRelativeYawAndPitch(double yawIn, double pitchIn, Entity entity) {
+
+        double f = Math.cos(-yawIn * (Math.PI / 180d) - Math.PI);
+        double f1 = Math.sin(-yawIn * (Math.PI / 180d) - Math.PI);
+        double f2 = -Math.cos(-pitchIn * (Math.PI/180d));
+        double f3 = Math.sin(-pitchIn * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        double yawOut = (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        double pitchOut = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        return new double[]{yawOut, pitchOut};
+    }
+
+    public static double[] getAbsoluteYawAndPitch(double yawIn, double pitchIn, Entity entity) {
+
+        double f = Math.cos(-yawIn * (Math.PI / 180d) - Math.PI);
+        double f1 = Math.sin(-yawIn * (Math.PI / 180d) - Math.PI);
+        double f2 = -Math.cos(-pitchIn * (Math.PI/180d));
+        double f3 = Math.sin(-pitchIn * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        double yawOut = (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        double pitchOut = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        return new double[]{yawOut, pitchOut};
+    }
+
+    public static Vec3d getRelativeLookVec(Entity entity) {
+        Vec3d vec3d = Hooks.inverseAdjustVec(entity.getLookVec(), entity);
+
+//        Vec3d lookpos = vec3d.addVector(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
+//        entity.worldObj.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, lookpos.xCoord, lookpos.yCoord, lookpos.zCoord, 0, 0, 0);
+        return vec3d;
+    }
+
+    /**
+     *
+     * @param entity
+     * @return
+     */
+    public static float getRelativeYaw(Entity entity) {
+//        return entity.rotationYaw;
+        final double yaw = entity.rotationYaw;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+//        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
+    public static float getRelativeYawHead(EntityLivingBase entity) {
+//        return entity.rotationYaw;
+        final double yaw = entity.rotationYawHead;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+//        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
+    public static float getPrevRelativeYawHead(EntityLivingBase entity) {
+//        return entity.rotationYaw;
+        final double yaw = entity.prevRotationYawHead;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+//        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
+    public static float getAbsoluteYaw(Entity entity) {
+//        return entity.rotationYaw;
+        final double yaw = entity.rotationYaw;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+//        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
+    public static float getRelativePitch(Entity entity) {
+//        return entity.rotationPitch;
+        final double yaw = entity.rotationYaw;
+        final double pitch = entity.rotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+//        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+    }
+
     //TODO: If we work out which input x, y and z value is needed in lookVecWithDoubleAccuracy, we can skip calculating two of the doubles
     /**
      * AMS Hook used in
@@ -491,6 +634,22 @@ public class Hooks {
         return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
     }
 
+    public static float getRelativePrevYaw(Entity entity) {
+//        return entity.prevRotationYaw;
+        final double yaw = entity.prevRotationYaw;
+        final double pitch = entity.prevRotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+//        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+    }
+
     //TODO: If we work out which input x, y and z value is needed in lookVecWithDoubleAccuracy, we can skip calculating two of the doubles
     /**
      * AMS Hook used in
@@ -512,6 +671,23 @@ public class Hooks {
 
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
 //        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
+        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+    }
+
+    public static float getRelativePrevPitch(Entity entity) {
+//        return entity.prevRotationPitch;
+        final double yaw = entity.prevRotationYaw;
+        final double pitch = entity.prevRotationPitch;
+
+        final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
+        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
+        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+
+        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+
+//        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
+        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
         return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
     }
 
@@ -958,17 +1134,17 @@ public class Hooks {
     }
 
     static Vec3d getPositionEyes(EntityPlayer player, float partialTicks) {
-        EnumGravityDirection direction = API.getGravityDirection(player);
-        double[] doubles = direction.adjustXYZValues(0, (double) API.getStandardEyeHeight(player), 0);
+//        EnumGravityDirection direction = API.getGravityDirection(player);
+//        double[] doubles = direction.adjustXYZValues(0, API.getStandardEyeHeight(player), 0);
         if (partialTicks == 1.0F)
         {
-            return new Vec3d(player.posX + doubles[0], player.posY + doubles[1], player.posZ + doubles[2]);
+            return new Vec3d(player.posX, player.posY + player.getEyeHeight(), player.posZ);
         }
         else
         {
-            double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double)partialTicks + doubles[0];
-            double d1 = player.prevPosY + (player.posY - player.prevPosY) * (double)partialTicks + doubles[1];
-            double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double)partialTicks + doubles[2];
+            double d0 = player.prevPosX + (player.posX - player.prevPosX) * (double)partialTicks;// + doubles[0];
+            double d1 = player.prevPosY + (player.posY - player.prevPosY) * (double)partialTicks + player.getEyeHeight();// + doubles[1];
+            double d2 = player.prevPosZ + (player.posZ - player.prevPosZ) * (double)partialTicks;// + doubles[2];
             return new Vec3d(d0, d1, d2);
         }
     }

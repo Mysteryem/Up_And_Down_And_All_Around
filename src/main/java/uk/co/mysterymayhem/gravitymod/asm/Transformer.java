@@ -45,22 +45,26 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
-        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
-        classNameToMethodMap.put("net.minecraft.block.BlockChest", Transformer::patchBlockChestAndBlockCocoa);
-        classNameToMethodMap.put("net.minecraft.block.BlockCocoa", Transformer::patchBlockChestAndBlockCocoa);
-        classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
-        classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
-        classNameToMethodMap.put("net.minecraft.client.particle.ParticleManager", Transformer::patchParticleManager);
-//        classNameToMethodMap.put("net.minecraft.client.renderer.RenderGlobal", Transformer::patchRenderGlobal);
-        classNameToMethodMap.put("net.minecraft.client.particle.Particle", Transformer::patchParticle);
-        classNameToMethodMap.put("net.minecraft.item.ItemBow", Transformer::patchItemBow);
-        classNameToMethodMap.put("net.minecraft.item.ItemEnderPearl", Transformer::patchThrowableMojangItem);
-        classNameToMethodMap.put("net.minecraft.item.ItemSnowBall", Transformer::patchThrowableMojangItem);
-        classNameToMethodMap.put("net.minecraft.item.ItemLingeringPotion", Transformer::patchThrowableMojangItem);
-        classNameToMethodMap.put("net.minecraft.item.ItemSplashPotion", Transformer::patchThrowableMojangItem);
-        classNameToMethodMap.put("net.minecraft.item.ItemExpBottle", Transformer::patchThrowableMojangItem);
-        classNameToMethodMap.put("net.minecraft.item.ItemEgg", Transformer::patchThrowableMojangItem);
-        classNameToMethodMap.put("net.minecraft.entity.projectile.EntityFishHook", Transformer::patchEntityFishHook);
+//        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
+//        classNameToMethodMap.put("net.minecraft.block.BlockChest", Transformer::patchBlockChestAndBlockCocoa);
+//        classNameToMethodMap.put("net.minecraft.block.BlockCocoa", Transformer::patchBlockChestAndBlockCocoa);
+//        classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
+//        classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
+//        classNameToMethodMap.put("net.minecraft.client.particle.ParticleManager", Transformer::patchParticleManager);
+////        classNameToMethodMap.put("net.minecraft.client.renderer.RenderGlobal", Transformer::patchRenderGlobal);
+//        classNameToMethodMap.put("net.minecraft.client.particle.Particle", Transformer::patchParticle);
+//        classNameToMethodMap.put("net.minecraft.item.ItemBow", Transformer::patchItemBow);
+//        classNameToMethodMap.put("net.minecraft.item.ItemEnderPearl", Transformer::patchThrowableMojangItem);
+//        classNameToMethodMap.put("net.minecraft.item.ItemSnowBall", Transformer::patchThrowableMojangItem);
+//        classNameToMethodMap.put("net.minecraft.item.ItemLingeringPotion", Transformer::patchThrowableMojangItem);
+//        classNameToMethodMap.put("net.minecraft.item.ItemSplashPotion", Transformer::patchThrowableMojangItem);
+//        classNameToMethodMap.put("net.minecraft.item.ItemExpBottle", Transformer::patchThrowableMojangItem);
+//        classNameToMethodMap.put("net.minecraft.item.ItemEgg", Transformer::patchThrowableMojangItem);
+//        classNameToMethodMap.put("net.minecraft.entity.projectile.EntityFishHook", Transformer::patchEntityFishHook);
+//        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer2);
+
+        classNameToMethodMap.put("net.minecraft.entity.EntityBodyHelper", Transformer::patchEntityBodyHelper);
+        classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
     }
 
     private static void log(String string, Object... objects) {
@@ -157,6 +161,42 @@ public class Transformer implements IClassTransformer {
         }
 
         log("Injected super class into " + classNode.name);
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchRenderLivingBase(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("doRender")) {
+                patchMethodUsingAbsoluteRotations(methodNode, ALL_GET_ROTATION_VARS);
+                break;
+            }
+        }
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+
+
+    private static byte[] patchEntityRenderer2(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("orientCamera")) {
+                patchMethodUsingAbsoluteRotations(methodNode, ALL_GET_ROTATION_VARS);
+                break;
+            }
+        }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
@@ -415,6 +455,9 @@ public class Transformer implements IClassTransformer {
                     }
                 }
             }
+            else if (methodNode.name.equals("moveRelative")) {
+                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW);
+            }
         }
 
         if (numReplaced > 0) {
@@ -448,6 +491,23 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
+    private static byte[] patchEntityBodyHelper(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("updateRenderAngles")) {
+                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONYAWHEAD);
+                break;
+            }
+        }
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
     private static byte[] patchEntityLivingBase(byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
@@ -459,6 +519,8 @@ public class Transformer implements IClassTransformer {
         MethodInsnNode previousisOffsetPositionInLiquidMethodInsnNode = null;
         boolean GETFIELD_limbSwingAmount_found = false;
         boolean PUTFIELD_limbSwing_found = false;
+        boolean replaced_getLookVec = false;
+        boolean replaced_rotationPitch = false;
 
         for (MethodNode methodNode : classNode.methods) {
             if (methodNode.name.equals("moveEntityWithHeading")) {
@@ -466,7 +528,19 @@ public class Transformer implements IClassTransformer {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
                         MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                        if (!BlockPos$PooledMutableBlockPos$retainFound
+                        if (!replaced_getLookVec
+                                && methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                && methodInsnNode.owner.equals("net/minecraft/entity/EntityLivingBase")
+                                && methodInsnNode.name.equals("getLookVec")
+                                && methodInsnNode.desc.equals("()Lnet/minecraft/util/math/Vec3d;")) {
+                            replaced_getLookVec = true;
+                            methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
+                            methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
+                            methodInsnNode.name = "getRelativeLookVec";
+                            methodInsnNode.desc = "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;";
+                        }
+                        else if (replaced_rotationPitch
+                                && !BlockPos$PooledMutableBlockPos$retainFound
                                 && methodInsnNode.getOpcode() == Opcodes.INVOKESTATIC
                                 && methodInsnNode.owner.equals("net/minecraft/util/math/BlockPos$PooledMutableBlockPos")
                                 && methodInsnNode.name.equals("retain")
@@ -567,7 +641,21 @@ public class Transformer implements IClassTransformer {
                     }
                     else if(next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        if (numEntityLivingBase$isOffsetPositionInLiquidFound == 2
+                        if (replaced_getLookVec
+                                && !replaced_rotationPitch
+                                && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                && fieldInsnNode.owner.equals("net/minecraft/entity/EntityLivingBase")
+                                && fieldInsnNode.name.equals("rotationPitch")
+                                && fieldInsnNode.desc.equals("F")) {
+                            replaced_rotationPitch = true;
+                            iterator.remove();
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                    "getRelativePitch",
+                                    "(Lnet/minecraft/entity/Entity;)F",
+                                    false));
+                        }
+                        else if (numEntityLivingBase$isOffsetPositionInLiquidFound == 2
                                 && !GETFIELD_limbSwingAmount_found
                                 && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
                                 && fieldInsnNode.owner.equals("net/minecraft/entity/EntityLivingBase")
@@ -596,6 +684,27 @@ public class Transformer implements IClassTransformer {
                                     "(Lnet/minecraft/entity/EntityLivingBase;)V",
                                     false));
                             PUTFIELD_limbSwing_found = true;
+                        }
+                    }
+                }
+            }
+            //No, this causes weird spinning
+//            else if (methodNode.name.equals("onUpdate")) {
+//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONYAWHEAD);
+//            }
+            //TODO: Can I use the helper method here instead of doing this manually?
+            else if (methodNode.name.equals("updateDistance")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof FieldInsnNode) {
+                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                        if (fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                && fieldInsnNode.owner.equals("net/minecraft/entity/EntityLivingBase")
+                                && fieldInsnNode.name.equals("rotationYaw")
+                                && fieldInsnNode.desc.equals("F")) {
+                            iterator.remove();
+                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                    "getRelativeYaw", "(Lnet/minecraft/entity/Entity;)F", false));
                         }
                     }
                 }
@@ -952,9 +1061,13 @@ public class Transformer implements IClassTransformer {
                 boolean patch3Complete = false;
                 //newPATCH #4
                 boolean patch4Complete = false;
+                //newPATCH #4.5
+                boolean patch4Point5Complete = false;
+                int patch4Point5ReplacementCount = 0;
                 //newPATCH #5 and #6.5
                 boolean patch5Complete = false;
                 int vec3d12_var = -1;
+                boolean patch5Point5Complete = false;
                 boolean patch6Complete = false;
                 boolean patch7Complete = false;
                 boolean patch8Complete = false;
@@ -1005,7 +1118,7 @@ public class Transformer implements IClassTransformer {
                                 patch4Complete = true;
                             }
                             //newPatch #5
-                            else if (patch4Complete
+                            else if (patch4Point5Complete
                                     && !patch5Complete
                                     && methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
                                     && methodInsnNode.owner.equals("net/minecraft/util/math/Vec3d")
@@ -1020,6 +1133,18 @@ public class Transformer implements IClassTransformer {
                                 else {
                                     throw new RuntimeException("Expected a VarInsnNode after first usage of Vec3d::scale");
                                 }
+                            }
+                            else if (patch5Complete
+                                    && !patch5Point5Complete
+                                    && methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                    && methodInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
+                                    && methodInsnNode.name.equals("func_189651_aD")
+                                    && methodInsnNode.desc.equals("()Lnet/minecraft/util/math/Vec3d;")) {
+                                methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
+                                methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
+                                methodInsnNode.name = "getRelativeLookVec";
+                                methodInsnNode.desc = "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;";
+                                patch5Point5Complete = true;
                             }
                             //PATCH #1
                             else if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
@@ -1135,7 +1260,7 @@ public class Transformer implements IClassTransformer {
                                 }
                             }
                             //newPATCH #6
-                            else if(patch5Complete
+                            else if(patch5Point5Complete
                                     && !patch6Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
                                     && typeInsnNode.desc.equals("net/minecraft/util/math/BlockPos")) {
@@ -1233,6 +1358,23 @@ public class Transformer implements IClassTransformer {
                                         false));
                                 patch3Complete = true;
                             }
+                            else if(patch4Complete
+                                    && !patch4Point5Complete
+                                    && fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                    && fieldInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP")
+                                    && fieldInsnNode.name.equals("rotationYaw")
+                                    && fieldInsnNode.desc.equals("F")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
+                                        "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                        "getRelativeYaw",
+                                        "(Lnet/minecraft/entity/Entity;)F",
+                                        false));
+                                patch4Point5ReplacementCount++;
+                                if (patch4Point5ReplacementCount >= 2) {
+                                    patch4Point5Complete = true;
+                                }
+                            }
                             //newPATCH #10
                             else if (patch9Complete
                                     && axisAlignedBBmaxYCount < 2
@@ -1277,6 +1419,10 @@ public class Transformer implements IClassTransformer {
                             + ", minY: " + axisAlignedBBminYCount
                             + ", up(): " + blockPosUPCount
                             + ", up(int): " + blockPosUPCountI);
+                }
+
+                if (!patch9Complete && !DEBUG_AUTO_JUMP) {
+                    throw new RuntimeException("[UpAndDown] Error occured while patching EntityPlayerSP");
                 }
             }
             else if (methodNode.name.equals("moveEntity")) {
@@ -1500,7 +1646,10 @@ public class Transformer implements IClassTransformer {
     private static final int GET_ROTATIONPITCH = 0b10;
     private static final int GET_PREVROTATIONYAW = 0b100;
     private static final int GET_PREVROTATIONPITCH = 0b1000;
-    private static final int ALL_GET_ROTATION_VARS = GET_ROTATIONYAW | GET_ROTATIONPITCH | GET_PREVROTATIONYAW | GET_PREVROTATIONPITCH;
+    private static final int GET_ROTATIONYAWHEAD = 0b10000;
+    private static final int GET_PREVROTATIONYAWHEAD = 0b100000;
+    private static final int ALL_GET_ROTATION_VARS = GET_ROTATIONYAW | GET_ROTATIONPITCH | GET_PREVROTATIONYAW
+                                            | GET_PREVROTATIONPITCH | GET_ROTATIONYAWHEAD | GET_PREVROTATIONYAWHEAD;
 
     private static void patchMethodUsingRelativeRotations(MethodNode methodNode, int fieldBits) {
         if (fieldBits == 0) {
@@ -1538,6 +1687,63 @@ public class Transformer implements IClassTransformer {
                         iterator.remove();
                         iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
                                 "getAdjustedPrevPitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                }
+            }
+        }
+    }
+
+    private static void patchMethodUsingAbsoluteRotations(MethodNode methodNode, int fieldBits) {
+        if (fieldBits == 0) {
+            return;
+        }
+
+        boolean changeRotationYaw = (fieldBits & GET_ROTATIONYAW) == GET_ROTATIONYAW;
+        boolean changeRotationPitch = (fieldBits & GET_ROTATIONPITCH) == GET_ROTATIONPITCH;
+        boolean changePrevRotationYaw = (fieldBits & GET_PREVROTATIONYAW) == GET_PREVROTATIONYAW;
+        boolean changePrevRotationPitch = (fieldBits & GET_PREVROTATIONPITCH) == GET_PREVROTATIONPITCH;
+
+        // Field introduced in EntityLivingBase
+        boolean changeRotationYawHead = (fieldBits & GET_ROTATIONYAWHEAD) == GET_ROTATIONYAWHEAD;
+        boolean changePrevRotationYawHead = (fieldBits & GET_PREVROTATIONYAWHEAD) == GET_PREVROTATIONYAWHEAD;
+
+
+        for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+            AbstractInsnNode next = iterator.next();
+            if (next.getOpcode() == Opcodes.GETFIELD/* && next instanceof FieldInsnNode*/) {
+                FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                // This will not pick up EntityOtherPlayerMP or EntityPlayerSP which are in net/minecraft/client/entity
+                if ((fieldInsnNode.owner.startsWith("net/minecraft/entity/") || fieldInsnNode.owner.startsWith("net/minecraft/client/entity/"))
+                        && fieldInsnNode.desc.equals("F")) {
+                    if (changeRotationYaw && fieldInsnNode.name.equals("rotationYaw")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativeYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changeRotationPitch && fieldInsnNode.name.equals("rotationPitch")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativePitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changePrevRotationYaw && fieldInsnNode.name.equals("prevRotationYaw")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativePrevYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changePrevRotationPitch && fieldInsnNode.name.equals("prevRotationPitch")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativePrevPitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changeRotationYawHead && fieldInsnNode.name.equals("rotationYawHead")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativeYawHead", "(Lnet/minecraft/entity/EntityLivingBase;)F", false));
+                    }
+                    else if (changePrevRotationYawHead && fieldInsnNode.name.equals("prevRotationYawHead")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getPrevRelativeYawHead", "(Lnet/minecraft/entity/EntityLivingBase;)F", false));
                     }
                 }
             }

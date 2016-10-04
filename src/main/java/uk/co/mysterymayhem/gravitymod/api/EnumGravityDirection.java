@@ -5,6 +5,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.FMLLog;
+import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
+import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
 import uk.co.mysterymayhem.gravitymod.util.TriDoubleFunction;
@@ -255,7 +257,7 @@ public enum EnumGravityDirection {
 
     public void applyOtherPlayerRenderTransformations(EntityPlayer otherPlayerToBeRendered) {
         this.otherPlayerRenderTransformations.accept(otherPlayerToBeRendered);
-        this.runCameraTransformation();
+//        this.runCameraTransformation();
         //this.otherPlayerRenderTransformations.accept(otherPlayerToBeRendered);
     }
 
@@ -366,7 +368,8 @@ public enum EnumGravityDirection {
                     // and then changing from UP/DOWN gravity to NORTH/EAST/SOUTH/WEST gravity
                     // they cannot possibly fit
 
-                    FMLLog.info("No matter how the player was moved, they would not fit, turning them into a square");
+                    //DEBUG
+//                    FMLLog.info("No matter how the player was moved, they would not fit, turning them into a square");
 
                     // Make the player as tall as they are wide (whichever is smaller)
                     float min = Math.min(player.height, player.width);
@@ -374,7 +377,8 @@ public enum EnumGravityDirection {
                     // No change to the player's position is needed as their new hitbox is guaranteed to fit inside their old hitbox
                 } else {
                     // Moving 'down' did not collide with the world
-                    FMLLog.info("Moving 'down' did not collide with the world");
+                    //DEBUG
+//                    FMLLog.info("Moving 'down' did not collide with the world");
                     axisAlignedBB = thirdTry;
                     player.posX -= adjustedMovement[0];
                     player.posY -= adjustedMovement[1];
@@ -383,7 +387,8 @@ public enum EnumGravityDirection {
             }
             else {
                 // Moving 'up' did not collide with the world
-                FMLLog.info("Moving 'up' did not collide with the world");
+                //DEBUG
+//                FMLLog.info("Moving 'up' did not collide with the world");
                 axisAlignedBB = secondTry;
                 player.posX += adjustedMovement[0];
                 player.posY += adjustedMovement[1];
@@ -391,7 +396,8 @@ public enum EnumGravityDirection {
             }
         }
         else {
-            FMLLog.info("Player's new hitbox fit in the world without moving the player");
+            //DEBUG
+//            FMLLog.info("Player's new hitbox fit in the world without moving the player");
         }
         player.setEntityBoundingBox(axisAlignedBB);
     }

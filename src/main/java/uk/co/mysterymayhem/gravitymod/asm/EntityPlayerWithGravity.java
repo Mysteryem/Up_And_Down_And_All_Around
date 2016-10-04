@@ -3,8 +3,10 @@ package uk.co.mysterymayhem.gravitymod.asm;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -14,10 +16,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.gravitymod.util.Vec3dHelper;
 import uk.co.mysterymayhem.gravitymod.util.reflection.LookupThief;
+import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.PITCH;
+import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.YAW;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-09-04.
@@ -39,6 +45,24 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         this.motionVarsAreRelative = false;
         this.positionVarsAreRelative = false;
         this.angleVarsAreRelative = false;
+
+
+        // Starting known values are the same, gravity direction is assumed to be DEFAULT_GRAVITY (DOWN) while entity is constructing
+        this.lastKnownRotationYaw = this.rotationYaw;
+        this.lastKnownRotationPitch = this.rotationPitch;
+        this.lastKnownRotationYawHead = this.rotationYawHead;
+        this.lastKnownPrevRotationYaw = this.prevRotationYaw;
+        this.lastKnownPrevRotationPitch = this.prevRotationPitch;
+        this.lastKnownPrevRotationYawHead = this.prevRotationYawHead;
+
+        this.lastKnownRelativeRotationYaw = this.rotationYaw;
+        this.lastKnownRelativeRotationPitch = this.rotationPitch;
+        this.lastKnownRelativeRotationYawHead = this.rotationYawHead;
+        this.lastKnownRelativePrevRotationYaw = this.prevRotationYaw;
+        this.lastKnownRelativePrevRotationPitch = this.prevRotationPitch;
+        this.lastKnownRelativePrevRotationYawHead = this.prevRotationYawHead;
+
+
     }
 
     void makeMotionRelative() {
@@ -451,19 +475,41 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     ^ Didn't work
      */
 
+//    // Updated whenever we need to use relative values
 //    private float relativeRotationYaw;
 //    private float relativeRotationYawHead;
 //    private float relativeRotationPitch;
 //    private float relativePrevRotationYaw;
 //    private float relativePrevRotationYawHead;
 //    private float relativePrevRotationPitch;
-//
-//    private float lastKnownRotationYaw;
-//    private float lastKnownRotationYawHead;
-//    private float lastKnownRotationPitch;
-//    private float lastKnownPrevRotationYaw;
-//    private float lastKnownPrevRotationYawHead;
-//    private float lastKnownPrevRotationPitch;
+
+    // Last known value of the Mojang fields, compared with the current values to work out the changes that have been
+    // made since then, these changes will be inverse-adjusted and applied to the relative rotations
+    private float lastKnownRotationYaw;
+    private float lastKnownRotationPitch;
+    private float lastKnownRotationYawHead;
+    private float lastKnownPrevRotationYaw;
+    private float lastKnownPrevRotationPitch;
+    private float lastKnownPrevRotationYawHead;
+
+    private float lastKnownCameraYaw;
+    private float lastKnownCameraPitch;
+    private float lastKnownPrevCameraYaw;
+    private float lastKnownPrevCameraPitch;
+
+    // Last known value of the gravity-relative fields, compared with the current values to work out the changes that
+    // have been made since then, these changes will be adjusted and applied to the relative Mojang fields
+    private float lastKnownRelativeRotationYaw;
+    private float lastKnownRelativeRotationPitch;
+    private float lastKnownRelativeRotationYawHead;
+    private float lastKnownRelativePrevRotationYaw;
+    private float lastKnownRelativePrevRotationPitch;
+    private float lastKnownRelativePrevRotationYawHead;
+
+    private float lastKnownRelativeCameraYaw;
+    private float lastKnownRelativeCameraPitch;
+    private float lastKnownRelativePrevCameraYaw;
+    private float lastKnownRelativePrevCameraPitch;
 
 //    private void swapRotationVars() {
 //        float holder = rotationYaw;
@@ -498,32 +544,451 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 //        }
 //    }
 //
-//    void makeAngleVarsAboslute() {
+//    void makeAngleVarsAbsolute() {
 //        if (angleVarsAreRelative) {
 //            angleVarsAreRelative = false;
 //            swapRotationVars();
 //        }
 //    }
 
-    @Override
-    public Vec3d getLook(float partialTicks) {
-        Vec3d vectorForRotation;
-        if (partialTicks == 1.0F) {
-            vectorForRotation = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
-    //            return this.getVectorForRotation(this.rotationPitch, this.rotationYaw);
-        } else {
-            float interpolatedRotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * partialTicks;
-            float interpolatedRotationYaw = this.prevRotationYawHead + (this.rotationYawHead - this.prevRotationYawHead) * partialTicks;
-            vectorForRotation = this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
-    //            return this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+    void makeAngleVarsRelative() {
+        if (!angleVarsAreRelative) {
+            this.angleVarsAreRelative = true;
+
+            float deltaYaw = this.rotationYaw - this.lastKnownRotationYaw;
+            float deltaPitch = this.rotationPitch - this.lastKnownRotationPitch;
+            float deltaYawHead = this.rotationYawHead - this.lastKnownRotationYawHead;
+
+            float deltaPrevYaw = this.prevRotationYaw - this.lastKnownPrevRotationYaw;
+            float deltaPrevPitch = this.prevRotationPitch - this.lastKnownPrevRotationPitch;
+            float deltaPrevYawHead = this.prevRotationYawHead - this.lastKnownPrevRotationYawHead;
+
+            Vec3d vDeltaPitchYaw = this.getVectorForRotation(deltaPitch, deltaYaw);
+            Vec3d vDeltaPitchYawHead = this.getVectorForRotation(deltaPitch, deltaYawHead);
+
+            Vec3d vDeltaPrevPitchYaw = this.getVectorForRotation(deltaPrevPitch, deltaPrevYaw);
+            Vec3d vDeltaPrevPitchYawHead = this.getVectorForRotation(deltaPrevPitch, deltaPrevYawHead);
+
+            // Absolute values are rotated based on the gravity direction such that code interacting with pitch/yaw works
+            //
+            EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection();
+
+            vDeltaPitchYaw = direction.adjustLookVec(vDeltaPitchYaw);
+            vDeltaPitchYawHead = direction.adjustLookVec(vDeltaPitchYawHead);
+
+            vDeltaPrevPitchYaw = direction.adjustLookVec(vDeltaPrevPitchYaw);
+            vDeltaPrevPitchYawHead = direction.adjustLookVec(vDeltaPrevPitchYawHead);
+
+            float relativeDeltaYaw = Vec3dHelper.getYaw(vDeltaPitchYaw);
+            float relativeDeltaPitch = Vec3dHelper.getPitch(vDeltaPitchYaw);
+            //TODO: What's the best way to handle yawHead? Ignore it completely? Take an average of yaw and yawHead when calculating pitch?
+            float relativeDeltaYawHead = Vec3dHelper.getYaw(vDeltaPitchYawHead);
+
+            float relativePrevDeltaYaw = Vec3dHelper.getYaw(vDeltaPrevPitchYaw);
+            float relativePrevDeltaPitch = Vec3dHelper.getPitch(vDeltaPrevPitchYaw);
+            float relativePrevDeltaYawHead = Vec3dHelper.getYaw(vDeltaPrevPitchYawHead);
+
+            this.lastKnownRotationYaw = this.rotationYaw;
+            this.lastKnownRotationPitch = this.rotationPitch;
+            this.lastKnownRotationYawHead = this.rotationYawHead;
+
+            this.lastKnownPrevRotationYaw = this.prevRotationYaw;
+            this.lastKnownPrevRotationPitch = this.prevRotationPitch;
+            this.lastKnownPrevRotationYawHead = this.prevRotationYawHead;
+
+            this.rotationYaw = this.lastKnownRelativeRotationYaw += relativeDeltaYaw;
+            this.rotationPitch = this.lastKnownRelativeRotationPitch += relativeDeltaPitch;
+            this.rotationYawHead = this.lastKnownRelativeRotationYawHead += relativeDeltaYawHead;
+//            this.rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90f, 90f);
+//            this.lastKnownRelativeRotationPitch = MathHelper.clamp_float(this.lastKnownRelativeRotationPitch, -90f, 90f);
+
+            this.prevRotationYaw = this.lastKnownRelativePrevRotationYaw += relativePrevDeltaYaw;
+            this.prevRotationPitch = this.lastKnownRelativePrevRotationPitch += relativePrevDeltaPitch;
+            this.prevRotationYawHead = this.lastKnownRelativePrevRotationYawHead += relativePrevDeltaYawHead;
+//            this.prevRotationPitch = MathHelper.clamp_float(this.prevRotationPitch, -90f, 90f);
+//            this.lastKnownRelativePrevRotationPitch = MathHelper.clamp_float(this.lastKnownRelativePrevRotationPitch, -90f, 90f);
 
         }
-        return API.getGravityDirection(this).adjustLookVec(vectorForRotation);
     }
+
+    void makeAngleVarsAbsolute() {
+        if (angleVarsAreRelative) {
+            this.angleVarsAreRelative = false;
+
+            float deltaYaw = this.rotationYaw - this.lastKnownRelativeRotationYaw;
+            float deltaPitch = this.rotationPitch - this.lastKnownRelativeRotationPitch;
+            float deltaYawHead = this.rotationYawHead - this.lastKnownRelativeRotationYawHead;
+
+            float deltaPrevYaw = this.prevRotationYaw - this.lastKnownRelativePrevRotationYaw;
+            float deltaPrevPitch = this.prevRotationPitch - this.lastKnownRelativePrevRotationPitch;
+            float deltaPrevYawHead = this.prevRotationYawHead - this.lastKnownRelativePrevRotationYawHead;
+
+            Vec3d vDeltaPitchYaw = this.getVectorForRotation(deltaPitch, deltaYaw);
+            Vec3d vDeltaPitchYawHead = this.getVectorForRotation(deltaPitch, deltaYawHead);
+
+            Vec3d vDeltaPrevPitchYaw = this.getVectorForRotation(deltaPrevPitch, deltaPrevYaw);
+            Vec3d vDeltaPrevPitchYawHead = this.getVectorForRotation(deltaPrevPitch, deltaPrevYawHead);
+
+            EnumGravityDirection direction = API.getGravityDirection(this);
+
+            vDeltaPitchYaw = direction.adjustLookVec(vDeltaPitchYaw);
+            vDeltaPitchYawHead = direction.adjustLookVec(vDeltaPitchYawHead);
+
+            vDeltaPrevPitchYaw = direction.adjustLookVec(vDeltaPrevPitchYaw);
+            vDeltaPrevPitchYawHead = direction.adjustLookVec(vDeltaPrevPitchYawHead);
+
+            float absoluteDeltaYaw = Vec3dHelper.getYaw(vDeltaPitchYaw);
+            float absoluteDeltaPitch = Vec3dHelper.getPitch(vDeltaPitchYaw);
+            //TODO: What's the best way to handle yawHead? Ignore it completely? Take an average of yaw and yawHead when calculating pitch?
+            float absoluteDeltaYawHead = Vec3dHelper.getYaw(vDeltaPitchYawHead);
+
+            float absolutePrevDeltaYaw = Vec3dHelper.getYaw(vDeltaPrevPitchYaw);
+            float absolutePrevDeltaPitch = Vec3dHelper.getPitch(vDeltaPrevPitchYaw);
+            float absolutePrevDeltaYawHead = Vec3dHelper.getYaw(vDeltaPrevPitchYawHead);
+
+            this.lastKnownRelativeRotationYaw = this.rotationYaw;
+            this.lastKnownRelativeRotationPitch = this.rotationPitch;
+            this.lastKnownRelativeRotationYawHead = this.rotationYawHead;
+
+            this.lastKnownRelativePrevRotationYaw = this.prevRotationYaw;
+            this.lastKnownRelativePrevRotationPitch = this.prevRotationPitch;
+            this.lastKnownRelativePrevRotationYawHead = this.prevRotationYawHead;
+
+            this.rotationYaw = this.lastKnownRotationYaw += absoluteDeltaYaw;
+            this.rotationPitch = this.lastKnownRotationPitch += absoluteDeltaPitch;
+            this.rotationYawHead = this.lastKnownRotationYawHead += absoluteDeltaYawHead;
+//            this.rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90f, 90f);
+//            this.lastKnownRotationPitch = MathHelper.clamp_float(this.lastKnownRotationPitch, -90f, 90f);
+//            this.rotationPitch %= 90;
+//            this.lastKnownRotationPitch %= 90;
+
+            this.prevRotationYaw = this.lastKnownPrevRotationYaw += absolutePrevDeltaYaw;
+            this.prevRotationPitch = this.lastKnownPrevRotationPitch += absolutePrevDeltaPitch;
+            this.prevRotationYawHead = this.lastKnownPrevRotationYawHead += absolutePrevDeltaYawHead;
+//            this.prevRotationPitch = MathHelper.clamp_float(this.prevRotationPitch, -90f, 90f);
+//            this.lastKnownPrevRotationPitch = MathHelper.clamp_float(this.lastKnownPrevRotationPitch, -90f, 90f);
+//            this.prevRotationPitch %= 90;
+//            this.lastKnownPrevRotationPitch %= 90;
+        }
+    }
+
+    // Something to do when changing gravity direction?
+    void resetExtraAngleVars() {
+
+    }
+
+//    @Override
+//    public void moveEntityWithHeading(float strafe, float forward) {
+//        this.makeAngleVarsRelative();
+//        super.moveEntityWithHeading(strafe, forward);
+//        this.makeAngleVarsAbsolute();
+//    }
+//
+//
+//    @SideOnly(Side.CLIENT)
+//    @Override
+//    public void setAngles(float yaw, float pitch) {
+//        this.makeAngleVarsRelative();
+//        super.setAngles(yaw, pitch);
+//        this.makeAngleVarsAbsolute();
+//    }
+
+    @Override
+    public void setAngles(float yaw, float pitch) {
+        //TODO: Remove
+        if (pitch > 0.5) {
+            //faster than adding an expression to the breakpoint
+            String f = "";
+        }
+//        this.rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90.0F, 90.0F);
+        final float absolutePitch = this.rotationPitch;
+        final float absoluteYaw = this.rotationYaw;
+        final float f2 = this.prevRotationPitch;
+        final float f3 = this.prevRotationYaw;
+
+        if (Math.abs(this.rotationYaw % 90) < 0.0002 && yaw != 0) {
+            String sfs = "";
+        }
+
+
+        super.setAngles(yaw, pitch);
+
+        //new
+
+        final EnumGravityDirection direction = API.getGravityDirection(this);
+        final EnumGravityDirection reverseDirection = direction.getInverseAdjustMentFromDOWNDirection();
+
+        final double relativePitchChange = -pitch*0.15d;
+        final double relativeYawChange = yaw*0.15d;
+
+        final Vec3d normalLookVec = Vec3dHelper.getPreciseVectorForRotation(absolutePitch, absoluteYaw);
+
+        final Vec3d relativeLookVec = reverseDirection.adjustLookVec(normalLookVec);
+        final double[] relativePY = Vec3dHelper.getPrecisePitchAndYawFromVector(relativeLookVec);
+        final double relativePitch = relativePY[PITCH];
+        final double relativeYaw = relativePY[YAW];
+
+        final double changedRelativeYaw = relativeYaw + relativeYawChange;
+        final double changedRelativePitch = relativePitch + relativePitchChange;
+        final double clampedRelativePitch;
+
+        // Any closer to -90 or 90 produce tiny values that the trig functions will effectively treat as zero
+        // this causes an inability to rotate the camera when looking straight up or down
+        final double maxRelativeYaw = direction == EnumGravityDirection.UP || direction == EnumGravityDirection.DOWN ? 90d : 89.99d;
+        final double minRelativeYaw = direction == EnumGravityDirection.UP || direction == EnumGravityDirection.DOWN ? -90d : -89.99d;
+
+        if (changedRelativePitch > maxRelativeYaw) {
+            clampedRelativePitch = maxRelativeYaw;
+        }
+        else if (changedRelativePitch < minRelativeYaw) {
+            clampedRelativePitch = minRelativeYaw;
+        }
+        else {
+            clampedRelativePitch = changedRelativePitch;
+        }
+
+        // Work out the change in absolute pitch and yaw and add that to the current pitch and yaw
+//        final double clampedRelativePitchChange = clampedRelativePitch - relativePitch;
+//
+//        final Vec3d relativeChangeVec = Vec3dHelper.getPreciseVectorForRotation(clampedRelativePitchChange, relativeYawChange);
+//
+//        final Vec3d absoluteChangeVec = direction.adjustLookVec(relativeChangeVec);
+//
+//        final double[] absolutePYChange = Vec3dHelper.getPrecisePitchAndYawFromVector(absoluteChangeVec);
+//        this.rotationPitch = (float)(absolutePitch + absolutePYChange[PITCH]);
+//        this.rotationYaw = (float)(absoluteYaw + absolutePYChange[YAW]);
+
+        // Directly set pitch and yaw
+        final Vec3d relativeChangedLookVec = Vec3dHelper.getPreciseVectorForRotation(clampedRelativePitch, changedRelativeYaw);
+
+        final Vec3d absoluteLookVec = direction.adjustLookVec(relativeChangedLookVec);
+        final double[] absolutePY = Vec3dHelper.getPrecisePitchAndYawFromVector(absoluteLookVec);
+
+        final double changedAbsolutePitch = absolutePY[PITCH];
+        final double changedAbsoluteYaw = (absolutePY[YAW] % 360);
+
+        // Yaw calculated through yaw change
+        final double absoluteYawChange;
+        final double absoluteYawToReAdd;
+        final double effectiveStartingAbsoluteYaw = absoluteYaw % 360;
+        final double positiveEffectiveStartingAbsoluteYaw;
+
+        if (Math.abs(effectiveStartingAbsoluteYaw - changedAbsoluteYaw) > 180) {
+            if (effectiveStartingAbsoluteYaw < changedAbsoluteYaw) {
+                absoluteYawChange = changedAbsoluteYaw - (effectiveStartingAbsoluteYaw + 360);
+            }
+            else {
+                absoluteYawChange = (changedAbsoluteYaw + 360) - effectiveStartingAbsoluteYaw;
+            }
+        }
+        else {
+            absoluteYawChange = changedAbsoluteYaw - effectiveStartingAbsoluteYaw;
+        }
+//
+//
+//        // make both starting and changed yaw in range [0, 359]
+//        if (effectiveStartingAbsoluteYaw < 0) {
+//            positiveEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw;// + 360;
+//        } else {
+//            positiveEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw;
+//        }
+//        final double positiveEffectiveChangedAbsoluteYaw;
+//        //changedAbsoluteYaw will be in range [-180, 180] due to trig functions used, so don't need to %360 first
+//        if (changedAbsoluteYaw < 0) {
+//            positiveEffectiveChangedAbsoluteYaw = changedAbsoluteYaw;// + 360;
+//        } else {
+//            positiveEffectiveChangedAbsoluteYaw = changedAbsoluteYaw;
+//        }
+//
+//        absoluteYawChange = positiveEffectiveChangedAbsoluteYaw - positiveEffectiveStartingAbsoluteYaw;
+
+//        if (Math.abs(effectiveStartingAbsoluteYaw - changedAbsoluteYaw) > 180) {
+//
+//            // make both starting and changed yaw in range [0, 359]
+//            if (effectiveStartingAbsoluteYaw < 0) {
+//                positiveEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw + 360;
+//            } else {
+//                positiveEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw;
+//            }
+//            final double positiveEffectiveChangedAbsoluteYaw;
+//            //changedAbsoluteYaw will be in range [-180, 180] due to trig functions used, so don't need to %360 first
+//            if (changedAbsoluteYaw < 0) {
+//                positiveEffectiveChangedAbsoluteYaw = changedAbsoluteYaw + 360;
+//            } else {
+//                positiveEffectiveChangedAbsoluteYaw = changedAbsoluteYaw;
+//            }
+//
+//            // if difference between them is greater than 180 degrees
+//            if (Math.abs(positiveEffectiveStartingAbsoluteYaw - positiveEffectiveChangedAbsoluteYaw) > 180) {
+//                // add 180 degrees to both and refit them to range [0, 359]
+//                double effectiveStartYaw180 = (positiveEffectiveStartingAbsoluteYaw + 180) % 360;
+//                double changedAbsoluteYaw180 = (positiveEffectiveChangedAbsoluteYaw + 180) % 360;
+//                absoluteYawChange = changedAbsoluteYaw180 - effectiveStartYaw180;
+//            } else {
+//                absoluteYawChange = positiveEffectiveChangedAbsoluteYaw - positiveEffectiveStartingAbsoluteYaw;
+//            }
+//        }
+//        else {
+//            absoluteYawChange = changedAbsoluteYaw - effectiveStartingAbsoluteYaw;
+//        }
+//
+//        final boolean needsFixing = (Math.abs(positiveEffectiveChangedAbsoluteYaw - positiveEffectiveStartingAbsoluteYaw) > 180);
+//        if (needsFixing) {
+//            double effStartYawPlus180 = positiveEffectiveStartingAbsoluteYaw + 180;
+//            double effChangYawPlus180 = positiveEffectiveChangedAbsoluteYaw + 180;
+//        }
+//
+//        absoluteYawChange = positiveEffectiveChangedAbsoluteYaw - positiveEffectiveStartingAbsoluteYaw;
+
+//        final double clampedEffectiveStartingAbsoluteYaw;
+//
+//        if (effectiveStartingAbsoluteYaw > 180) {
+//            clampedEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw - 360;
+//        }
+//        else if (effectiveStartingAbsoluteYaw < -180) {
+//            clampedEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw + 360;
+//        }
+//        else {
+//            clampedEffectiveStartingAbsoluteYaw = effectiveStartingAbsoluteYaw;
+//        }
+//
+//        absoluteYawChange = changedAbsoluteYaw - clampedEffectiveStartingAbsoluteYaw;
+
+        this.rotationYaw = (float)(absoluteYaw + absoluteYawChange);
+
+        this.rotationPitch = (float)changedAbsolutePitch;
+//        this.rotationYaw = changedAbsoluteYaw;
+        this.prevRotationPitch = f2;
+        this.prevRotationPitch += this.rotationPitch - absolutePitch;
+        this.prevRotationYaw = f3;
+        this.prevRotationYaw += this.rotationYaw - absoluteYaw;
+
+        if (this.rotationYaw % 90 == 0 && this.rotationPitch == 0) {
+            String str = "";
+        }
+
+
+//        //old
+//
+//        float normalResultRotationYaw = this.rotationYaw;
+//        float normalResultRotationPitch = this.rotationPitch;
+//        float normalResultPrevRotationPitch = this.prevRotationPitch;
+//        float normalResultPrevRotationYaw = this.prevRotationYaw;
+//
+//        // change is already relative!!!!!!
+////        double[] yp = Hooks.getRelativeYawAndPitch(yaw, pitch, this);
+////        double relativeYawChange = yp[Hooks.YAW];
+////        double d_pitch = yp[Hooks.PITCH];
+//
+//        double[] baseYP = Hooks.getRelativeYawAndPitch(f1 + yaw * 0.15d, f - pitch * 0.15d, this);
+//        double relativeYaw = baseYP[Hooks.YAW];
+//        double relativePitch = baseYP[Hooks.PITCH];
+////
+////        double relativePitchAfterChange = relativePitch - pitch * 0.15D;
+//
+////        double clampAdjustment = 0;
+////
+////        if (relativePitchAfterChange > 90.0D) {
+////            clampAdjustment = 90.0D - relativePitchAfterChange;
+////        }
+////        else if (relativePitchAfterChange < -90.0D) {
+////            clampAdjustment = -90.0D - relativePitchAfterChange;
+////        }
+//
+//        relativePitch = MathHelper.clamp_double(relativePitch, -90d, 90d);
+//
+//        double[] absoluteYP = Hooks.getAbsoluteYawAndPitch(relativeYaw, relativePitch, this);
+//
+//        this.rotationPitch = (float)absoluteYP[Hooks.PITCH];
+//        this.rotationYaw = (float)absoluteYP[Hooks.YAW];
+//        this.prevRotationPitch = f2;
+//        this.prevRotationPitch += this.rotationPitch - f;
+//        this.prevRotationYaw = f3;
+//        this.prevRotationYaw += this.rotationYaw - f1;
+//
+//////        FMLLog.info(relativePitchAfterChange + ", " + (clampAdjustment + f - d_pitch * 0.15D));
+////
+//////        pitch+=clampAdjustment;
+////
+////        double[] absoluteAdjustment = Hooks.getAbsoluteYawAndPitch(yaw * 0.15d, pitch * 0.15d - clampAdjustment, this);
+////
+//////        double[] adjustment = Hooks.getAbsoluteYawAndPitch(0, clampAdjustment, this);
+////        double yawAdjustment = absoluteAdjustment[Hooks.YAW];
+////        double pitchAdjustment = absoluteAdjustment[Hooks.PITCH];
+////
+////        //Adjustment is working for normal, but not others, two of the gravity directions are still very broken
+////
+//////        d_pitch += (clampAdjustment/0.15D);
+//////        yp = Hooks.getRelativeYawAndPitch(yaw, pitch + clampAdjustment, this);
+//////        d_yaw = yp[Hooks.YAW];
+//////        d_pitch = yp[Hooks.PITCH];
+////
+////        // Ignores any changes that may have been made to pitch/yaw by calling super
+////        this.rotationYaw = (float)(f1 + yawAdjustment);
+////        this.rotationPitch = (float)(f - pitchAdjustment);
+////        // Necessary?
+//////        this.rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90.0F, 90.0F);
+//////        this.rotationPitch += clampAdjustment;
+////        this.prevRotationPitch = f2;
+////        this.prevRotationPitch += this.rotationPitch - f;
+////        this.prevRotationYaw = f3;
+////        this.prevRotationYaw += this.rotationYaw - f1;
+//
+////        boolean errored = false;
+////
+//////        if (this.rotationYaw != normalResultRotationYaw) {
+//////            FMLLog.info("Yaw: " + this.rotationYaw + ", Expected: " + normalResultRotationYaw);
+//////            errored = true;
+//////        }
+////        if (this.rotationPitch != normalResultRotationPitch) {
+////            FMLLog.info("Pitch: " + this.rotationPitch + ", Expected: " + normalResultRotationPitch);
+////            errored = true;
+////        }
+//////        if (this.prevRotationYaw != normalResultPrevRotationYaw) {
+//////            FMLLog.info("PrevYaw: " + this.prevRotationYaw + ", Expected: " + normalResultPrevRotationYaw);
+//////            errored = true;
+//////        }
+////        if (this.prevRotationPitch != normalResultPrevRotationPitch) {
+////            FMLLog.info("PrevPitch: " + this.prevRotationPitch + ", Expected: " + normalResultPrevRotationPitch);
+////            errored = true;
+////        }
+////
+////        if (errored) {
+////            FMLLog.info("InYaw: " + yaw + ", InPitch: " + pitch);
+////        }
+//
+////        this.rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90.0F, 90.0F);
+    }
+
+//    @Override
+//    public void moveEntityWithHeading(float strafe, float forward) {
+//        super.moveEntityWithHeading(strafe, forward);
+//    }
+
+    //    @Override
+//    public Vec3d getLook(float partialTicks) {
+//        Vec3d vectorForRotation;
+//        if (partialTicks == 1.0F) {
+//            vectorForRotation = this.getVectorForRotation(this.rotationPitch, this.rotationYawHead);
+//    //            return this.getVectorForRotation(this.rotationPitch, this.rotationYaw);
+//        } else {
+//            float interpolatedRotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * partialTicks;
+//            float interpolatedRotationYaw = this.prevRotationYawHead + (this.rotationYawHead - this.prevRotationYawHead) * partialTicks;
+//            vectorForRotation = this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+//    //            return this.getVectorForRotation(interpolatedRotationPitch, interpolatedRotationYaw);
+//
+//        }
+//        return API.getGravityDirection(this).adjustLookVec(vectorForRotation);
+//    }
 
     public Vec3d getSuperLook(float partialTicks) {
         return super.getLook(partialTicks);
     }
+
+//    @Override
+//    public void moveEntityWithHeading(float strafe, float forward) {
+//        super.moveEntityWithHeading(strafe, forward);
+//    }
 
     @Override
     public void setEntityBoundingBox(AxisAlignedBB bb) {
@@ -987,9 +1452,4 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
 //    private static final double ONE_HUNDRED_EIGHTY_OVER_PI = 180/Math.PI;
 
-    @Override
-    public EnumFacing getHorizontalFacing() {
-        EnumFacing updated = EnumFacing.getHorizontal(MathHelper.floor_double((double) (Hooks.getAdjustedYaw(this) * 4.0F / 360.0F) + 0.5D) & 3);
-        return updated;
-    }
 }
