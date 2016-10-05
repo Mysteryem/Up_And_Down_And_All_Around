@@ -49,7 +49,7 @@ public class Transformer implements IClassTransformer {
 //        classNameToMethodMap.put("net.minecraft.block.BlockChest", Transformer::patchBlockChestAndBlockCocoa);
 //        classNameToMethodMap.put("net.minecraft.block.BlockCocoa", Transformer::patchBlockChestAndBlockCocoa);
 //        classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
-//        classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
+        classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
 //        classNameToMethodMap.put("net.minecraft.client.particle.ParticleManager", Transformer::patchParticleManager);
 ////        classNameToMethodMap.put("net.minecraft.client.renderer.RenderGlobal", Transformer::patchRenderGlobal);
 //        classNameToMethodMap.put("net.minecraft.client.particle.Particle", Transformer::patchParticle);
@@ -1868,10 +1868,7 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-//            if (methodNode.name.equals("setListener")) {
-//                patchMethodUsingRelativeRotations(methodNode, ALL_ROTATION_VARS);
-//                break;
-//            }
+
             if (methodNode.name.equals("setListener")) {
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
@@ -1887,6 +1884,7 @@ public class Transformer implements IClassTransformer {
                         }
                     }
                 }
+                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_PREVROTATIONYAW + GET_ROTATIONPITCH + GET_PREVROTATIONPITCH);
             }
         }
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
