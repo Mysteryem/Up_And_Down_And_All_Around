@@ -5,6 +5,8 @@ import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.MobEffects;
 import net.minecraft.util.*;
@@ -42,7 +44,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     public EntityPlayerWithGravity(World worldIn, GameProfile gameProfileIn) {
         super(worldIn, gameProfileIn);
 
-        this.motionVarsAreRelative = false;
+        this.motionVarsAreRelative = true;
         this.positionVarsAreRelative = false;
         this.angleVarsAreRelative = false;
 
@@ -1450,6 +1452,33 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 //        throw new RuntimeException("Unreachable code reached");
     }
 
-//    private static final double ONE_HUNDRED_EIGHTY_OVER_PI = 180/Math.PI;
+    @Override
+    public void knockBack(Entity attacker, float strength, double xRatio, double zRatio) {
+//        FMLLog.info("x:%s, z:%s", xRatio, zRatio);
+        if (attacker != null) {
+            // Standard mob attacks, also arrows, not sure about others
+            if (xRatio == attacker.posX - this.posX && zRatio == attacker.posZ - this.posZ) {
+//                FMLLog.info("Distance based attack");
+                EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection();
+                double[] d_attacker = direction.adjustXYZValues(attacker.posX, attacker.posY, attacker.posZ);
+                double[] d_player = direction.adjustXYZValues(this.posX, this.posY, this.posZ);
+                xRatio = d_attacker[0] - d_player[0];
+                zRatio = d_attacker[2] - d_player[2];
+            }
+            // Usually the knockback enchantment
+            else if (xRatio == (double)MathHelper.sin(attacker.rotationYaw * 0.017453292F) && zRatio == (double)-MathHelper.cos(attacker.rotationYaw * 0.017453292F)) {
+//                FMLLog.info("Rotation based attack");
+                Vec3d lookVec = attacker.getLookVec();
+                EnumGravityDirection direction = API.getGravityDirection(this);
+                Vec3d adjustedLook = direction.adjustLookVec(lookVec);
+                xRatio = -adjustedLook.xCoord;
+                zRatio = -adjustedLook.zCoord;
+            }
+            else {
+//                FMLLog.info("Unknown attack");
+            }
+        }
+        super.knockBack(attacker, strength, xRatio, zRatio);
+    }
 
 }
