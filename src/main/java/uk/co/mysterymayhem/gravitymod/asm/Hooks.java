@@ -780,6 +780,17 @@ public class Hooks {
         return vecs;
     }
 
+    /**
+     * ASM Hook used in SoundManager::setListener
+     * @param soundSystem
+     * @param lookX
+     * @param lookY
+     * @param lookZ
+     * @param upX
+     * @param upY
+     * @param upZ
+     * @param player
+     */
     @SideOnly(Side.CLIENT)
     public static void setListenerOrientationHook(SoundSystem soundSystem, float lookX, float lookY, float lookZ, float upX, float upY, float upZ, EntityPlayer player) {
         EnumGravityDirection gravityDirection = API.getGravityDirection(player);
