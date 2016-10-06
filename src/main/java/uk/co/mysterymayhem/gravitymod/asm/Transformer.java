@@ -797,6 +797,7 @@ public class Transformer implements IClassTransformer {
 
         boolean foundMoveEntity = false;
         boolean foundHandleFalling = false;
+        boolean patched1point5ToGetEyeHeight = false;
 
         for (MethodNode methodNode : classNode.methods) {
             if (methodNode.name.equals("processPlayer")) {
@@ -870,6 +871,35 @@ public class Transformer implements IClassTransformer {
                     }
                 }
             }
+            else if (methodNode.name.equals("processPlayerDigging")) {
+
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator();iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof LdcInsnNode) {
+                        LdcInsnNode ldcInsnNode = (LdcInsnNode)next;
+                        Object object = ldcInsnNode.cst;
+                        if (object instanceof Double) {
+                            Double d = (Double)object;
+                            if (d == 1.5D) {
+                                iterator.remove();
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this.
+                                iterator.add(new FieldInsnNode(Opcodes.GETFIELD, //this.playerEntity
+                                        "net/minecraft/network/NetHandlerPlayServer",
+                                        "playerEntity",
+                                        "Lnet/minecraft/entity/player/EntityPlayerMP;"));
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, //this.playerEntity.getEyeHeight()
+                                        "net/minecraft/entity/player/EntityPlayerMP",
+                                        "getEyeHeight",
+                                        "()F",
+                                        false));
+                                iterator.add(new InsnNode(Opcodes.F2D)); //(double)this.playerEntity.getEyeHeight()
+                                patched1point5ToGetEyeHeight = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (foundMoveEntity) {
@@ -881,6 +911,11 @@ public class Transformer implements IClassTransformer {
             log("Replaced \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\" with \"this.playerEntity.handleFalling(Hooks.netHandlerPlayServerHandleFallingYChange(playerEntity, d0, d3, d2), packetIn.isOnGround());\" in " + classNode.name + "::processPlayer");
         } else {
             throw new RuntimeException("Could not find \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\" in " + classNode.name +"::processPlayer");
+        }
+        if (patched1point5ToGetEyeHeight) {
+            log("Replaced 1.5D with this.playerEntity.getEyeHeight()");
+        } else {
+            throw new RuntimeException("Could not find \"1.5D\" in " + classNode.name + "::processPlayerDigging");
         }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
