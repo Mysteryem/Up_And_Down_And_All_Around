@@ -1100,6 +1100,16 @@ public class Hooks {
         }
     }
 
+    public static AxisAlignedBB getVanillaEntityBoundingBox(Entity entity) {
+        AxisAlignedBB aabb = entity.getEntityBoundingBox();
+        if (aabb instanceof GravityAxisAlignedBB) {
+            return ((GravityAxisAlignedBB) aabb).toVanilla();
+        }
+        else {
+            return aabb;
+        }
+    }
+
 
 
 

@@ -46,7 +46,7 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
-//        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
+        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
 //        classNameToMethodMap.put("net.minecraft.block.BlockChest", Transformer::patchBlockChestAndBlockCocoa);
 //        classNameToMethodMap.put("net.minecraft.block.BlockCocoa", Transformer::patchBlockChestAndBlockCocoa);
 //        classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
@@ -189,7 +189,7 @@ public class Transformer implements IClassTransformer {
 
 
 
-    private static byte[] patchEntityRenderer2(byte[] bytes) {
+    private static byte[] patchEntityRenderer3(byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
         classReader.accept(classNode, 0);
@@ -206,7 +206,7 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
-    private static byte[] patchEntityRenderer(byte[] bytes) {
+    private static byte[] patchEntityRenderer2(byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
         classReader.accept(classNode, 0);
@@ -307,6 +307,60 @@ public class Transformer implements IClassTransformer {
         }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchEntityRenderer(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        boolean patchComplete = false;
+
+        outerfor:
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("getMouseOver")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
+                        if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                && methodInsnNode.owner.equals("net/minecraft/client/multiplayer/WorldClient")
+                                && methodInsnNode.name.equals("getEntitiesInAABBexcluding")
+                                && methodInsnNode.desc.equals("(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/AxisAlignedBB;Lcom/google/common/base/Predicate;)Ljava/util/List;")) {
+                            iterator.previous();
+                            while(iterator.hasPrevious()) {
+                                next = iterator.previous();
+                                if (next instanceof MethodInsnNode) {
+                                    methodInsnNode = (MethodInsnNode)next;
+                                    if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
+                                            && methodInsnNode.owner.equals("net/minecraft/entity/Entity")
+                                            && methodInsnNode.name.equals("getEntityBoundingBox")
+                                            && methodInsnNode.desc.equals("()Lnet/minecraft/util/math/AxisAlignedBB;")) {
+                                        methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
+                                        methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
+                                        methodInsnNode.name = "getVanillaEntityBoundingBox";
+                                        methodInsnNode.desc = "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/AxisAlignedBB;";
+                                        patchComplete = true;
+                                        break outerfor;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (patchComplete) {
+            log("Found and patched usage of \"getEntityBoundingBox\" in argument of \"getEntitiesInAABBexcluding\" in " + classNode.name + "::getMouseOver");
+        }
+        else {
+            throw new RuntimeException("Failed to patch " + classNode.name + "::getMouseOver");
+        }
+
+        ClassWriter classWriter = new ClassWriter(0);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
     }
