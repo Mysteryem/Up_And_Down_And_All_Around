@@ -108,8 +108,19 @@ public class GravityDirectionCapability {
         if (player instanceof EntityPlayerMP) {
             // Update the client player's position before they receive the gravity change packet
 
+            double deltaX = player.posX - x;
+            double deltaY = player.posY - y;
+            double deltaZ = player.posZ - z;
+
+            //connection.setPlayerLocation updates the server side player location by the specified values as well
+            //we've already moved the server player into the correct position by this point, so we'll undo the movement
+            //and then redo it again during setPlayerLocation
+            player.posX -= deltaX;
+            player.posY -= deltaY;
+            player.posZ -= deltaZ;
+
             //allRelative so that motion is not set to zero and so that pitch and yaw do not change client side
-            ((EntityPlayerMP) player).connection.setPlayerLocation(player.posX - x, player.posY - y, player.posZ - z, 0, 0, allRelative);
+            ((EntityPlayerMP) player).connection.setPlayerLocation(deltaX, deltaY, deltaZ, 0, 0, allRelative);
         }
 //        FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer()
 //                ((EntityPlayerWithGravity_DEPRECATED) player).setSize(player.width, player.height);

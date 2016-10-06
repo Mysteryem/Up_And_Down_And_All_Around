@@ -14,6 +14,7 @@ import org.objectweb.asm.tree.*;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.ObjectClassName;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.function.Function;
 
@@ -65,6 +66,8 @@ public class Transformer implements IClassTransformer {
 
         classNameToMethodMap.put("net.minecraft.entity.EntityBodyHelper", Transformer::patchEntityBodyHelper);
         classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
+
+        classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", Transformer::patchNetHandlerPlayClient);
     }
 
     private static void log(String string, Object... objects) {
@@ -741,6 +744,46 @@ public class Transformer implements IClassTransformer {
         else {
             throw new RuntimeException("[UpAndDownAndAllAround] Failed to find PUTFIELD this.limbSwing in EntityLivingBase::moveEntityWithHeading");
         }
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchNetHandlerPlayClient(byte[] bytes) {
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        boolean foundAtLeastOneMinY = false;
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (methodNode.name.equals("handlePlayerPosLook")) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator();iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof FieldInsnNode && next.getOpcode() == Opcodes.GETFIELD) {
+                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                        if (fieldInsnNode.owner.equals("net/minecraft/util/math/AxisAlignedBB")
+                                && fieldInsnNode.name.equals("minY")
+                                && fieldInsnNode.desc.equals("D")) {
+                            fieldInsnNode.owner = "net/minecraft/entity/player/EntityPlayer";
+                            fieldInsnNode.name = "posY";
+                            iterator.previous(); // the instruction we just found
+                            iterator.previous(); // getEntityBoundingBox()
+                            iterator.remove();
+                            foundAtLeastOneMinY = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (foundAtLeastOneMinY) {
+            log("Replaced \"playerEntity.geEntityBoundingBox().minY\" with \"playerEntity.posY\" in " + classNode.name + "::processPlayer");
+        } else {
+            throw new RuntimeException("Could not find \"playerEntity.geEntityBoundingBox().minY\" in " + classNode.name);
+        }
+
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
