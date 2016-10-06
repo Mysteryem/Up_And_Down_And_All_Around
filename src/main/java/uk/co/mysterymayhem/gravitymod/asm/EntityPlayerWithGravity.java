@@ -1056,7 +1056,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     @Override
     public boolean isEntityInsideOpaqueBlock()
     {
-        if (this.noClip) {
+        if (this.noClip || this.sleeping) {
             return false;
         }
         AxisAlignedBB bb = this.getEntityBoundingBox();
