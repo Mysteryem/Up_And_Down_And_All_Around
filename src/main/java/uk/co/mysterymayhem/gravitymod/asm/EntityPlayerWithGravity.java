@@ -995,6 +995,9 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     @Override
     public void setEntityBoundingBox(AxisAlignedBB bb) {
         bb = Hooks.replaceWithGravityAware(this, bb);
+        if (bb.minY < 72) {
+            String stf = "";
+        }
         super.setEntityBoundingBox(bb);
     }
 
@@ -1127,17 +1130,6 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         return entityBoundingBox;
     }
 
-
-    @Override
-    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch) {
-        super.setPositionAndRotation(x, y, z, yaw, pitch);
-    }
-
-    @Override
-    public void addMovementStat(double p_71000_1_, double p_71000_3_, double p_71000_5_) {
-        EnumGravityDirection direction = API.getGravityDirection(this);
-        super.addMovementStat(p_71000_1_, p_71000_3_, p_71000_5_);
-    }
 
     @Override
     public float getEyeHeight() {
@@ -1322,6 +1314,9 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 //        this.makeMotionAbsolute();
         boolean result = this.pushOutOfBlocks(x, y, z);
 //        this.makeMotionRelative();
+        if(result) {
+            String sfsf = "";
+        }
         return result;
     }
 
@@ -1481,4 +1476,44 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         super.knockBack(attacker, strength, xRatio, zRatio);
     }
 
+    @Override
+    public void moveEntity(double x, double y, double z) {
+        super.moveEntity(x, y, z);
+
+    }
+
+    @Override
+    public void moveEntityWithHeading(float strafe, float forward) {
+        super.moveEntityWithHeading(strafe, forward);
+    }
+
+    @Override
+    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch) {
+        super.setPositionAndRotation(x, y, z, yaw, pitch);
+    }
+
+    @Override
+    public void addMovementStat(double p_71000_1_, double p_71000_3_, double p_71000_5_) {
+        EnumGravityDirection direction = API.getGravityDirection(this);
+        super.addMovementStat(p_71000_1_, p_71000_3_, p_71000_5_);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void setPositionAndRotationDirect(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
+        Vec3d positionVector = this.getPositionVector();
+        super.setPositionAndRotationDirect(x, y, z, yaw, pitch, posRotationIncrements, teleport);
+        Vec3d changeVector = this.getPositionVector().subtract(positionVector);
+                FMLLog.info((this.worldObj.isRemote ? "Client: " : "Server: ") + changeVector + ", " + this.onGround + ", " + this.isAirBorne);
+    }
+
+    @Override
+    protected void setRotation(float yaw, float pitch) {
+        super.setRotation(yaw, pitch);
+    }
+
+    @Override
+    public void setRotationYawHead(float rotation) {
+        super.setRotationYawHead(rotation);
+    }
 }

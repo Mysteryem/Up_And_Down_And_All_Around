@@ -264,18 +264,30 @@ public enum EnumGravityDirection {
 
     public void preModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection newDirection) {
         //TODO: Is this needed? Could this be what's causing players to sometimes get stuck in place when changing gravity direction?
-        player.resetPositionToBB();
+//        player.resetPositionToBB();
 //        player.setEntityBoundingBox(player.getEntityBoundingBox().offset(0, -API.getStandardEyeHeight(player)/2d, 0));
     }
 
     public void postModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection) {
         // Converts the player current motion
         this.maintainEffectiveMotion(player, oldDirection);
-        oldDirection.returnCentreOfGravityToPlayerPos(player);
-        this.offsetCentreOfGravityFromPlayerPos(player);
+//        double deltaX = player.posX - player.prevPosX;
+//        double deltaY = player.posY - player.prevPosY;
+//        double deltaZ = player.posZ - player.prevPosZ;
+        if (!player.worldObj.isRemote) {
+            // Server will provide the client with the correct change in position that 'should' put the client player
+            // in the correct place
+            oldDirection.returnCentreOfGravityToPlayerPos(player);
+            this.offsetCentreOfGravityFromPlayerPos(player);
+        }
+
+        // As the client is slightly ahead of the server in terms of client player movement, we'll try to set them outside of a wall here as well
         // Move player to try and get them out of a wall
         this.setBoundingBoxAndPositionOnGravityChange(player, oldDirection);
         this.playerModificationsOnGravityChange.accept(player, oldDirection);
+//        player.prevPosX = player.posX - deltaX;
+//        player.prevPosY = player.posY - deltaY;
+//        player.prevPosZ = player.posZ - deltaZ;
     }
 
     // Converts the old motion of the player to the new direction, such that if the player was moving (a, b, c) from the
@@ -301,21 +313,25 @@ public enum EnumGravityDirection {
      * @param oldDirection The old gravity direction.
      */
     private void maintainEffectiveMotion(EntityPlayer player, EnumGravityDirection oldDirection) {
-        double[] doubles = oldDirection.adjustXYZValues(player.motionX, player.motionY, player.motionZ);
-        doubles = this.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(doubles[0], doubles[1], doubles[2]);
-        player.motionX = doubles[0];
-        player.motionY = doubles[1];
-        player.motionZ = doubles[2];
+//        if (!player.worldObj.isRemote) {
+            double[] doubles = oldDirection.adjustXYZValues(player.motionX, player.motionY, player.motionZ);
+            doubles = this.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(doubles[0], doubles[1], doubles[2]);
+            player.motionX = doubles[0];
+            player.motionY = doubles[1];
+            player.motionZ = doubles[2];
+//        }
     }
 
     private void setBoundingBoxAndPositionOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection) {
         AxisAlignedBB axisAlignedBB = this.getGravityAdjustedAABB(player);
-        Vec3d prevPos = player.getPositionVector();
         player.resetPositionToBB();
-        if (!prevPos.equals(player.getPositionVector())) {
-            // If we've got thing right, no change in position should have occured
-            FMLLog.warning("Expected to find player at %s, but found player at %s", prevPos.toString(), player.getPositionVector().toString());
-        }
+
+//        if (!prevPos.equals(player.getPositionVector())) {
+//            // If we've got thing right, no change in position should have occured
+//            // update: client/server sync says "hahahahahahahahahahahahahaha, good luck with that"
+//            String side = player.worldObj.isRemote ? "Client: " : "Server: ";
+//            FMLLog.warning(side + "Expected to find player at %s, but found player at %s", prevPos.toString(), player.getPositionVector().toString());
+//        }
 
         if (player.worldObj.collidesWithAnyBlock(axisAlignedBB)) {
             // After rotating about the player's centre of gravity, the player is now partially inside of a block
@@ -372,17 +388,20 @@ public enum EnumGravityDirection {
 //                    FMLLog.info("No matter how the player was moved, they would not fit, turning them into a square");
 
                     // Make the player as tall as they are wide (whichever is smaller)
-                    float min = Math.min(player.height, player.width);
-                    axisAlignedBB = this.getGravityAdjustedAABB(player, min, min);
+//                    float min = Math.min(player.height, player.width);
+//                    axisAlignedBB = this.getGravityAdjustedAABB(player, min, min);
+                    axisAlignedBB = thirdTry;
                     // No change to the player's position is needed as their new hitbox is guaranteed to fit inside their old hitbox
                 } else {
                     // Moving 'down' did not collide with the world
                     //DEBUG
 //                    FMLLog.info("Moving 'down' did not collide with the world");
                     axisAlignedBB = thirdTry;
-                    player.posX -= adjustedMovement[0];
-                    player.posY -= adjustedMovement[1];
-                    player.posZ -= adjustedMovement[2];
+//                    if (!player.worldObj.isRemote) {
+                        player.posX -= adjustedMovement[0];
+                        player.posY -= adjustedMovement[1];
+                        player.posZ -= adjustedMovement[2];
+//                    }
                 }
             }
             else {
@@ -390,9 +409,11 @@ public enum EnumGravityDirection {
                 //DEBUG
 //                FMLLog.info("Moving 'up' did not collide with the world");
                 axisAlignedBB = secondTry;
-                player.posX += adjustedMovement[0];
-                player.posY += adjustedMovement[1];
-                player.posZ += adjustedMovement[2];
+//                if (!player.worldObj.isRemote) {
+                    player.posX += adjustedMovement[0];
+                    player.posY += adjustedMovement[1];
+                    player.posZ += adjustedMovement[2];
+//                }
             }
         }
         else {
@@ -400,6 +421,12 @@ public enum EnumGravityDirection {
 //            FMLLog.info("Player's new hitbox fit in the world without moving the player");
         }
         player.setEntityBoundingBox(axisAlignedBB);
+//        if (player.worldObj.isRemote) {
+//        player.posX = prevPos.xCoord;
+//        player.posY = prevPos.yCoord;
+//        player.posZ = prevPos.zCoord;
+//        }
+        player.resetPositionToBB();
     }
 
     public AxisAlignedBB getGravityAdjustedAABB(EntityPlayer player) {
