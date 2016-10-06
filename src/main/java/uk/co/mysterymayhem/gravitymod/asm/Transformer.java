@@ -63,15 +63,23 @@ public class Transformer implements IClassTransformer {
 //        classNameToMethodMap.put("net.minecraft.item.ItemEgg", Transformer::patchThrowableMojangItem);
 //        classNameToMethodMap.put("net.minecraft.entity.projectile.EntityFishHook", Transformer::patchEntityFishHook);
 //        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer2);
-
-        classNameToMethodMap.put("net.minecraft.entity.EntityBodyHelper", Transformer::patchEntityBodyHelper);
+//        classNameToMethodMap.put("net.minecraft.entity.EntityBodyHelper", Transformer::patchEntityBodyHelper);
         classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
-
         classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", Transformer::patchNetHandlerPlayClient);
+//        classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderManager", Transformer::patchRenderManager);
     }
 
     private static void log(String string, Object... objects) {
         FMLLog.info("[UpAndDown] " + string, objects);
+    }
+
+    private static void logOrDie(boolean shouldLog, String dieMessage, String formattableLogMsg, Object... objectsForFormatter) {
+        if (shouldLog) {
+            log(formattableLogMsg, objectsForFormatter);
+        }
+        else {
+            throw new RuntimeException("[UpAndDown] " + dieMessage);
+        }
     }
 
 
@@ -548,6 +556,8 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
+    //TODO: REMOVE
+    // Not called for players as they do not extend EntityLiving
     private static byte[] patchEntityBodyHelper(byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
@@ -765,6 +775,43 @@ public class Transformer implements IClassTransformer {
                         }
                     }
                 }
+            }
+            else if (methodNode.name.equals("onUpdate")) {
+                String ownerReplacement = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof FieldInsnNode) {
+                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                        if (fieldInsnNode.getOpcode() == Opcodes.GETFIELD
+                                && fieldInsnNode.owner.equals("net/minecraft/entity/EntityLivingBase")) {
+                            String fieldName = fieldInsnNode.name;
+                            if (fieldName.equals("posX")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, ownerReplacement, "getRelativePosX", "(Lnet/minecraft/entity/Entity;)D", false));
+                            }
+                            else if (fieldName.equals("prevPosX")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, ownerReplacement, "getRelativePrevPosX", "(Lnet/minecraft/entity/Entity;)D", false));
+                            }
+                            else if (fieldName.equals("posZ")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, ownerReplacement, "getRelativePosZ", "(Lnet/minecraft/entity/Entity;)D", false));
+                            }
+                            else if (fieldName.equals("prevPosZ")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, ownerReplacement, "getRelativePrevPosZ", "(Lnet/minecraft/entity/Entity;)D", false));
+                            }
+                            else if (fieldName.equals("rotationYaw")) {
+                                iterator.remove();
+                                iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, ownerReplacement, "getRelativeYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (methodNode.name.equals("jump")) {
+                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW);
             }
         }
 
@@ -1000,10 +1047,6 @@ public class Transformer implements IClassTransformer {
 //        IDeobfAware onLivingUpdate = new DeobfAwareString("onLivingUpdate", "func_70636_d");
 
         for (MethodNode methodNode : classNode.methods) {
-            /*
-
-
-             */
             if (methodNode.name.equals("onUpdateWalkingPlayer")) {
                 log("Modifying EntityPlayerSP::onUpdateWalkingPlayer");
 
@@ -1051,10 +1094,6 @@ public class Transformer implements IClassTransformer {
                     throw new RuntimeException("[UpAndDownAndAllAround] Failed to find any instances of \"axisalignedbb.minY\" in " + classNode.name);
                 }
             }
-            /*
-
-
-             */
             else if (methodNode.name.equals("onLivingUpdate")) {
                 log("Modifying EntityPlayerSP::onLivingUpdate");
 
@@ -1148,10 +1187,6 @@ public class Transformer implements IClassTransformer {
                     onLivingUpdateModified = true;
                 }
             }
-            /*
-
-
-             */
             else if (methodNode.name.equals("isHeadspaceFree")) {
                 log("Modifying EntityPlayerSP::isHeadspaceFree");
                 InsnList instructions = methodNode.instructions;
@@ -1176,10 +1211,6 @@ public class Transformer implements IClassTransformer {
                 log("Replaced EntityPlayerSP::isHeadspaceFree with call to Hooks::isHeadspaceFree");
                 isHeadSpaceFreeModified = true;
             }
-            /*
-
-
-             */
             else if (methodNode.name.equals("func_189810_i")) {
                 int addVectorReplacements = 0;
                 int blockPosUPCount = 0;
@@ -1750,6 +1781,9 @@ public class Transformer implements IClassTransformer {
                      */
                 }
             }
+//            else if (methodNode.name.equals("updateEntityActionState")) {
+//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONPITCH);
+//            }
         }
 
         if (isHeadSpaceFreeModified && onLivingUpdateModified && onUpdateWalkingPlayerModified) {
@@ -1947,6 +1981,26 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
+    // I don't know what effect this has
+//    private static byte[] patchRenderManager(byte[] bytes) {
+////        return bytes;
+//        ClassNode classNode = new ClassNode();
+//        ClassReader classReader = new ClassReader(bytes);
+//        classReader.accept(classNode, 0);
+//
+//        for (MethodNode methodNode : classNode.methods) {
+//            if (methodNode.name.equals("renderEntityStatic")) {
+//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_PREVROTATIONYAW);
+//            }
+//            else if (methodNode.name.equals("renderMultipass")) {
+//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_PREVROTATIONYAW);
+//            }
+//        }
+//        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+//        classNode.accept(classWriter);
+//        return classWriter.toByteArray();
+//    }
+
     private static byte[] patchActiveRenderInfo(byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
@@ -2000,7 +2054,6 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-
             if (methodNode.name.equals("setListener")) {
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();

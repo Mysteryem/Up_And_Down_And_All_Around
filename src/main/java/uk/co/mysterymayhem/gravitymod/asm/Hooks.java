@@ -144,27 +144,57 @@ public class Hooks {
     }
 
     /**
-     * Used in EntityPlayerSP::func_189810_i (auto-jump method)
+     * ASM Hook used in:
+     * EntityLivingBase::onUpdate
      * @param entity
      * @return
      */
     public static double getRelativePosX(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[0];
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[0];
         }
         return entity.posX;
     }
 
     /**
-     * Used in EntityPlayerSP::func_189810_i (auto-jump method)
+     * ASM Hook used in:
+     * EntityLivingBase::onUpdate
+     * @param entity
+     * @return
+     */
+    public static double getRelativePrevPosX(Entity entity) {
+        AxisAlignedBB bb = entity.getEntityBoundingBox();
+        if (bb instanceof GravityAxisAlignedBB) {
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.prevPosX, entity.prevPosY, entity.prevPosZ)[0];
+        }
+        return entity.posX;
+    }
+
+    /**
+     * ASM Hook used in
+     * EntityLivingBase::onUpdate
      * @param entity
      * @return
      */
     public static double getRelativePosZ(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[2];
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[2];
+        }
+        return entity.posZ;
+    }
+
+    /**
+     * ASM Hook used in
+     * EntityLivingBase::onUpdate
+     * @param entity
+     * @return
+     */
+    public static double getRelativePrevPosZ(Entity entity) {
+        AxisAlignedBB bb = entity.getEntityBoundingBox();
+        if (bb instanceof GravityAxisAlignedBB) {
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.prevPosX, entity.prevPosY, entity.prevPosZ)[2];
         }
         return entity.posZ;
     }
@@ -442,6 +472,9 @@ public class Hooks {
      */
     public static float getAdjustedYaw(Entity entity) {
 //        return entity.rotationYaw;
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.rotationYaw;
+        }
         final double yaw = entity.rotationYaw;
         final double pitch = entity.rotationPitch;
 
@@ -461,6 +494,9 @@ public class Hooks {
     public static final int PITCH = 1;
 
     public static double[] getRelativeYawAndPitch(double yawIn, double pitchIn, Entity entity) {
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return new double[]{yawIn, pitchIn};
+        }
 
         double f = Math.cos(-yawIn * (Math.PI / 180d) - Math.PI);
         double f1 = Math.sin(-yawIn * (Math.PI / 180d) - Math.PI);
@@ -476,6 +512,9 @@ public class Hooks {
     }
 
     public static double[] getAbsoluteYawAndPitch(double yawIn, double pitchIn, Entity entity) {
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return new double[]{yawIn, pitchIn};
+        }
 
         double f = Math.cos(-yawIn * (Math.PI / 180d) - Math.PI);
         double f1 = Math.sin(-yawIn * (Math.PI / 180d) - Math.PI);
@@ -491,6 +530,9 @@ public class Hooks {
     }
 
     public static Vec3d getRelativeLookVec(Entity entity) {
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.getLookVec();
+        }
         Vec3d vec3d = Hooks.inverseAdjustVec(entity.getLookVec(), entity);
 
 //        Vec3d lookpos = vec3d.addVector(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
@@ -504,24 +546,30 @@ public class Hooks {
      * @return
      */
     public static float getRelativeYaw(Entity entity) {
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.rotationYaw;
+        }
 //        return entity.rotationYaw;
         final double yaw = entity.rotationYaw;
         final double pitch = entity.rotationPitch;
 
         final double f = Math.cos(-yaw * (Math.PI / 180d) - Math.PI);
         final double f1 = Math.sin(-yaw * (Math.PI / 180d) - Math.PI);
-        final double f2 = -Math.cos(-pitch * (Math.PI/180d));
-        final double f3 = Math.sin(-pitch * (Math.PI/180d));
+        final double f2 = -Math.cos(-pitch * (Math.PI / 180d));
+        final double f3 = Math.sin(-pitch * (Math.PI / 180d));
 
-        Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
+        Vec3d lookVecWithDoubleAccuracy = new Vec3d(f1 * f2, f3, f * f2);
 
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float) (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D / Math.PI));
     }
 
     public static float getRelativeYawHead(EntityLivingBase entity) {
 //        return entity.rotationYaw;
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.rotationYawHead;
+        }
         final double yaw = entity.rotationYawHead;
         final double pitch = entity.rotationPitch;
 
@@ -539,6 +587,9 @@ public class Hooks {
 
     public static float getPrevRelativeYawHead(EntityLivingBase entity) {
 //        return entity.rotationYaw;
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.prevRotationYawHead;
+        }
         final double yaw = entity.prevRotationYawHead;
         final double pitch = entity.rotationPitch;
 
@@ -556,6 +607,9 @@ public class Hooks {
 
     public static float getAbsoluteYaw(Entity entity) {
 //        return entity.rotationYaw;
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.rotationYaw;
+        }
         final double yaw = entity.rotationYaw;
         final double pitch = entity.rotationPitch;
 
@@ -573,6 +627,9 @@ public class Hooks {
 
     public static float getRelativePitch(Entity entity) {
 //        return entity.rotationPitch;
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.rotationPitch;
+        }
         final double yaw = entity.rotationYaw;
         final double pitch = entity.rotationPitch;
 
@@ -636,6 +693,9 @@ public class Hooks {
 
     public static float getRelativePrevYaw(Entity entity) {
 //        return entity.prevRotationYaw;
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.prevRotationYaw;
+        }
         final double yaw = entity.prevRotationYaw;
         final double pitch = entity.prevRotationPitch;
 
@@ -675,6 +735,9 @@ public class Hooks {
     }
 
     public static float getRelativePrevPitch(Entity entity) {
+        if (!(entity instanceof EntityPlayerWithGravity)) {
+            return entity.prevRotationPitch;
+        }
 //        return entity.prevRotationPitch;
         final double yaw = entity.prevRotationYaw;
         final double pitch = entity.prevRotationPitch;
