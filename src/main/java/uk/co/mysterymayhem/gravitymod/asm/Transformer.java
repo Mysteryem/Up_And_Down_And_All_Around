@@ -6,6 +6,7 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.TraceClassVisitor;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.DeobfAwareString;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FieldInstruction;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.IDeobfAware;
@@ -13,6 +14,8 @@ import org.objectweb.asm.tree.*;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.PrimitiveClassName;
 //import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.ObjectClassName;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -38,8 +41,6 @@ public class Transformer implements IClassTransformer {
     private static final String classReplacement = "uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity";
 
     static {
-        //classNameToMethodMap.put("net.minecraft.entity.player.EntityPlayer", Transformer::patchEntityPlayerClass);
-        //classNameToMethodMap.put("net.minecraft.entity.player.EntityPlayerSP", Transformer::patchEntityPlayerSPClass);
         classNameToMethodMap.put("net.minecraft.entity.player.EntityPlayerMP", Transformer::patchEntityPlayerSubClass);
         classNameToMethodMap.put("net.minecraft.client.entity.AbstractClientPlayer", Transformer::patchEntityPlayerSubClass);
         classNameToMethodMap.put("net.minecraft.client.entity.EntityPlayerSP", Transformer::patchEntityPlayerSP);
@@ -47,32 +48,23 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
         classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
-//        classNameToMethodMap.put("net.minecraft.block.BlockChest", Transformer::patchBlockChestAndBlockCocoa);
-//        classNameToMethodMap.put("net.minecraft.block.BlockCocoa", Transformer::patchBlockChestAndBlockCocoa);
-//        classNameToMethodMap.put("net.minecraft.block.BlockFenceGate", Transformer::patchBlockFenceGate);
         classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
-//        classNameToMethodMap.put("net.minecraft.client.particle.ParticleManager", Transformer::patchParticleManager);
-////        classNameToMethodMap.put("net.minecraft.client.renderer.RenderGlobal", Transformer::patchRenderGlobal);
-//        classNameToMethodMap.put("net.minecraft.client.particle.Particle", Transformer::patchParticle);
-//        classNameToMethodMap.put("net.minecraft.item.ItemBow", Transformer::patchItemBow);
-//        classNameToMethodMap.put("net.minecraft.item.ItemEnderPearl", Transformer::patchThrowableMojangItem);
-//        classNameToMethodMap.put("net.minecraft.item.ItemSnowBall", Transformer::patchThrowableMojangItem);
-//        classNameToMethodMap.put("net.minecraft.item.ItemLingeringPotion", Transformer::patchThrowableMojangItem);
-//        classNameToMethodMap.put("net.minecraft.item.ItemSplashPotion", Transformer::patchThrowableMojangItem);
-//        classNameToMethodMap.put("net.minecraft.item.ItemExpBottle", Transformer::patchThrowableMojangItem);
-//        classNameToMethodMap.put("net.minecraft.item.ItemEgg", Transformer::patchThrowableMojangItem);
-//        classNameToMethodMap.put("net.minecraft.entity.projectile.EntityFishHook", Transformer::patchEntityFishHook);
-//        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer2);
-//        classNameToMethodMap.put("net.minecraft.entity.EntityBodyHelper", Transformer::patchEntityBodyHelper);
         classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
         classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", Transformer::patchNetHandlerPlayClient);
-//        classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderManager", Transformer::patchRenderManager);
     }
 
     private static void log(String string, Object... objects) {
         FMLLog.info("[UpAndDown] " + string, objects);
     }
 
+
+    /**
+     * Used to ensure that patches are applied succesffully
+     * @param shouldLog
+     * @param dieMessage
+     * @param formattableLogMsg
+     * @param objectsForFormatter
+     */
     private static void logOrDie(boolean shouldLog, String dieMessage, String formattableLogMsg, Object... objectsForFormatter) {
         if (shouldLog) {
             log(formattableLogMsg, objectsForFormatter);
@@ -82,31 +74,21 @@ public class Transformer implements IClassTransformer {
         }
     }
 
-
-    /*Entity.moveRelative
-
-    Does water and flight movement apparently, not as important to get this working
-
-    Could add a method override in EntityPlayer for EntityPlayer.moveRelative instead that calls super.moveRelative (less conflicts!)
+    /**
+     * Debug helper method to print a class, from bytes, to stdout
+     * @param bytes The bytes that make up the class
      */
+    private static void printClassToStdOut(byte[] bytes) {
+        printClassToStream(bytes, System.out);
+    }
 
-    /*Entity.moveEntity
-
-    Take the input x, y and z motion and adjust ('rotate') it for the gravity direction of the entity, then run the rest of the method unchanged
-
-    Could add a method override in EntityPlayer for EntityPlayer.moveEntity instead that calls super.moveEntity (less conflicts!)
-
-    This could be a good place to set entity.onGround = true/false; dependent on the gravity direction
-     */
-
-    /*EntityPlayer.getLook(float partialTicks)
-
-    Need to rotate the returned Vec3d to take into account how we've rotated the player's camera according to their gravity
-     */
-
-    /*EntityPlayerSP.func_189810_i
-     */
-
+    private static void printClassToStream(byte[] bytes, OutputStream outputStream) {
+        ClassNode classNode2 = new ClassNode();
+        ClassReader classReader2 = new ClassReader(bytes);
+        PrintWriter writer = new PrintWriter(outputStream);
+        TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
+        classReader2.accept(traceClassVisitor, 0);
+    }
 
     @Override
     public byte[] transform(String className, String transformedClassName, byte[] bytes) {
@@ -117,17 +99,12 @@ public class Transformer implements IClassTransformer {
         Function<byte[], byte[]> function = classNameToMethodMap.get(transformedClassName);
 
         if (function == null) {
-//            if (!transformedClassName.startsWith("net.minecraft") && !transformedClassName.startsWith("uk.co.mysterymayhem.gravitymod")) {
-//                //return patchGetRotations(bytes)
-//            }
-
             return bytes;
         } else {
             log("Patching %s", className);
-//            System.out.println("[UpAndDownAndAllAround] Patching " + className);
-//            byte[] toReturn = function.apply(bytes);
-            return function.apply(bytes);
-//            System.out.println("[UpAndDownAndAllAround] Patched " + className);
+            byte[] toReturn = function.apply(bytes);
+            log("Finished patching %s", className);
+            return toReturn;
         }
     }
 
@@ -165,10 +142,6 @@ public class Transformer implements IClassTransformer {
                         break;
                 }
             }
-//            while (iterator.hasNext()){
-//
-//                iterator.next();
-//            }
         }
 
         log("Injected super class into " + classNode.name);
@@ -188,130 +161,6 @@ public class Transformer implements IClassTransformer {
                 patchMethodUsingAbsoluteRotations(methodNode, ALL_GET_ROTATION_VARS);
                 break;
             }
-        }
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-
-
-    private static byte[] patchEntityRenderer3(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("orientCamera")) {
-                patchMethodUsingAbsoluteRotations(methodNode, ALL_GET_ROTATION_VARS);
-                break;
-            }
-        }
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    private static byte[] patchEntityRenderer2(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        boolean WorldClient$rayTraceBlocks_found = false;
-
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("orientCamera")) {
-//                ArrayList<LocalVariableNode> localVarsCopy = new ArrayList<>(methodNode.localVariables);
-//                localVarsCopy.sort((o1, o2) -> Integer.compare(o1.index, o2.index));
-//                localVarsCopy.forEach(localVariableNode -> {
-//                    log("name: " + localVariableNode.name + ", desc: " + localVariableNode.desc + ", index: " + localVariableNode.index);
-//                });
-
-                boolean foundEntityVar = false;
-                int entityVar = -1;
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext() && !WorldClient$rayTraceBlocks_found; ) {
-                    AbstractInsnNode next = iterator.next();
-                    if(!foundEntityVar && next instanceof VarInsnNode) {
-                        VarInsnNode varInsnNode = (VarInsnNode)next;
-                        if (varInsnNode.getOpcode() == Opcodes.ASTORE) {
-                            entityVar = varInsnNode.var;
-                            foundEntityVar = true;
-                        }
-                    }
-                    else if (foundEntityVar && next instanceof MethodInsnNode) {
-                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                        if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
-                                && methodInsnNode.owner.equals("net/minecraft/client/multiplayer/WorldClient")
-                                && methodInsnNode.name.equals("rayTraceBlocks")
-                                && methodInsnNode.desc.equals("(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/RayTraceResult;")) {
-                            int index = 0;
-                            //y, z, x
-                            int[] localVariables = new int[3];
-                            AbstractInsnNode nodeToInsertAfter = null;
-
-                            while(index < 3) {
-                                AbstractInsnNode previous = iterator.previous();
-                                if (previous instanceof VarInsnNode) {
-                                    VarInsnNode varInsnNode = (VarInsnNode)previous;
-                                    if (varInsnNode.getOpcode() == Opcodes.DSTORE) {
-                                        localVariables[index] = varInsnNode.var;
-                                        if (index == 0) {
-                                            nodeToInsertAfter = previous;
-                                        }
-                                        index++;
-                                    }
-                                }
-                            }
-                            while(!WorldClient$rayTraceBlocks_found) {
-                                next = iterator.next();
-                                if (next == nodeToInsertAfter) {
-                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, entityVar)); //this.entity
-                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, localVariables[2])); //x
-                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, localVariables[0])); //y
-                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, localVariables[1])); //z
-                                    iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                                            "uk/co/mysterymayhem/gravitymod/asm/Hooks",
-                                            "adjustXYZ",
-                                            "(Lnet/minecraft/entity/Entity;DDD)[D",
-                                            false));
-
-                                    iterator.add(new InsnNode(Opcodes.DUP));
-                                    iterator.add(new InsnNode(Opcodes.DUP));
-
-                                    iterator.add(new InsnNode(Opcodes.ICONST_0));
-                                    iterator.add(new InsnNode(Opcodes.DALOAD));
-                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, localVariables[2])); //x = doubles[0]
-
-                                    iterator.add(new InsnNode(Opcodes.ICONST_2));
-                                    iterator.add(new InsnNode(Opcodes.DALOAD));
-                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, localVariables[1])); //z = doubles[0]
-
-                                    iterator.add(new InsnNode(Opcodes.ICONST_1));
-                                    iterator.add(new InsnNode(Opcodes.DALOAD));
-                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, localVariables[0])); //y = doubles[0]
-
-                                    WorldClient$rayTraceBlocks_found = true;
-                                }
-                            }
-
-//                            iterator.previous();// The INVOKEVIRTUAL we just found
-//                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 2));// Load the Entity
-//                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-//                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
-//                                    "adjustVec",
-//                                    "(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/math/Vec3d;",
-//                                    false));
-//                            WorldClient$rayTraceBlocks_found = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!WorldClient$rayTraceBlocks_found) {
-            throw new RuntimeException("[UpAndDownAndAllAround] Could not find WorldClient::rayTraceBlocks in " + classNode.name + "::orientCamera");
         }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
@@ -552,25 +401,6 @@ public class Transformer implements IClassTransformer {
         }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    //TODO: REMOVE
-    // Not called for players as they do not extend EntityLiving
-    private static byte[] patchEntityBodyHelper(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("updateRenderAngles")) {
-                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONYAWHEAD);
-                break;
-            }
-        }
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
     }
@@ -1781,24 +1611,12 @@ public class Transformer implements IClassTransformer {
                      */
                 }
             }
-//            else if (methodNode.name.equals("updateEntityActionState")) {
-//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONPITCH);
-//            }
         }
 
         if (isHeadSpaceFreeModified && onLivingUpdateModified && onUpdateWalkingPlayerModified) {
 //            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             classNode.accept(classWriter);
-
-//            byte[] modifiedBytes = classWriter.toByteArray();
-//
-//            ClassNode classNode2 = new ClassNode();
-//            ClassReader classReader2 = new ClassReader(modifiedBytes);
-//            PrintWriter writer = new PrintWriter(System.out);
-//            TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
-//            classReader2.accept(traceClassVisitor, 0);
-//            return modifiedBytes;
 
             return classWriter.toByteArray();
         }
@@ -1816,6 +1634,63 @@ public class Transformer implements IClassTransformer {
     private static final int GET_PREVROTATIONYAWHEAD = 0b100000;
     private static final int ALL_GET_ROTATION_VARS = GET_ROTATIONYAW | GET_ROTATIONPITCH | GET_PREVROTATIONYAW
                                             | GET_PREVROTATIONPITCH | GET_ROTATIONYAWHEAD | GET_PREVROTATIONYAWHEAD;
+
+    private static void patchMethodUsing____Rotations(MethodNode methodNode, int fieldBits, boolean replaceWithRelative) {
+        if (fieldBits == 0) {
+            return;
+        }
+
+        boolean changeRotationYaw = (fieldBits & GET_ROTATIONYAW) == GET_ROTATIONYAW;
+        boolean changeRotationPitch = (fieldBits & GET_ROTATIONPITCH) == GET_ROTATIONPITCH;
+        boolean changePrevRotationYaw = (fieldBits & GET_PREVROTATIONYAW) == GET_PREVROTATIONYAW;
+        boolean changePrevRotationPitch = (fieldBits & GET_PREVROTATIONPITCH) == GET_PREVROTATIONPITCH;
+
+        // Field introduced in EntityLivingBase
+        boolean changeRotationYawHead = (fieldBits & GET_ROTATIONYAWHEAD) == GET_ROTATIONYAWHEAD;
+        boolean changePrevRotationYawHead = (fieldBits & GET_PREVROTATIONYAWHEAD) == GET_PREVROTATIONYAWHEAD;
+
+
+        for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+            AbstractInsnNode next = iterator.next();
+            if (next.getOpcode() == Opcodes.GETFIELD/* && next instanceof FieldInsnNode*/) {
+                FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                // This will not pick up EntityOtherPlayerMP or EntityPlayerSP which are in net/minecraft/client/entity
+                if ((fieldInsnNode.owner.startsWith("net/minecraft/entity/") || fieldInsnNode.owner.startsWith("net/minecraft/client/entity/"))
+                        && fieldInsnNode.desc.equals("F")) {
+                    if (changeRotationYaw && fieldInsnNode.name.equals("rotationYaw")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativeYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changeRotationPitch && fieldInsnNode.name.equals("rotationPitch")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativePitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changePrevRotationYaw && fieldInsnNode.name.equals("prevRotationYaw")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativePrevYaw", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changePrevRotationPitch && fieldInsnNode.name.equals("prevRotationPitch")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativePrevPitch", "(Lnet/minecraft/entity/Entity;)F", false));
+                    }
+                    else if (changeRotationYawHead && fieldInsnNode.name.equals("rotationYawHead")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getRelativeYawHead", "(Lnet/minecraft/entity/EntityLivingBase;)F", false));
+                    }
+                    else if (changePrevRotationYawHead && fieldInsnNode.name.equals("prevRotationYawHead")) {
+                        iterator.remove();
+                        iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "uk/co/mysterymayhem/gravitymod/asm/Hooks",
+                                "getPrevRelativeYawHead", "(Lnet/minecraft/entity/EntityLivingBase;)F", false));
+                    }
+                }
+            }
+        }
+    }
 
     private static void patchMethodUsingRelativeRotations(MethodNode methodNode, int fieldBits) {
         if (fieldBits == 0) {
@@ -1916,138 +1791,6 @@ public class Transformer implements IClassTransformer {
         }
     }
 
-    private static byte[] patchBlockChestAndBlockCocoa(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("onBlockPlacedBy")) {
-                patchMethodUsingRelativeRotations(methodNode, GET_ROTATIONYAW);
-                break;
-            }
-        }
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    private static byte[] patchBlockFenceGate(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("onBlockActivated")) {
-                patchMethodUsingRelativeRotations(methodNode, GET_ROTATIONYAW);
-                break;
-            }
-        }
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    private static byte[] patchParticleManager(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-//            if (methodNode.name.equals("renderLitParticles")) {
-//                patchMethodUsingRelativeRotations(methodNode, ROTATIONYAW + ROTATIONPITCH);
-//                break;
-//            }
-            if (methodNode.name.equals("renderParticles")) {
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (next instanceof MethodInsnNode) {
-                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                        if (methodInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL
-                                && methodInsnNode.owner.equals("net/minecraft/entity/Entity")
-                                && methodInsnNode.name.equals("getLook")
-                                && methodInsnNode.desc.equals("(F)Lnet/minecraft/util/math/Vec3d;")) {
-                            methodInsnNode.setOpcode(Opcodes.INVOKESTATIC);
-                            methodInsnNode.owner = "uk/co/mysterymayhem/gravitymod/asm/Hooks";
-                            methodInsnNode.name = "getNonGAffectedLook";
-                            methodInsnNode.desc = "(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/util/math/Vec3d;";
-                        }
-                    }
-                }
-            }
-        }
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    // I don't know what effect this has
-//    private static byte[] patchRenderManager(byte[] bytes) {
-////        return bytes;
-//        ClassNode classNode = new ClassNode();
-//        ClassReader classReader = new ClassReader(bytes);
-//        classReader.accept(classNode, 0);
-//
-//        for (MethodNode methodNode : classNode.methods) {
-//            if (methodNode.name.equals("renderEntityStatic")) {
-//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_PREVROTATIONYAW);
-//            }
-//            else if (methodNode.name.equals("renderMultipass")) {
-//                patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_PREVROTATIONYAW);
-//            }
-//        }
-//        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-//        classNode.accept(classWriter);
-//        return classWriter.toByteArray();
-//    }
-
-    private static byte[] patchActiveRenderInfo(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("updateRenderInfo")) {
-                patchMethodUsingRelativeRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONPITCH);
-                break;
-            }
-        }
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    private static byte[] patchParticle(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        outerfor:
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("renderParticle")) {
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if(next instanceof VarInsnNode) {
-                        VarInsnNode varInsnNode = (VarInsnNode)next;
-                        if(varInsnNode.getOpcode() == Opcodes.ASTORE) {
-                            iterator.previous();
-                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); //passed entity argument
-                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
-                                    "adjustVecs",
-                                    "([Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;)[Lnet/minecraft/util/math/Vec3d;",
-                                    false));
-                            break outerfor;
-                        }
-                    }
-                }
-            }
-        }
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
     private static byte[] patchSoundManager(byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
@@ -2077,110 +1820,13 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
-    private static byte[] patchItemBow(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
 
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("onPlayerStoppedUsing")) {
-                patchMethodUsingRelativeRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONPITCH);
-                break;
-            }
-        }
 
-        ClassWriter classWriter = new ClassWriter(0);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
 
-    private static byte[] patchThrowableMojangItem(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
 
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("onItemRightClick")) {
-                patchMethodUsingRelativeRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONPITCH);
-                break;
-            }
-        }
 
-        ClassWriter classWriter = new ClassWriter(0);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
 
-    private static byte[] patchEntityFishHook(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
 
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("<init>")
-                    && methodNode.desc.equals("(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/EntityPlayer;)V")) {
-                patchMethodUsingRelativeRotations(methodNode, GET_ROTATIONYAW + GET_ROTATIONPITCH);
-                break;
-            }
-        }
 
-        ClassWriter classWriter = new ClassWriter(0);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
 
-    private static byte[] patchRenderGlobal(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        outerfor:
-        for (MethodNode methodNode : classNode.methods) {
-            if (methodNode.name.equals("getViewVector")) {
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (next instanceof MethodInsnNode) {
-                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                        if (methodInsnNode.getOpcode() == Opcodes.INVOKESPECIAL
-                                && methodInsnNode.owner.equals("org/lwjgl/util/vector/Vector3f")
-                                && methodInsnNode.name.equals("<init>")
-                                && methodInsnNode.desc.equals("(FFF)V")) {
-                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // load the passed Entity argument
-                            iterator.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                                    "uk/co/mysterymayhem/gravitymod/asm/Hooks",
-                                    "adjustViewVector",
-                                    "(Lorg/lwjgl/util/vector/Vector3f;Lnet/minecraft/entity/Entity;)Lorg/lwjgl/util/vector/Vector3f;",
-                                    false));
-                            break outerfor;
-                        }
-                    }
-                }
-            }
-        }
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-//    private static byte[] patchEntityPlayerClass(byte[] bytes) {
-//        String getLookMethodName = FMLLoadingPlugin.runtimeDeobfEnabled ? "getVectorForRotation" : "func_174806_f";
-//
-//        ClassNode classNode = new ClassNode();
-//        ClassReader classReader = new ClassReader(bytes);
-//        classReader.accept(classNode, 0);
-//
-//        Iterator<MethodNode> methods = classNode.methods.iterator();
-//        while (methods.hasNext()) {
-//            MethodNode node = methods.next();
-//
-//            if (node.)
-//        }
-//
-//        return bytes;
-//    }
-//
-//    private static byte[] patchEntityPlayerSPClass(byte[] bytes) {
-//        return bytes;
-//    }
 }
