@@ -5,7 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability.IGravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 
 /**
  * Created by Mysteryem on 2016-09-04.
