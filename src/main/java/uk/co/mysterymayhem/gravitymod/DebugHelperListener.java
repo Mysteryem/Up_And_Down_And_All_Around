@@ -1,8 +1,10 @@
 package uk.co.mysterymayhem.gravitymod;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -15,6 +17,7 @@ import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 
@@ -95,6 +98,22 @@ public class DebugHelperListener {
 //                    FMLLog.info("" + modifiedYaw + ", " + modifiedPitch);
 
                 }
+            }
+        }
+        if (event.getHand() == EnumHand.MAIN_HAND && (event instanceof PlayerInteractEvent.RightClickItem)) {
+            ItemStack itemStack = event.getItemStack();
+            if (itemStack != null && itemStack.getItem() == Items.BEEF) {
+                StringBuilder builder = new StringBuilder();
+                if (event.getSide() == Side.CLIENT) {
+                    builder.append("Client: ");
+                } else {
+                    builder.append("Server: ");
+                }
+                EntityPlayer player = event.getEntityPlayer();
+                builder.append("\nGravity: ").append(API.getGravityDirection(player).name());
+                builder.append("\nPos: ").append(new Vec3d(player.posX, player.posY, player.posZ)).append("\nBB: ").append(player.getEntityBoundingBox());
+                builder.append("\nOnGround: ").append(player.onGround).append("\n");;
+                FMLLog.info(builder.toString());
             }
         }
 //        else if (event.getSide() == Side.SERVER && event.getHand() == EnumHand.MAIN_HAND && event instanceof PlayerInteractEvent.EntityInteractSpecific) {

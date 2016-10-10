@@ -1,9 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.*;
 
 import java.util.ListIterator;
 import java.util.Objects;
@@ -57,6 +55,25 @@ public class ObfuscationHelper {
         @Override
         public String toString() {
             return "" + this.getOpcode() + " " + this.owner + "." + this.name + " " + this.desc;
+        }
+
+        public void replace(FieldInsnNode other) {
+            other.setOpcode(this.getOpcode());
+            other.owner = this.owner;
+            other.name = this.name;
+            other.desc = this.desc;
+        }
+    }
+
+    public static class HooksMethodInstruction extends MethodInstruction {
+        private static final ObjectClassName Hooks = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/Hooks");
+
+        public HooksMethodInstruction(IDeobfAware methodName, MethodDesc description) {
+            super(Opcodes.INVOKESTATIC, Hooks, methodName, description);
+        }
+
+        public HooksMethodInstruction(String methodName, MethodDesc description) {
+            super(Opcodes.INVOKESTATIC, Hooks, methodName, description);
         }
     }
 
@@ -112,6 +129,14 @@ public class ObfuscationHelper {
         public String toString() {
             return "" + this.getOpcode() + " " + this.owner + "." + this.name + " " + this.desc;
         }
+
+        public void replace(MethodInsnNode other) {
+            other.setOpcode(this.getOpcode());
+            other.owner = this.owner;
+            other.name = this.name;
+            other.desc = this.desc;
+            other.itf = this.itf;
+        }
     }
 
     public interface IDeobfAwareInstruction extends IDeobfAware {
@@ -123,6 +148,9 @@ public class ObfuscationHelper {
         }
         default void addTo(ListIterator<AbstractInsnNode> it) {
             it.add(this.asAbstract());
+        }
+        default void addTo(InsnList insnList) {
+            insnList.add(this.asAbstract());
         }
     }
 

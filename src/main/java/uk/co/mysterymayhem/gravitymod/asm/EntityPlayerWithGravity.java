@@ -1301,38 +1301,6 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         return result;
     }
 
-
-    //TODO: Work out what's wrong with my Access Transformer
-    // MethodHandles used in isOnLadder() as my Access Transformer doesn't want to work...
-    private static final MethodHandle nextStepDistance_Get;
-    private static final MethodHandle nextStepDistance_Set;
-
-    static {
-        MethodHandles.Lookup lookup = LookupThief.INSTANCE.lookup(Entity.class);
-        try {
-            nextStepDistance_Get = lookup.findGetter(Entity.class, "nextStepDistance", int.class);
-            nextStepDistance_Set = lookup.findSetter(Entity.class, "nextStepDistance", int.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void setNextStepDistance(int value){
-        try {
-            nextStepDistance_Set.invokeExact((Entity)this, value);
-        } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
-        }
-    }
-
-    private int getNextStepDistance(){
-        try {
-            return (int)nextStepDistance_Get.invokeExact((Entity)this);
-        } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
-        }
-    }
-
     /**
      * returns true if this entity is by a ladder, false otherwise
      */
@@ -1408,8 +1376,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 }
             }
             if (isOnLadder && isMonkeyBars) {
-                if (this.distanceWalkedOnStepModified > (float)this.getNextStepDistance()) {
-                    this.setNextStepDistance((int)this.distanceWalkedOnStepModified + 1);
+                if (this.distanceWalkedOnStepModified > (float)this.nextStepDistance) {
+                    this.nextStepDistance = (int)this.distanceWalkedOnStepModified + 1;
                     this.playStepSound(blockpos, iblockstate.getBlock());
                 }
             }
