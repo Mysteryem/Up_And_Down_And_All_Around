@@ -31,11 +31,24 @@ This mod uses ASM to modify the following classes (if your mod also modifies the
  - onUpdateWalkingPlayer
  - onLivingUpdate
  - isHeadspaceFree
+ - updateAutoJump
+ - moveEntity
 - NetHandlerPlayserver
  - processPlayer
+ - processPlayerDigging
+- NetHandlerPlayClient
+ - handlePlayerPosLook
 - Entity
  - moveEntity
+ - moveRelative
 - EntityLivingBase
  - moveEntityWithHeading
+ - updateDistance
+ - onUpdate
+ - jump
+- SoundManager
+ - setListener
+- RenderLivingBase
+ - doRender
 - EntityRenderer
- - orientCamera
+ - getMouseOver
