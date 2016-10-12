@@ -103,7 +103,7 @@ public class GravityManagerClient extends GravityManagerCommon {
             case SINGLE:
 //                //DEBUG
 //                FMLLog.info("Received gravity data for %s", message.getStringData());
-                this.setGravityDirection(message.getStringData(), message.getNewGravityDirection());
+                this.setGravityDirection(message.getStringData(), message.getNewGravityDirection(), message.getNoTimeout());
 //                String playerName = message.getStringData();
 //                if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
 //                    this.setClientGravity(message.getNewGravityDirection());
@@ -129,7 +129,7 @@ public class GravityManagerClient extends GravityManagerCommon {
         return GravityDirectionCapability.getGravityDirection(playerName, FMLClientHandler.instance().getWorldClient());
     }
 
-    public void setGravityDirection(String playerName, EnumGravityDirection direction) {
+    public void setGravityDirection(String playerName, EnumGravityDirection direction, boolean noTimeout) {
         Minecraft mc = Minecraft.getMinecraft();
         AbstractClientPlayer player = mc.thePlayer;
         if (!player.getName().equals(playerName)) {
@@ -141,7 +141,7 @@ public class GravityManagerClient extends GravityManagerCommon {
         }
         EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
         MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Client.Pre(direction, oldDirection, player));
-        GravityDirectionCapability.setGravityDirection(player, direction);
+        GravityDirectionCapability.setGravityDirection(player, direction, noTimeout);
         MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Client.Post(direction, oldDirection, player));
     }
 }

@@ -12,6 +12,7 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
  */
 class Storage implements Capability.IStorage<IGravityDirectionCapability> {
 
+    //TODO: Store any of the new fields?
     @Override
     public NBTBase writeNBT(Capability<IGravityDirectionCapability> capability, IGravityDirectionCapability instance, EnumFacing side) {
         return new NBTTagInt(instance.getDirection().ordinal());
@@ -19,6 +20,9 @@ class Storage implements Capability.IStorage<IGravityDirectionCapability> {
 
     @Override
     public void readNBT(Capability<IGravityDirectionCapability> capability, IGravityDirectionCapability instance, EnumFacing side, NBTBase nbt) {
-        instance.setDirection(EnumGravityDirection.values()[((NBTPrimitive) nbt).getInt()]);
+        EnumGravityDirection direction = EnumGravityDirection.values()[((NBTPrimitive) nbt).getInt()];
+        instance.setDirection(direction);
+        instance.setDirectionNoTimeout(direction);
+        instance.setPendingDirection(direction, Integer.MIN_VALUE + 1);
     }
 }

@@ -26,6 +26,7 @@ public class GravityChangeMessage implements IMessage {
                 buf.writeChar(c);
             }
             buf.writeInt(gravityChangeMessage.newGravityDirection.ordinal());
+            buf.writeBoolean(gravityChangeMessage.noTimeout);
         }, (gravityChangeMessage, buf) -> {
             int charsToRead = buf.readInt();
             char[] readChars = new char[charsToRead];
@@ -34,6 +35,7 @@ public class GravityChangeMessage implements IMessage {
             }
             gravityChangeMessage.toSend = String.valueOf(readChars);
             gravityChangeMessage.newGravityDirection = EnumGravityDirection.values()[buf.readInt()];
+            gravityChangeMessage.noTimeout = buf.readBoolean();
         }),
         ALL_UPSIDE_DOWN((gravityChangeMessage, buf) -> {
             int numberOfStrings = gravityChangeMessage.toSendMultiple.size();
@@ -90,6 +92,7 @@ public class GravityChangeMessage implements IMessage {
     private EnumGravityDirection newGravityDirection;
     private PacketType packetType;
     private Collection<String> toSendMultiple;
+    private boolean noTimeout;
 
     public PacketType getPacketType() {
         return this.packetType;
@@ -99,17 +102,22 @@ public class GravityChangeMessage implements IMessage {
         return this.toSend;
     }
 
+    public boolean getNoTimeout() {
+        return this.noTimeout;
+    }
+
     public EnumGravityDirection getNewGravityDirection() {
         return this.newGravityDirection;
     }
 
-    public GravityChangeMessage(String stringToSend, EnumGravityDirection newGravityDirection) {
+    public GravityChangeMessage(String stringToSend, EnumGravityDirection newGravityDirection, boolean noTimeout) {
         this.toSend = stringToSend;
         this.newGravityDirection = newGravityDirection;
+        this.noTimeout = noTimeout;
         this.packetType = PacketType.SINGLE;
     }
 
-    public GravityChangeMessage(Collection<String> stringsToSend) {
+    public GravityChangeMessage(Collection<String> stringsToSend, boolean noTimeout) {
         this.toSendMultiple = stringsToSend;
         this.packetType = PacketType.ALL_UPSIDE_DOWN;
     }
@@ -145,7 +153,7 @@ public class GravityChangeMessage implements IMessage {
 //                }
                 //DEBUG
                 //FMLLog.info("Responding with gravity data for %s to %s", message.toSend, ctx.getServerHandler().playerEntity);
-                return new GravityChangeMessage(message.toSend, gravityDirection);
+                return new GravityChangeMessage(message.toSend, gravityDirection, true);
             }
             FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> GravityMod.proxy.getGravityManager().handlePacket(message, ctx));
             return null;

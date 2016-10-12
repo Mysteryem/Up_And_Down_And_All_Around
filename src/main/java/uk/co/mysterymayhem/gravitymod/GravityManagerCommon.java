@@ -3,6 +3,7 @@ package uk.co.mysterymayhem.gravitymod;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -15,7 +16,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
+import uk.co.mysterymayhem.gravitymod.item.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.packets.GravityChangeMessage;
 import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
 import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
@@ -45,16 +48,27 @@ public class GravityManagerCommon {
 //        }
 //    }
 
-    public void doGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player) {
+    public void doGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player, boolean noTimeout) {
         EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
         if (oldDirection != newDirection) {
             GravityTransitionEvent.Server event = new GravityTransitionEvent.Server.Pre(newDirection, oldDirection, player);
             if (!MinecraftForge.EVENT_BUS.post(event)) {
-                GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection);
-                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection);
+                GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection, noTimeout);
+                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection, noTimeout);
                 MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Post(newDirection, oldDirection, player));
             }
         }
+    }
+
+    public void prepareGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player, int priority) {
+        if (player == null) {
+            return;
+        }
+        IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(player);
+        if (gravityCapability == null) {
+            return;
+        }
+        gravityCapability.setPendingDirection(newDirection, priority);
     }
 
 
@@ -62,7 +76,7 @@ public class GravityManagerCommon {
     public void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
             GravityChangePacketHandler.INSTANCE.sendTo(
-                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player)),
+                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player), true),
                     (EntityPlayerMP) event.player
             );
         }
@@ -72,7 +86,7 @@ public class GravityManagerCommon {
     public void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.player instanceof EntityPlayerMP) {
             GravityChangePacketHandler.INSTANCE.sendTo(
-                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player)),
+                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player), true),
                     (EntityPlayerMP) event.player
             );
         }
@@ -89,7 +103,7 @@ public class GravityManagerCommon {
         if (clone instanceof EntityPlayerMP && original instanceof EntityPlayerMP) {
             if (event.isWasDeath()) {
                 GravityChangePacketHandler.INSTANCE.sendTo(
-                        new GravityChangeMessage(clone.getName(), GravityDirectionCapability.getGravityDirection(clone)),
+                        new GravityChangeMessage(clone.getName(), GravityDirectionCapability.getGravityDirection(clone), true),
                         (EntityPlayerMP) clone
                 );
             }
@@ -101,13 +115,14 @@ public class GravityManagerCommon {
 
                 // When a player entity enters the world, they are given a GravityCapability which defaults to DOWN
                 MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Clone.Pre(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
-                GravityDirectionCapability.setGravityDirection(clone, originalDirection);
+                GravityDirectionCapability.setGravityDirection(clone, originalDirection, false);
                 MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Clone.Post(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
             }
         }
 
     }
 
+    //TODO: Still needed?
     // Prevent players from getting kicked for flying after dying
     // The "allowFlying = true" seems to be lost when the player respawns
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -122,26 +137,66 @@ public class GravityManagerCommon {
         }
     }
 
-    //@SubscribeEvent(priority = EventPriority.LOW)
-    public void onPlayerTick(PlayerTickEvent event) {
-        if (event.side == Side.SERVER) {
-            if (event.phase == TickEvent.Phase.START) {
-                ItemStack itemStack = event.player.inventory.armorInventory[0];
-                if (itemStack != null && itemStack.getItem() == ModItems.antiGravityBoots) {
-                    doGravityTransition(EnumGravityDirection.UP, (EntityPlayerMP)event.player);
+    @SubscribeEvent
+    public void onPlayerUpdateTick(PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(event.player);
+            if (event.side == Side.SERVER) {
+                EntityPlayer player = event.player;
+                int timeOut = gravityCapability.getTimeoutTicks();
+                if (timeOut == 0) {
+                    EnumGravityDirection currentDirection = gravityCapability.getDirection();
+                    EnumGravityDirection newDirection = gravityCapability.getPendingDirection();
+                    if (currentDirection != newDirection) {
+                        doGravityTransition(newDirection, (EntityPlayerMP)player, false);
+                    }
                 }
-                else {
-                    doGravityTransition(EnumGravityDirection.DOWN, (EntityPlayerMP)event.player);
+            }
+            //decrements timeOut on both client and server
+            gravityCapability.tick();
+        }
+        //Phase = END
+        //If done at start of tick, when putting an item onto the mouse cursor, when it's put back into the player's
+        //inventory, there's a single tick where the item won't be ticked. Issue does not occur when done at the end of
+        //the player tick.
+        //VANILLA_BUG:
+        //  The item on the mouse cursor is always null if the player is in creative and in their own inventory
+        else if(event.side == Side.SERVER) {
+            EntityPlayer player = event.player;
+            if (player.inventory != null) {
+//                    ItemStack itemStack = event.player.inventoryContainer.inventorySlots.getItemStack();
+                ItemStack itemStack = event.player.inventory.getItemStack();
+                if (itemStack != null) {
+                    Item item = itemStack.getItem();
+                    if (item instanceof ITickOnMouseCursor) {
+                        item.onUpdate(itemStack, player.worldObj, player, -1, false);
+                    }
                 }
             }
         }
+
     }
 
+//    //@SubscribeEvent(priority = EventPriority.LOW)
+//    public void onPlayerTick(PlayerTickEvent event) {
+//        if (event.side == Side.SERVER) {
+//            if (event.phase == TickEvent.Phase.START) {
+//                ItemStack itemStack = event.player.inventory.armorInventory[0];
+//                if (itemStack != null && itemStack.getItem() == ModItems.antiGravityBoots) {
+//                    doGravityTransition(EnumGravityDirection.UP, (EntityPlayerMP)event.player);
+//                }
+//                else {
+//                    doGravityTransition(EnumGravityDirection.DOWN, (EntityPlayerMP)event.player);
+//                }
+//            }
+//        }
+//    }
+
     //Dedicated/Integrated Server only
-    private void sendUpdatePacketToDimension(EntityPlayer player, EnumGravityDirection newGravityDirection) {
+    private void sendUpdatePacketToDimension(EntityPlayer player, EnumGravityDirection newGravityDirection, boolean noTimeout) {
         //DEBUG
         //FMLLog.info("Sending gravity data for %s to all players in the same dimension", player.getName());
-        GravityChangePacketHandler.INSTANCE.sendToDimension(new GravityChangeMessage(player.getName(), newGravityDirection), player.dimension);
+        GravityChangePacketHandler.INSTANCE.sendToDimension(new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout), player.dimension);
     }
 
     public void handlePacket(GravityChangeMessage message, MessageContext context) {

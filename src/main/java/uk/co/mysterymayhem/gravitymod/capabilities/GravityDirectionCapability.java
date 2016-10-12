@@ -21,6 +21,8 @@ import java.util.HashSet;
  */
 public class GravityDirectionCapability {
     public static final EnumGravityDirection DEFAULT_GRAVITY = EnumGravityDirection.DOWN;
+    public static final int MIN_PRIORITY = Integer.MIN_VALUE;
+    public static final int DEFAULT_TIMEOUT = 20;
 
     public static void registerCapability() {
         CapabilityManager.INSTANCE.register(IGravityDirectionCapability.class, new Storage(), new Factory());
@@ -68,11 +70,11 @@ public class GravityDirectionCapability {
         return new GravityAxisAlignedBB(gravityCapability, old);
     }
 
-    private static void setGravityDirection(String playerName, EnumGravityDirection direction, World world) {
+    private static void setGravityDirection(String playerName, EnumGravityDirection direction, World world, boolean noTimeout) {
         world.getPlayerEntityByName(playerName);
         EntityPlayer playerByUsername = world.getPlayerEntityByName(playerName);
         if (playerByUsername != null) {
-            setGravityDirection(playerByUsername, direction);
+            setGravityDirection(playerByUsername, direction, noTimeout);
         }
 //        //DEBUG:
 //        else {
@@ -87,14 +89,14 @@ public class GravityDirectionCapability {
         }
     }
 
-    public static void setGravityDirection(EntityPlayer player, EnumGravityDirection direction) {
+    public static void setGravityDirection(EntityPlayer player, EnumGravityDirection direction, boolean noTimeout) {
         double x = player.posX;
         double y = player.posY;
         double z = player.posZ;
         IGravityDirectionCapability capability = getGravityCapability(player);
         EnumGravityDirection oldDirection = capability.getDirection();
         oldDirection.preModifyPlayerOnGravityChange(player, direction);
-        setGravityDirection(capability, direction);
+        setGravityDirection(capability, direction, noTimeout);
         direction.postModifyPlayerOnGravityChange(player, oldDirection);
         // Tell the client the new position before changing their gravity
         if (player instanceof EntityPlayerMP) {
@@ -120,9 +122,14 @@ public class GravityDirectionCapability {
         //player.setEntityBoundingBox(new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ, axisalignedbb.minX + (double) player.width, axisalignedbb.minY + (double) player.height, axisalignedbb.minZ + (double) player.width));
     }
 
-    private static void setGravityDirection(IGravityDirectionCapability capability, EnumGravityDirection direction) {
+    private static void setGravityDirection(IGravityDirectionCapability capability, EnumGravityDirection direction, boolean noTimeout) {
         if (capability != null) {
-            capability.setDirection(direction);
+            if (noTimeout) {
+                capability.setDirectionNoTimeout(direction);
+            }
+            else {
+                capability.setDirection(direction);
+            }
         }
     }
 

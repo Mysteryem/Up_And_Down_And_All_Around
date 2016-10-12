@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "mysttmtgravitymod:items/personalgravitycontroller_bg_off",
+    "layer1": "mysttmtgravitymod:items/personalgravitycontroller_north"
+  }
+}

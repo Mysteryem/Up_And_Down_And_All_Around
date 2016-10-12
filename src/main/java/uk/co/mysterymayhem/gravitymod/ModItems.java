@@ -8,20 +8,24 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.item.ItemAntiGravityBoots;
+import uk.co.mysterymayhem.gravitymod.item.ItemPersonalGravityController;
 
 /**
  * Created by Mysteryem on 2016-08-08.
  */
 public class ModItems {
     public static ItemAntiGravityBoots antiGravityBoots;
+    public static ItemPersonalGravityController personalGravityController;
 
     public static void initItems() {
         antiGravityBoots = new ItemAntiGravityBoots();
+        personalGravityController = new ItemPersonalGravityController();
     }
 
     @SideOnly(Side.CLIENT)
     public static void initModels() {
         antiGravityBoots.initModel();
+        personalGravityController.initModel();
     }
 
     public static void initRecipes() {
