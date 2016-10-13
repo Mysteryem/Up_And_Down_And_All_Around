@@ -26,7 +26,6 @@ import java.util.Locale;
  * Created by Mysteryem on 2016-10-11.
  */
 public class ItemPersonalGravityController extends Item implements ITickOnMouseCursor {
-    private static final int GRAVITY_PRIORITY = Integer.MAX_VALUE;
 
     //7 values (0-6) -> first 3 bits
     public enum EnumControllerActiveDirection {
@@ -142,13 +141,9 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
 //        }
     }
 
-    @Override
-    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-        if (oldStack.getItemDamage() != newStack.getItemDamage()) {
-            return true;
-        }
-        return super.shouldCauseReequipAnimation(oldStack, newStack, slotChanged);
-    }
+    private static final int GRAVITY_PRIORITY = Integer.MAX_VALUE;
+
+    public static final int DEFAULT_META = getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF);
 
     private static int getCombinedMetaFor(EnumControllerActiveDirection active, EnumControllerVisibleState visible) {
         return active.mask | visible.mask;
@@ -162,14 +157,6 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         return combinedMeta >>> 3;
     }
 
-    @Override
-    public String getUnlocalizedName(ItemStack stack) {
-        int meta = stack.getItemDamage();
-        EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(meta);
-
-        return super.getUnlocalizedName(stack) + fromCombinedMeta.extraText;
-    }
-
     public ItemPersonalGravityController() {
         this.setUnlocalizedName("personalgravitycontroller");
         this.setRegistryName("personalgravitycontroller");
@@ -180,10 +167,26 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         GameRegistry.register(this);
     }
 
+    @Override
+    public String getUnlocalizedName(ItemStack stack) {
+        int meta = stack.getItemDamage();
+        EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(meta);
+
+        return super.getUnlocalizedName(stack) + fromCombinedMeta.extraText;
+    }
+
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        if (oldStack.getItemDamage() != newStack.getItemDamage()) {
+            return true;
+        }
+        return super.shouldCauseReequipAnimation(oldStack, newStack, slotChanged);
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
-        subItems.add(new ItemStack(this, 1, getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF)));
+        subItems.add(new ItemStack(this, 1, DEFAULT_META));
     }
 
     @Override

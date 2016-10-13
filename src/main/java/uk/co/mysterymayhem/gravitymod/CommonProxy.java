@@ -2,7 +2,7 @@ package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraftforge.common.MinecraftForge;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
-import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
+import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangePacketHandler;
 
 /**
  * Created by Mysteryem on 2016-08-04.

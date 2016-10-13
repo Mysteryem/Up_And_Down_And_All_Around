@@ -16,8 +16,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
-import uk.co.mysterymayhem.gravitymod.packets.GravityChangeMessage;
-import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
+import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangeMessage;
+import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangePacketHandler;
 
 /**
  * Used to control/record the gravity of all players

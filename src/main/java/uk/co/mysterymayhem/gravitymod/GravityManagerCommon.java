@@ -19,8 +19,8 @@ import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.item.ITickOnMouseCursor;
-import uk.co.mysterymayhem.gravitymod.packets.GravityChangeMessage;
-import uk.co.mysterymayhem.gravitymod.packets.GravityChangePacketHandler;
+import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangeMessage;
+import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangePacketHandler;
 import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 

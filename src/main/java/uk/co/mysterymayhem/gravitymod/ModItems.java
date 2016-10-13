@@ -18,42 +18,64 @@ public class ModItems {
     public static ItemPersonalGravityController personalGravityController;
 
     public static void initItems() {
-        antiGravityBoots = new ItemAntiGravityBoots();
+//        antiGravityBoots = new ItemAntiGravityBoots();
         personalGravityController = new ItemPersonalGravityController();
     }
 
     @SideOnly(Side.CLIENT)
     public static void initModels() {
-        antiGravityBoots.initModel();
+//        antiGravityBoots.initModel();
         personalGravityController.initModel();
     }
 
     public static void initRecipes() {
+//        GameRegistry.addRecipe(new ShapedOreRecipe(
+//                antiGravityBoots,
+//
+//                "IGI",
+//                "IPI",
+//                "YGY",
+//
+//                'I', "ingotIron",
+//                // Grey wool
+//                'G', new ItemStack(Blocks.WOOL, 1, 7),
+//                'P', Items.ENDER_PEARL,
+//                // Yellow wool
+//                'Y', new ItemStack(Blocks.WOOL, 1, 4)));
+//        GameRegistry.addRecipe(new ShapedOreRecipe(
+//                antiGravityBoots,
+//
+//                "YGY",
+//                "IPI",
+//                "IGI",
+//
+//                'I', "ingotIron",
+//                // Grey wool
+//                'G', new ItemStack(Blocks.WOOL, 1, 7),
+//                'P', Items.ENDER_PEARL,
+//                // Yellow wool
+//                'Y', new ItemStack(Blocks.WOOL, 1, 4)));
         GameRegistry.addRecipe(new ShapedOreRecipe(
-                antiGravityBoots,
+                new ItemStack(personalGravityController, 1, ItemPersonalGravityController.DEFAULT_META),
 
-                "IGI",
-                "IPI",
-                "YGY",
+                "IDI",
+                "DPD",
+                "IDI",
 
                 'I', "ingotIron",
-                // Grey wool
-                'G', new ItemStack(Blocks.WOOL, 1, 7),
-                'P', Items.ENDER_PEARL,
-                // Yellow wool
-                'Y', new ItemStack(Blocks.WOOL, 1, 4)));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                antiGravityBoots,
-
-                "YGY",
-                "IPI",
-                "IGI",
-
-                'I', "ingotIron",
-                // Grey wool
-                'G', new ItemStack(Blocks.WOOL, 1, 7),
-                'P', Items.ENDER_PEARL,
-                // Yellow wool
-                'Y', new ItemStack(Blocks.WOOL, 1, 4)));
+                'D', Blocks.DIRT,
+                'P', Items.ENDER_PEARL
+        ));
+//        GameRegistry.addRecipe(new ShapedOreRecipe(
+//                personalGravityController,
+//
+//                "IDI",
+//                "DSD",
+//                "IDI",
+//
+//                'S', "ingotIron",
+//                'D', Blocks.DIRT,
+//                'P', Items.ENDER_PEARL
+//        ));
     }
 }
