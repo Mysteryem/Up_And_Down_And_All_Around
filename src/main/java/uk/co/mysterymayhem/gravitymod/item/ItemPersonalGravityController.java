@@ -1,32 +1,24 @@
 package uk.co.mysterymayhem.gravitymod.item;
 
+import net.minecraft.client.renderer.ItemMeshDefinition;
+import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.eventhandler.Event;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -178,14 +170,6 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         return super.getUnlocalizedName(stack) + fromCombinedMeta.extraText;
     }
 
-    //Called by ItemStack::getItemMeta
-    //Used to determine what to render
-    @Override
-    public int getMetadata(ItemStack stack) {
-        int damage = this.getDamage(stack);
-        return EnumControllerVisibleState.getFromCombinedMeta(damage).ordinal();
-    }
-
     public ItemPersonalGravityController() {
         this.setUnlocalizedName("personalgravitycontroller");
         this.setRegistryName("personalgravitycontroller");
@@ -194,14 +178,12 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
         GameRegistry.register(this);
-        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
         subItems.add(new ItemStack(this, 1, getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF)));
-//        super.getSubItems(itemIn, tab, subItems);
     }
 
     @Override
@@ -234,55 +216,11 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         return null;
     }
 
-    // Because for some reason, right clicking a block while in creative runs code that does itemstack.setDamage(itemstack.getMetadata())
-    // which completely breaks things
-    @SubscribeEvent
-    public void onRightClickBlockInCreative(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getEntityPlayer().isCreative()) {
-            ItemStack itemStack = event.getItemStack();
-            if (itemStack != null) {
-                Item item = itemStack.getItem();
-                if (item != null) {
-                    if (item == this) {
-                        event.setUseItem(Event.Result.DENY);
-                    }
-                }
-            }
-        }
-    }
-
-//    public static boolean combinationIsValid(EnumControllerVisibleState visibleState, EnumControllerActiveDirection activeDirection) {
-//        if (visibleState.onlyLegalDirection != null && visibleState.onlyLegalDirection != activeDirection) {
-//            return false;
-//        }
-//        if (visibleState.illegalDirection == activeDirection) {
-//            return false;
-//        }
-//        return true;
-//    }
-//
-//    @Override
-//    public void setDamage(ItemStack stack, int damage) {
-//        EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(damage);
-//        EnumControllerVisibleState visibleState = EnumControllerVisibleState.getFromCombinedMeta(damage);
-//        if (!combinationIsValid(visibleState, fromCombinedMeta)) {
-//            FMLLog.warning("Illegal Enum combination");
-//        }
-//        super.setDamage(stack, damage);
-//    }
-
     @Override
     public ActionResult<ItemStack> onItemRightClick(ItemStack stack, World worldIn, EntityPlayer playerIn, EnumHand hand) {
         if (playerIn != null) {
             int i = stack.getItemDamage();
-//            StringBuilder builder = new StringBuilder();
-//            if (worldIn.isRemote) {
-//                builder.append("Client: ");
-//            }
-//            else {
-//                builder.append("Server: ");
-//            }
-//            builder.append(i).append(" -> ");
+
             if (playerIn.isSneaking()) {
                 //Change displayed direction
                 EnumControllerVisibleState currentVisible = EnumControllerVisibleState.getFromCombinedMeta(i);
@@ -338,7 +276,8 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
                         break;
                 }
                 stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
-            } else {
+            }
+            else {
                 //Change active direction
                 EnumControllerVisibleState currentVisible = EnumControllerVisibleState.getFromCombinedMeta(i);
                 EnumControllerActiveDirection currentActive = EnumControllerActiveDirection.getFromCombinedMeta(i);
@@ -394,45 +333,35 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
                 }
                 stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
             }
-//            builder.append(stack.getItemDamage());
-//            FMLLog.info(builder.toString());
         }
         return super.onItemRightClick(stack, worldIn, playerIn, hand);
     }
 
+    @SideOnly(Side.CLIENT)
+    static class MeshDefinitions implements ItemMeshDefinition {
+
+        final ArrayList<ModelResourceLocation> list;
+
+        public MeshDefinitions(ItemPersonalGravityController item) {
+            list = new ArrayList<>();
+            for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
+                list.add(new ModelResourceLocation(item.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
+            }
+        }
+
+        @Override
+        public ModelResourceLocation getModelLocation(ItemStack stack) {
+            int metadata = stack.getMetadata();
+            int ordinal = EnumControllerVisibleState.getFromCombinedMeta(metadata).ordinal();
+            return list.get(ordinal);
+        }
+    }
 
     @SideOnly(Side.CLIENT)
     public void initModel() {
-        EnumControllerVisibleState[] values = EnumControllerVisibleState.values();
-        for (int i = 0; i < values.length; i++) {
-            ModelLoader.setCustomModelResourceLocation(this, i, new ModelResourceLocation(this.getRegistryName() + "_" + values[i].getUnlocalizedName(), "inventory"));
-        }
-        // If metadata is always the same as damage:
-//
-//        for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
-//            for (EnumControllerActiveDirection activeDirection : EnumControllerActiveDirection.values()) {
-//                if (visibleState.onlyLegalDirection != null) {
-//                    if (visibleState.onlyLegalDirection == activeDirection) {
-//                        // We've found the only legal value for this visibleState
-//                        int metadata = getCombinedMetaFor(activeDirection, visibleState);
-//                        ModelLoader.setCustomModelResourceLocation(this, metadata, new ModelResourceLocation(this.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
-//                        break;
-//                    }
-//                    // This isn't the only legal value, so continue;
-////                    continue;
-//                }
-//                else if (visibleState.illegalDirection == activeDirection) {
-//                    // The activeDirection happens to be the one that's illegal when combined with this visibleState
-////                    continue;
-//                }
-//                else {
-//                    // The combination is legal, so we create the model resource location for it
-//                    int metadata = getCombinedMetaFor(activeDirection, visibleState);
-//                    ModelLoader.setCustomModelResourceLocation(this, metadata, new ModelResourceLocation(this.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
-//                }
-//
-//            }
-//        }
+        MeshDefinitions meshDefinitions = new MeshDefinitions(this);
+        ModelBakery.registerItemVariants(this, meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]));
+        ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
     }
 
 }

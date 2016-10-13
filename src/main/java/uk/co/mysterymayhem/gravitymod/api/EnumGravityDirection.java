@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.common.FMLLog;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
@@ -24,7 +25,8 @@ import java.util.function.Consumer;
 public enum EnumGravityDirection {
 
     UP(
-            () -> GlStateManager.rotate(180, 0, 0, 1),
+//            () -> GlStateManager.rotate(180, 0, 0, 1),
+            new Vec3i(0, 0, 180),
             (x, y, z) -> new double[]{-x, -y, z},
             player -> GlStateManager.translate(0, 0, 0),
             (player, oldDirection) ->  {
@@ -59,7 +61,8 @@ public enum EnumGravityDirection {
             player -> player.posY += player.height/2
     ),
     DOWN(
-            () -> {},
+//            () -> {},
+            new Vec3i(0, 0, 0),
             (x, y, z) -> new double[]{x, y, z},
             player -> {},
             (player, oldDirection) -> {
@@ -88,7 +91,8 @@ public enum EnumGravityDirection {
             player -> player.posY -= player.height/2
     ),
     SOUTH(
-            () -> GlStateManager.rotate(-90, 1, 0, 0),
+//            () -> GlStateManager.rotate(-90, 1, 0, 0),
+            new Vec3i(-90, 0, 0),
             (x, y, z) -> new double[]{x, z, -y},
             player -> GlStateManager.translate(0, 0, API.getStandardEyeHeight(player)),
             (player, oldDirection) -> {
@@ -122,7 +126,8 @@ public enum EnumGravityDirection {
             player -> player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d))
     ),
     WEST(
-            () -> GlStateManager.rotate(-90, 0, 0, 1),
+//            () -> GlStateManager.rotate(-90, 0, 0, 1),
+            new Vec3i(0, 0, -90),
             (x, y, z) -> new double[]{y, -x, z},
             player -> GlStateManager.translate(-API.getStandardEyeHeight(player), 0, 0),
             (player, oldDirection) -> {
@@ -145,7 +150,8 @@ public enum EnumGravityDirection {
             player -> player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d))
     ),
     NORTH(
-            () -> GlStateManager.rotate(90, 1, 0, 0),
+//            () -> GlStateManager.rotate(90, 1, 0, 0),
+            new Vec3i(90, 0, 0),
             (x, y, z) -> new double[]{x, -z, y},
             player -> GlStateManager.translate(0, 0, -API.getStandardEyeHeight(player)),
             (player, oldDirection) -> {
@@ -168,7 +174,8 @@ public enum EnumGravityDirection {
             player -> player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d))
     ),
     EAST(
-            () -> GlStateManager.rotate(90, 0, 0, 1),
+//            () -> GlStateManager.rotate(90, 0, 0, 1),
+            new Vec3i(0, 0, 90),
             (x, y, z) -> new double[]{-y, x, z},
             player -> GlStateManager.translate(API.getStandardEyeHeight(player), 0, 0),
             (player, oldDirection) -> {
@@ -217,7 +224,7 @@ public enum EnumGravityDirection {
     }
 
     //TODO: Remove playerModificationsOnGravityChange
-    private final Runnable cameraTransformRunnable;
+    private final Vec3i cameraTransformVars;
     private final TriDoubleFunction<double[]> axisAdjustment;
     private final Consumer<EntityPlayer> otherPlayerRenderTransformations;
     private final BiConsumer<EntityPlayer, EnumGravityDirection> playerModificationsOnGravityChange;
@@ -226,14 +233,14 @@ public enum EnumGravityDirection {
     private final Consumer<EntityPlayer> offsetCOGFromPlayerPos;
     private EnumGravityDirection inverseAdjustMentFromDOWNDirection;
 
-    EnumGravityDirection(Runnable cameraTransformRunnable,
+    EnumGravityDirection(Vec3i cameraTransformVars,
                          TriDoubleFunction<double[]> axisAdjustment,
                          Consumer<EntityPlayer> otherPlayerRenderTransformations,
                          BiConsumer<EntityPlayer, EnumGravityDirection> playerModificationsOnGravityChange,
                          BiDoubleAndObjectFunction<EntityPlayer, AxisAlignedBB> boundingBoxFunction,
                          Consumer<EntityPlayer> returnCOGToPlayerPos,
                          Consumer<EntityPlayer> offsetCOGFromPlayerPos) {
-        this.cameraTransformRunnable = cameraTransformRunnable;
+        this.cameraTransformVars = cameraTransformVars;
         this.axisAdjustment = axisAdjustment;
         this.otherPlayerRenderTransformations = otherPlayerRenderTransformations;
         this.playerModificationsOnGravityChange = playerModificationsOnGravityChange;
@@ -243,7 +250,20 @@ public enum EnumGravityDirection {
     }
 
     public void runCameraTransformation() {
-        this.cameraTransformRunnable.run();
+        Vec3i vars = this.cameraTransformVars;
+        int x = vars.getX();
+        int y = vars.getY();
+        int z = vars.getZ();
+        if (x != 0) {
+            GlStateManager.rotate(x, 1, 0, 0);
+        }
+        if (y != 0) {
+            GlStateManager.rotate(y, 0, 1, 0);
+        }
+        if (z != 0) {
+            GlStateManager.rotate(z, 0, 0, 1);
+        }
+
     }
 
     public Vec3d adjustLookVec(Vec3d input) {
@@ -262,28 +282,29 @@ public enum EnumGravityDirection {
     }
 
 
-    public void preModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection newDirection) {
+    public Vec3d preModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection newDirection) {
         //TODO: Is this needed? Could this be what's causing players to sometimes get stuck in place when changing gravity direction?
+        return player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
 //        player.resetPositionToBB();
 //        player.setEntityBoundingBox(player.getEntityBoundingBox().offset(0, -API.getStandardEyeHeight(player)/2d, 0));
     }
 
-    public void postModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection) {
+    public void postModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d inputEyePos) {
         // Converts the player current motion
         this.maintainEffectiveMotion(player, oldDirection);
 //        double deltaX = player.posX - player.prevPosX;
 //        double deltaY = player.posY - player.prevPosY;
 //        double deltaZ = player.posZ - player.prevPosZ;
-        if (!player.worldObj.isRemote) {
+//        if (!player.worldObj.isRemote) {
             // Server will provide the client with the correct change in position that 'should' put the client player
             // in the correct place
             oldDirection.returnCentreOfGravityToPlayerPos(player);
             this.offsetCentreOfGravityFromPlayerPos(player);
-        }
+//        }
 
         // As the client is slightly ahead of the server in terms of client player movement, we'll try to set them outside of a wall here as well
         // Move player to try and get them out of a wall
-        this.setBoundingBoxAndPositionOnGravityChange(player, oldDirection);
+        this.setBoundingBoxAndPositionOnGravityChange(player, oldDirection, inputEyePos);
         this.playerModificationsOnGravityChange.accept(player, oldDirection);
 //        player.prevPosX = player.posX - deltaX;
 //        player.prevPosY = player.posY - deltaY;
@@ -322,8 +343,9 @@ public enum EnumGravityDirection {
 //        }
     }
 
-    private void setBoundingBoxAndPositionOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection) {
+    private void setBoundingBoxAndPositionOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d oldEyePos) {
         AxisAlignedBB axisAlignedBB = this.getGravityAdjustedAABB(player);
+//        player.setEntityBoundingBox(axisAlignedBB);
         player.resetPositionToBB();
 
 //        if (!prevPos.equals(player.getPositionVector())) {
@@ -338,20 +360,20 @@ public enum EnumGravityDirection {
 
             // Instead of trying to move the player in all 6 directions to see which would, we can eliminate all but 2
             EnumGravityDirection directionToTry;
-            float distanceToMove;
+            double distanceToMove;
 
             // The player has a relatively normal hitbox
             if (player.height > player.width) {
                 // Collision will be happening either above or below the player's centre of gravity from the
                 // NEW gravity direction's perspective
-                distanceToMove = player.height-player.width;
+                distanceToMove = (player.height-player.width)/2;
                 directionToTry = this;
             }
             // The player must be some sort of pancake, e.g. a spider
             else if (player.height < player.width){
                 // Collision will be happening either above or below the player's centre of gravity from the
                 // OLD gravity direction's perspective
-                distanceToMove = player.width-player.height;
+                distanceToMove = (player.width-player.height)/2;
                 directionToTry = oldDirection;
             }
             // The player is a cube, meaning that their collision/bounding box won't have actually changed shape after being rotated/moved
@@ -370,38 +392,60 @@ public enum EnumGravityDirection {
             adjustedMovement = this.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
 
             // Moving 'up' from the rotated player's perspective
-            AxisAlignedBB secondTry = axisAlignedBB.offset(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
+//            AxisAlignedBB secondTry = axisAlignedBB.offset(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
+            AxisAlignedBB secondTry = axisAlignedBB.offset(0, distanceToMove, 0);
+
+//            if (1 == 1) {
+//                player.setEntityBoundingBox(secondTry);
+//                player.resetPositionToBB();
+//                return;
+//            }
 
             // We try 'up' first because even if we move the player too far, their gravity will move them back 'down'
             if (player.worldObj.collidesWithAnyBlock(secondTry)) {
 
                 // Moving 'down' from the rotated player's perspective
-                AxisAlignedBB thirdTry = axisAlignedBB.offset(-adjustedMovement[0], -adjustedMovement[1], -adjustedMovement[2]);
+//                AxisAlignedBB thirdTry = axisAlignedBB.offset(-adjustedMovement[0], -adjustedMovement[1], -adjustedMovement[2]);
+                AxisAlignedBB thirdTry = axisAlignedBB.offset(0, -distanceToMove, 0);
 
                 if (player.worldObj.collidesWithAnyBlock(thirdTry)) {
                     // Uh oh, looks like the player decided to rotate in a too small place
                     // Imagine a 2 block tall, 1 block wide player standing in a 2 block tall, one block wide space
                     // and then changing from UP/DOWN gravity to NORTH/EAST/SOUTH/WEST gravity
-                    // they cannot possibly fit
+                    // they cannot possibly fit, we'll settle for putting the bottom of their bb at an integer value
+                    // as well as trying one block up (relative)
 
-                    //DEBUG
-//                    FMLLog.info("No matter how the player was moved, they would not fit, turning them into a square");
+                    // Move the player such that their old eye position is the same as the new one, this should limit suffocation
+                    player.setEntityBoundingBox(axisAlignedBB);
+                    player.resetPositionToBB();
 
-                    // Make the player as tall as they are wide (whichever is smaller)
-//                    float min = Math.min(player.height, player.width);
-//                    axisAlignedBB = this.getGravityAdjustedAABB(player, min, min);
-                    axisAlignedBB = thirdTry;
+                    Vec3d newEyePos = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
+                    Vec3d eyesDifference = oldEyePos.subtract(newEyePos);
+                    Vec3d adjustedDifference = this.getInverseAdjustMentFromDOWNDirection().adjustLookVec(eyesDifference);
+                    AxisAlignedBB givenUp = axisAlignedBB.offset(adjustedDifference.xCoord, adjustedDifference.yCoord, adjustedDifference.zCoord);
+                    //TODO: Set position at feet to closest int so we don't fall through blocks
+                    double relativeBottomOfBB = GravityAxisAlignedBB.getRelativeBottom(givenUp);
+                    long rounded = Math.round(relativeBottomOfBB);
+                    double difference = rounded - relativeBottomOfBB;
+                    //Try one block up (relative) from the found position to start with, to try and avoid falling through the block that is now at our feet
+                    givenUp = givenUp.offset(0, difference + 1, 0);
+                    //If one block up collided, then we have no choice but to choose the block below
+                    if (player.worldObj.collidesWithAnyBlock(givenUp)) {
+                        givenUp = givenUp.offset(0, -1, 0);
+                    }
+                    axisAlignedBB = givenUp;
+
                     // No change to the player's position is needed as their new hitbox is guaranteed to fit inside their old hitbox
                 } else {
                     // Moving 'down' did not collide with the world
                     //DEBUG
 //                    FMLLog.info("Moving 'down' did not collide with the world");
                     axisAlignedBB = thirdTry;
-//                    if (!player.worldObj.isRemote) {
-                        player.posX -= adjustedMovement[0];
-                        player.posY -= adjustedMovement[1];
-                        player.posZ -= adjustedMovement[2];
-//                    }
+////                    if (!player.worldObj.isRemote) {
+//                        player.posX -= adjustedMovement[0];
+//                        player.posY -= adjustedMovement[1];
+//                        player.posZ -= adjustedMovement[2];
+////                    }
                 }
             }
             else {
@@ -409,11 +453,11 @@ public enum EnumGravityDirection {
                 //DEBUG
 //                FMLLog.info("Moving 'up' did not collide with the world");
                 axisAlignedBB = secondTry;
-//                if (!player.worldObj.isRemote) {
-                    player.posX += adjustedMovement[0];
-                    player.posY += adjustedMovement[1];
-                    player.posZ += adjustedMovement[2];
-//                }
+////                if (!player.worldObj.isRemote) {
+//                    player.posX += adjustedMovement[0];
+//                    player.posY += adjustedMovement[1];
+//                    player.posZ += adjustedMovement[2];
+////                }
             }
         }
         else {
@@ -447,6 +491,10 @@ public enum EnumGravityDirection {
 
     public EnumGravityDirection getInverseAdjustMentFromDOWNDirection() {
         return inverseAdjustMentFromDOWNDirection;
+    }
+
+    public Vec3i getCameraTransformVars() {
+        return cameraTransformVars;
     }
 
     @FunctionalInterface

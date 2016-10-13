@@ -28,7 +28,7 @@ public class CommonProxy {
 
     public void registerListeners() {
         MinecraftForge.EVENT_BUS.register(this.getGravityManager());
-        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
+//        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
 //        MinecraftForge.EVENT_BUS.register(new MovementInterceptionListener());
     }
 

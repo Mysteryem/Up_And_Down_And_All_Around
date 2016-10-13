@@ -3,6 +3,7 @@ package uk.co.mysterymayhem.gravitymod;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
@@ -11,6 +12,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 
 /**
  * Created by Mysteryem on 2016-08-07.
@@ -28,7 +30,8 @@ public class PlayerRenderListener {
         EntityLivingBase entity = event.getEntity();
         if (entity instanceof EntityPlayer) {
             EntityPlayer entityPlayer = (EntityPlayer)entity;
-            EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(entityPlayer);
+            IGravityDirectionCapability capability = GravityDirectionCapability.getGravityCapability(entityPlayer);
+            EnumGravityDirection gravityDirection = capability.getDirection();
             GlStateManager.pushMatrix();
             GlStateManager.translate(event.getX(), event.getY(), event.getZ());
             gravityDirection.applyOtherPlayerRenderTransformations(entityPlayer);
@@ -51,6 +54,40 @@ public class PlayerRenderListener {
 //            GlStateManager.rotate((float)relativeInterpolatedYaw, 0, 1, 0);
 //
 //            // 3: Now that our look direction is effectively 0 yaw and 0 pitch, perform the rotation specific for this gravity
+//            int timeoutTicks = capability.getTimeoutTicks();
+//            final double rotationSpeed = 2;
+//            final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT/rotationSpeed;
+//            final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
+//            double effectiveTimeoutTicks = timeoutTicks;// - (1 * event.getRenderPartialTicks());
+//            if (timeoutTicks != 0 && effectiveTimeoutTicks > rotationEnd) {
+//                double numerator = GravityDirectionCapability.DEFAULT_TIMEOUT - effectiveTimeoutTicks;
+//                double denominator = rotationLength;
+////
+//                double multiplier = numerator/denominator;
+//
+//                Vec3i prevVars = capability.getPrevDirection().getCameraTransformVars();
+//                Vec3i currentVars = gravityDirection.getCameraTransformVars();
+////                float xRot = (float)(currentVars.getX() + (prevVars.getX() - currentVars.getX()) * multiplier);
+////                float yRot = (float)(currentVars.getY() + (prevVars.getY() - currentVars.getY()) * multiplier);
+////                float zRot = (float)(currentVars.getZ() + (prevVars.getZ() - currentVars.getZ()) * multiplier);
+//
+//                float xRot = (float)(prevVars.getX() + (currentVars.getX() - prevVars.getX()) * multiplier);
+//                float yRot = (float)(prevVars.getY() + (currentVars.getY() - prevVars.getY()) * multiplier);
+//                float zRot = (float)(prevVars.getZ() + (currentVars.getZ() - prevVars.getZ()) * multiplier);
+//
+//                if (xRot != 0) {
+//                    GlStateManager.rotate(xRot, 1, 0, 0);
+//                }
+//                if (yRot != 0) {
+//                    GlStateManager.rotate(yRot, 0, 1, 0);
+//                }
+//                if (zRot != 0) {
+//                    GlStateManager.rotate(zRot, 0, 0, 1);
+//                }
+//            }
+//            else {
+//                gravityDirection.runCameraTransformation();
+//            }
             gravityDirection.runCameraTransformation();
 //            GlStateManager.rotate((float)-relativeInterpolatedYaw, 0, 1, 0);
 //            GlStateManager.rotate((float)-relativeInterpolatedPitch, 1, 0, 0);

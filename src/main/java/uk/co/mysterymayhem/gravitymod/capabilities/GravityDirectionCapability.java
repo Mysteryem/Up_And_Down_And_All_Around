@@ -1,10 +1,12 @@
 package uk.co.mysterymayhem.gravitymod.capabilities;
 
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -95,31 +97,9 @@ public class GravityDirectionCapability {
         double z = player.posZ;
         IGravityDirectionCapability capability = getGravityCapability(player);
         EnumGravityDirection oldDirection = capability.getDirection();
-        oldDirection.preModifyPlayerOnGravityChange(player, direction);
+        Vec3d oldEyePos = oldDirection.preModifyPlayerOnGravityChange(player, direction);
         setGravityDirection(capability, direction, noTimeout);
-        direction.postModifyPlayerOnGravityChange(player, oldDirection);
-        // Tell the client the new position before changing their gravity
-        if (player instanceof EntityPlayerMP) {
-            // Update the client player's position before they receive the gravity change packet
-
-            double deltaX = player.posX - x;
-            double deltaY = player.posY - y;
-            double deltaZ = player.posZ - z;
-
-            //connection.setPlayerLocation updates the server side player location by the specified values as well
-            //we've already moved the server player into the correct position by this point, so we'll undo the movement
-            //and then redo it again during setPlayerLocation
-            player.posX -= deltaX;
-            player.posY -= deltaY;
-            player.posZ -= deltaZ;
-
-            //allRelative so that motion is not set to zero and so that pitch and yaw do not change client side
-            ((EntityPlayerMP) player).connection.setPlayerLocation(deltaX, deltaY, deltaZ, 0, 0, allRelative);
-        }
-//        FMLCommonHandler.instance().getMinecraftServerInstance().isDedicatedServer()
-//                ((EntityPlayerWithGravity_DEPRECATED) player).setSize(player.width, player.height);
-        //AxisAlignedBB axisalignedbb = player.getEntityBoundingBox();
-        //player.setEntityBoundingBox(new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ, axisalignedbb.minX + (double) player.width, axisalignedbb.minY + (double) player.height, axisalignedbb.minZ + (double) player.width));
+        direction.postModifyPlayerOnGravityChange(player, oldDirection, oldEyePos);
     }
 
     private static void setGravityDirection(IGravityDirectionCapability capability, EnumGravityDirection direction, boolean noTimeout) {

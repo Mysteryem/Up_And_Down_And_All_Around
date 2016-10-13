@@ -54,6 +54,7 @@ public class GravityManagerCommon {
             GravityTransitionEvent.Server event = new GravityTransitionEvent.Server.Pre(newDirection, oldDirection, player);
             if (!MinecraftForge.EVENT_BUS.post(event)) {
                 GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection, noTimeout);
+                player.connection.update();
                 this.sendUpdatePacketToDimension(event.player, event.newGravityDirection, noTimeout);
                 MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Post(newDirection, oldDirection, player));
             }
@@ -151,6 +152,7 @@ public class GravityManagerCommon {
                         doGravityTransition(newDirection, (EntityPlayerMP)player, false);
                     }
                 }
+
             }
             //decrements timeOut on both client and server
             gravityCapability.tick();

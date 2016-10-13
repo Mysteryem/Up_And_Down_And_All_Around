@@ -8,6 +8,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -1088,6 +1089,7 @@ public class Hooks {
 
     /**
      * ASM Hook used in EntityPlayerSP::func_189810_i
+     * Gets the relative bottom of the passed entity's current bounding box
      * @param other
      * @param entity
      * @return
@@ -1095,21 +1097,7 @@ public class Hooks {
     public static double getRelativeBottomOfBB(AxisAlignedBB other, Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            switch(((GravityAxisAlignedBB) bb).getDirection()){
-                case UP:
-                    return -other.maxY;
-                case DOWN:
-                    return other.minY;
-                case SOUTH:
-                    return -other.maxZ;
-                case WEST:
-                    return other.minX;
-                case NORTH:
-                    return other.minZ;
-//                case EAST:
-                default:
-                    return -other.maxX;
-            }
+            return ((GravityAxisAlignedBB) bb).getRelativeBottom();
         }
         return other.minY;
     }

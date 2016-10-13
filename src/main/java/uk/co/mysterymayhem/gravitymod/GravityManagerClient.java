@@ -5,6 +5,7 @@ import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -141,7 +142,11 @@ public class GravityManagerClient extends GravityManagerCommon {
         }
         EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
         MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Client.Pre(direction, oldDirection, player));
+        Vec3d position = player.getPositionVector();
         GravityDirectionCapability.setGravityDirection(player, direction, noTimeout);
+//        player.posX = position.xCoord;
+//        player.posY = position.yCoord;
+//        player.posZ = position.zCoord;
         MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Client.Post(direction, oldDirection, player));
     }
 }

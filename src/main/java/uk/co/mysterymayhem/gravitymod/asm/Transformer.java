@@ -243,6 +243,9 @@ public class Transformer implements IClassTransformer {
         final FieldName EntityLivingBase$limbSwingAmount_name = new FieldName("limbSwingAmount", "field_70721_aZ");
         final FieldName EntityLivingBase$prevRotationYawHead_name = new FieldName("prevRotationYawHead", "field_70758_at");
         final FieldName EntityLivingBase$rotationYawHead_name = new FieldName("rotationYawHead", "field_70759_as");
+        final FieldName NetHandlerPlayServer$lastGoodX_name = new FieldName("lastGoodX", "field_184352_o");
+        final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
+        final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
         final FieldName NetHandlerPlayServer$playerEntity_name = new FieldName("playerEntity", "field_147369_b");
 
         /*
@@ -291,12 +294,15 @@ public class Transformer implements IClassTransformer {
         final FieldInstruction EntityPlayerSP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posY_name, DOUBLE);
         final FieldInstruction EntityPlayerSP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posZ_name, DOUBLE);
         final FieldInstruction EntityPlayerSP$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$rotationYaw_name, FLOAT);
+        final FieldInstruction NetHandlerPlayServer$lastGoodX_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodX_name, DOUBLE);
+        final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
+        final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
         final FieldInstruction NetHandlerPlayServer$playerEntity_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$playerEntity_name, EntityPlayerMP);
 
         /*
             Mojang method instructions
          */
-        // While there could be a constructor for MethodInstructions that doesn't require a MethodDesc, it is useful to
+        // While there could be a constructor for MethodInstruction that doesn't require a MethodDesc, it is useful to
         // visually split apart the arguments so it's easier to tell what each argument is
         final MethodInstruction AxisAlignedBB$INIT = new MethodInstruction(INVOKESPECIAL, AxisAlignedBB, INIT, new MethodDesc(VOID, Vec3d, Vec3d));
         final MethodInstruction AxisAlignedBB$calculateXOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateXOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
@@ -331,6 +337,7 @@ public class Transformer implements IClassTransformer {
          */
         final HooksMethodInstruction Hooks$addAdjustedVector = new HooksMethodInstruction("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
         final HooksMethodInstruction Hooks$adjustVec = new HooksMethodInstruction("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
+        final HooksMethodInstruction Hooks$adjustXYZ = new HooksMethodInstruction("adjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
         final HooksMethodInstruction Hooks$constructNewGAABBFrom2Vec3d = new HooksMethodInstruction("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
         final HooksMethodInstruction Hooks$getBlockPosAtTopOfPlayer = new HooksMethodInstruction("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
         final HooksMethodInstruction Hooks$getBlockPostBelowEntity = new HooksMethodInstruction("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
@@ -932,6 +939,13 @@ public class Transformer implements IClassTransformer {
                 boolean foundMoveEntity = false;
                 boolean foundHandleFalling = false;
 
+                boolean foundDifferenceLocalVars = false;
+                int xDiffLocalVar = -1;
+                int yDiffLocalVar = -1;
+                int zDiffLocalVar = -1;
+                int yDiffLoadCount = 0;
+                boolean patchedYDiffLocalUsedToCalculate_floating = false;
+
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
@@ -974,6 +988,54 @@ public class Transformer implements IClassTransformer {
                             else {
                                 die("Unexpected instruction in NetHandletPlayServer::processPlayer, expecting \"DSUB\"");
                             }
+                        }
+                    }
+                    else if (next instanceof FieldInsnNode) {
+                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                        if (!foundDifferenceLocalVars && HELPER.NetHandlerPlayServer$lastGoodX_GET.is(fieldInsnNode)) {
+                            foundDifferenceLocalVars = true;
+                            for (int foundCount = 0; foundCount < 3; ) {
+                                next = iterator.next();
+                                if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.DSTORE) {
+                                    VarInsnNode varInsnNode = (VarInsnNode)next;
+                                    switch (foundCount) {
+                                        case 0:
+                                            xDiffLocalVar = varInsnNode.var;
+                                            break;
+                                        case 1:
+                                            yDiffLocalVar = varInsnNode.var;
+                                            break;
+                                        case 2:
+                                            zDiffLocalVar = varInsnNode.var;
+                                            break;
+                                    }
+                                    foundCount++;
+                                }
+                            }
+                        }
+                    }
+                    else if (next instanceof VarInsnNode) {
+                        VarInsnNode varInsnNode = (VarInsnNode)next;
+                        if (foundDifferenceLocalVars
+                                && !patchedYDiffLocalUsedToCalculate_floating
+                                && varInsnNode.var == yDiffLocalVar
+                                && varInsnNode.getOpcode() == Opcodes.DLOAD) {
+                            yDiffLoadCount++;
+                            if (yDiffLoadCount == 3) {
+                                //Insert instructions to do Hooks.adjustXYZ
+                                iterator.previous();//DLOAD yDiff
+                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
+                                HELPER.NetHandlerPlayServer$playerEntity_GET.addTo(iterator);
+                                iterator.add(new VarInsnNode(Opcodes.DLOAD, xDiffLocalVar));
+                                iterator.next();//DLOAD yDiff again
+                                iterator.add(new VarInsnNode(Opcodes.DLOAD, zDiffLocalVar));
+                                HELPER.Hooks$adjustXYZ.addTo(iterator);
+                                iterator.add(new InsnNode(Opcodes.ICONST_1));
+                                iterator.add(new InsnNode(Opcodes.DALOAD));
+                                //next instruction stores to local variable
+                                patchedYDiffLocalUsedToCalculate_floating = true;
+                            }
+
                         }
                     }
                 }

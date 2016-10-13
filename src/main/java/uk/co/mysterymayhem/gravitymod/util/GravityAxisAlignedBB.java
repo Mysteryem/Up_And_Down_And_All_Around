@@ -215,6 +215,31 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
 
     }
 
+    public static double getRelativeBottom(AxisAlignedBB bb) {
+        if (bb instanceof GravityAxisAlignedBB) {
+            return ((GravityAxisAlignedBB) bb).getRelativeBottom();
+        }
+        return bb.minY;
+    }
+
+    public double getRelativeBottom() {
+        switch(this.getDirection()){
+            case UP:
+                return -this.maxY;
+            case DOWN:
+                return this.minY;
+            case SOUTH:
+                return -this.maxZ;
+            case WEST:
+                return this.minX;
+            case NORTH:
+                return this.minZ;
+//                case EAST:
+            default:
+                return -this.maxX;
+        }
+    }
+
     //TODO: Remove?
     public double applyOther_AdjustedOffsetMethod(AxisAlignedBB other, double offset, int offsetType) {
         return this.getOther_AdjustedCalculateOffsetMethod(other, offsetType).apply(this, offset);

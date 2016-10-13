@@ -5,6 +5,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
+
+import javax.annotation.Nonnull;
 
 /**
  * Created by Mysteryem on 2016-08-26.
@@ -16,12 +19,37 @@ public class API {
     public static final int Z = 2;
 
     /**
-     * Set a new gravity direction for a player, this wall fire (post) the relevant events, perform client sync etc.
+     * Call this every tick that a player should have the gravity direction you specify.
+     * At the beginning of the player's next tick, the highest priority 'prepared gravity transition' will be chosen.
+     * @param newGravity The gravity direction the player should have during the next tick.
+     * @param player The player to apply the gravity to.
+     * @param priority The priority of this 'prepared gravity transition'
+     */
+    public static void setPlayerGravity(EnumGravityDirection newGravity, EntityPlayerMP player, int priority) {
+        GravityMod.proxy.getGravityManager().prepareGravityTransition(newGravity, player, priority);
+    }
+
+    /**
+     * Forcefully set a new gravity direction for a player this tick, this wall fire (post) the relevant events, perform client sync etc.
+     * Even if the player in question currently has a timeout preventing normal changes to their gravity, this will bypass it
      * @param newGravity New gravity direction for the player.
      * @param player Server player whose gravity you want to change.
+     * @param noTimeout False to set a default timeout, preventing normal changes to gravity.
+     *                  True to specifically set a zero timeout, normal changes will be able to take place immediately.
      */
-    public static void setPlayerGravity(EnumGravityDirection newGravity, EntityPlayerMP player) {
-        GravityMod.proxy.getGravityManager().doGravityTransition(newGravity, player);
+    public static void forceSetPlayerGravity(EnumGravityDirection newGravity, EntityPlayerMP player, boolean noTimeout) {
+        GravityMod.proxy.getGravityManager().doGravityTransition(newGravity, player, noTimeout);
+    }
+
+
+
+    /**
+     * Get the gravity direction capability for a specific player
+     * @param player The player whose gravity direction capability you are after
+     * @return The specified player's gravity direction capability
+     */
+    public static IGravityDirectionCapability getGravityDirectionCapability(EntityPlayer player) {
+        return GravityDirectionCapability.getGravityCapability(player);
     }
 
     /**

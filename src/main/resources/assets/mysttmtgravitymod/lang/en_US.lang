@@ -1,1 +1,8 @@
 item.antigravityboots.name=Anti-Gravity Boots
+item.personalgravitycontroller.none.name=Personal Gravity Controller
+item.personalgravitycontroller.north.name=Personal Gravity Controller - North
+item.personalgravitycontroller.east.name=Personal Gravity Controller - East
+item.personalgravitycontroller.south.name=Personal Gravity Controller - South
+item.personalgravitycontroller.west.name=Personal Gravity Controller - West
+item.personalgravitycontroller.up.name=Personal Gravity Controller - Up
+item.personalgravitycontroller.down.name=Personal Gravity Controller - Down
