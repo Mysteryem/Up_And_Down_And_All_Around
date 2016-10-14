@@ -97,7 +97,8 @@ public class GravityDirectionCapability {
         double z = player.posZ;
         IGravityDirectionCapability capability = getGravityCapability(player);
         EnumGravityDirection oldDirection = capability.getDirection();
-        Vec3d oldEyePos = oldDirection.preModifyPlayerOnGravityChange(player, direction);
+        Vec3d oldEyePos = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
+        oldDirection.preModifyPlayerOnGravityChange(player, direction);
         setGravityDirection(capability, direction, noTimeout);
         direction.postModifyPlayerOnGravityChange(player, oldDirection, oldEyePos);
     }

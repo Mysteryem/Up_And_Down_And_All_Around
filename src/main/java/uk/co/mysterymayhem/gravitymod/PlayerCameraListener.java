@@ -1,24 +1,19 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
-import uk.co.mysterymayhem.gravitymod.util.Vec3dHelper;
 
 /**
  * Used to roll the player's camera according to their current gravity
@@ -102,7 +97,7 @@ public class PlayerCameraListener {
 
                 Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
 
-                Vec3d adjustedVec = capability.getPrevDirection().getInverseAdjustMentFromDOWNDirection().adjustLookVec(lookVecWithDoubleAccuracy);
+                Vec3d adjustedVec = capability.getPrevDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(lookVecWithDoubleAccuracy);
                 double prevRelativeYaw = (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
                 double prevRelativePitch = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
 
@@ -120,10 +115,10 @@ public class PlayerCameraListener {
 //                Vec3d currentVec = Vec3dHelper.getPreciseVectorForRotation(interpolatedPitch, interpolatedYaw);
 //
 //                // Prev direction interpolated relative look vec
-//                Vec3d adjustedVec = capability.getPrevDirection().getInverseAdjustMentFromDOWNDirection().adjustLookVec(currentVec);
+//                Vec3d adjustedVec = capability.getPrevDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(currentVec);
 //
 //                // Current direction interpolated relative look vec
-//                Vec3d relativeCurrentVec = gravityDirection.getInverseAdjustMentFromDOWNDirection().adjustLookVec(currentVec);
+//                Vec3d relativeCurrentVec = gravityDirection.getInverseAdjustmentFromDOWNDirection().adjustLookVec(currentVec);
 //
 ////                FMLLog.info("\nCurrent: " + relativeCurrentVec + "\nPrevious: " + adjustedVec + "\nAbsolute: " + currentVec);
 //

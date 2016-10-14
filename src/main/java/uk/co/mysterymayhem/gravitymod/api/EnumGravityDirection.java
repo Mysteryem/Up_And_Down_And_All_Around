@@ -5,316 +5,135 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import net.minecraftforge.fml.common.FMLLog;
-import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
-import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
-import uk.co.mysterymayhem.gravitymod.util.TriDoubleFunction;
-
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
- * I heard you like lambda expressions
- *
- * This class needs some serious cleanup
- *
+ * Enum of the gravity direction objects
  * Created by Mysteryem on 2016-08-14.
  */
 public enum EnumGravityDirection {
-
-    UP(
-//            () -> GlStateManager.rotate(180, 0, 0, 1),
-            new Vec3i(0, 0, 180),
-            (x, y, z) -> new double[]{-x, -y, z},
-            player -> GlStateManager.translate(0, 0, 0),
-            (player, oldDirection) ->  {
-//                double widthOver2 = player.width/2d;
-//                player.setEntityBoundingBox(new AxisAlignedBB(
-//                        player.posX-widthOver2,
-//                        player.posY,
-//                        player.posZ-widthOver2,
-//                        player.posX+widthOver2,
-//                        player.posY+player.height,
-//                        player.posZ+widthOver2));
-//                player.eyeHeight = -player.getDefaultEyeHeight();
-
-                //DO NOT SET EYE HEIGHT, EYE HEIGHT IN PLAYER CLASS MAY AS WELL BE FINAL //Set eye height - Must be before setting the hitbox so that the htibox can be adjusted for the new eye position
-                //Set player's position - Forceful at first
-                //Set player's hitbox - This is forceful, things may break otherwise
-                //Move player - Must be after setting the hitbox so that we can guarantee that the final position is valid for the entity
-            },
-            (width, height, player) -> {
-                double widthOver2 = width/2;
-                return new GravityAxisAlignedBB(
-                        GravityDirectionCapability.getGravityCapability(player),
-                        player.posX - widthOver2,
-                        player.posY - height,
-                        player.posZ - widthOver2,
-                        player.posX + widthOver2,
-                        player.posY,
-                        player.posZ + widthOver2
-                );
-            },
-            player -> player.posY -= player.height/2,
-            player -> player.posY += player.height/2
-    ),
-    DOWN(
-//            () -> {},
-            new Vec3i(0, 0, 0),
-            (x, y, z) -> new double[]{x, y, z},
-            player -> {},
-            (player, oldDirection) -> {
-//                double widthOver2 = player.width/2d;
-//                player.setEntityBoundingBox(new AxisAlignedBB(
-//                        player.posX-widthOver2,
-//                        player.posY,
-//                        player.posZ-widthOver2,
-//                        player.posX+widthOver2,
-//                        player.posY+player.height,
-//                        player.posZ+widthOver2));
-            },
-            (width, height, player) -> {
-                double widthOver2 = width/2f;
-                return new GravityAxisAlignedBB(
-                        GravityDirectionCapability.getGravityCapability(player),
-                        player.posX - widthOver2,
-                        player.posY,
-                        player.posZ - widthOver2,
-                        player.posX + widthOver2,
-                        player.posY + height,
-                        player.posZ + widthOver2
-                );
-            },
-            player -> player.posY += player.height/2,
-            player -> player.posY -= player.height/2
-    ),
-    SOUTH(
-//            () -> GlStateManager.rotate(-90, 1, 0, 0),
-            new Vec3i(-90, 0, 0),
-            (x, y, z) -> new double[]{x, z, -y},
-            player -> GlStateManager.translate(0, 0, API.getStandardEyeHeight(player)),
-            (player, oldDirection) -> {
-//                double widthOver2 = player.width/2d;
-//                double offset = player.getDefaultEyeHeight() - (player.height/2d);
-//                player.setEntityBoundingBox(new AxisAlignedBB(
-//                        player.posX-widthOver2,
-//                        player.posY-widthOver2,
-//                        player.posZ-offset,
-//                        player.posX+widthOver2,
-//                        player.posY+widthOver2,
-//                        player.posZ+player.height-offset));
-//                player.eyeHeight = (float)widthOver2;
-//                player.posY+=widthOver2;
-//                player.posZ+=player.height/2d;
-            },
-            (width, height, player) -> {
-                double widthOver2 = width/2f;
-                float eyeHeight = API.getStandardEyeHeight(player);
-                return new GravityAxisAlignedBB(
-                        GravityDirectionCapability.getGravityCapability(player),
-                        player.posX - widthOver2,
-                        player.posY - widthOver2,
-                        player.posZ - (height - eyeHeight),
-                        player.posX + widthOver2,
-                        player.posY + widthOver2,
-                        player.posZ + eyeHeight
-                );
-            },
-            player -> player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d)),
-            player -> player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d))
-    ),
-    WEST(
-//            () -> GlStateManager.rotate(-90, 0, 0, 1),
-            new Vec3i(0, 0, -90),
-            (x, y, z) -> new double[]{y, -x, z},
-            player -> GlStateManager.translate(-API.getStandardEyeHeight(player), 0, 0),
-            (player, oldDirection) -> {
-
-            },
-            (width, height, player) -> {
-                double widthOver2 = width/2f;
-                float eyeHeight = API.getStandardEyeHeight(player);
-                return new GravityAxisAlignedBB(
-                        GravityDirectionCapability.getGravityCapability(player),
-                        player.posX - eyeHeight,
-                        player.posY - widthOver2,
-                        player.posZ - widthOver2,
-                        player.posX + (height - eyeHeight),
-                        player.posY + widthOver2,
-                        player.posZ + widthOver2
-                );
-            },
-            player -> player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d)),
-            player -> player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d))
-    ),
-    NORTH(
-//            () -> GlStateManager.rotate(90, 1, 0, 0),
-            new Vec3i(90, 0, 0),
-            (x, y, z) -> new double[]{x, -z, y},
-            player -> GlStateManager.translate(0, 0, -API.getStandardEyeHeight(player)),
-            (player, oldDirection) -> {
-
-            },
-            (width, height, player) -> {
-                double widthOver2 = width/2f;
-                float eyeHeight = API.getStandardEyeHeight(player);
-                return new GravityAxisAlignedBB(
-                        GravityDirectionCapability.getGravityCapability(player),
-                        player.posX - widthOver2,
-                        player.posY - widthOver2,
-                        player.posZ - eyeHeight,
-                        player.posX + widthOver2,
-                        player.posY + widthOver2,
-                        player.posZ + (height - eyeHeight)
-                );
-            },
-            player -> player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d)),
-            player -> player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d))
-    ),
-    EAST(
-//            () -> GlStateManager.rotate(90, 0, 0, 1),
-            new Vec3i(0, 0, 90),
-            (x, y, z) -> new double[]{-y, x, z},
-            player -> GlStateManager.translate(API.getStandardEyeHeight(player), 0, 0),
-            (player, oldDirection) -> {
-
-            },
-            (width, height, player) -> {
-                double widthOver2 = width/2f;
-                float eyeHeight = API.getStandardEyeHeight(player);
-                return new GravityAxisAlignedBB(
-                        GravityDirectionCapability.getGravityCapability(player),
-                        player.posX - (height - eyeHeight),
-                        player.posY - widthOver2,
-                        player.posZ - widthOver2,
-                        player.posX + eyeHeight,
-                        player.posY + widthOver2,
-                        player.posZ + widthOver2
-                );
-            },
-            player -> player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d)),
-            player -> player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d))
-    );
-
-    static {
-        for (EnumGravityDirection direction : EnumGravityDirection.values()) {
-            switch(direction) {
-                case UP:
-                    direction.inverseAdjustMentFromDOWNDirection = EnumGravityDirection.UP;
-                    break;
-                case DOWN:
-                    direction.inverseAdjustMentFromDOWNDirection = EnumGravityDirection.DOWN;
-                    break;
-                case NORTH:
-                    direction.inverseAdjustMentFromDOWNDirection = EnumGravityDirection.SOUTH;
-                    break;
-                case EAST:
-                    direction.inverseAdjustMentFromDOWNDirection = EnumGravityDirection.WEST;
-                    break;
-                case SOUTH:
-                    direction.inverseAdjustMentFromDOWNDirection = EnumGravityDirection.NORTH;
-                    break;
-                case WEST:
-                    direction.inverseAdjustMentFromDOWNDirection = EnumGravityDirection.EAST;
-                    break;
-            }
+    UP(new Vec3i(0, 0, 180)) {
+        @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-x, -y, z};}
+        //TODO: Why is doing nothing correct?
+        @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {/*do nothing*/}
+        @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
+            double widthOver2 = width/2f;
+            return new GravityAxisAlignedBB(
+                    API.getGravityDirectionCapability(player),
+                    player.posX - widthOver2, player.posY - height, player.posZ - widthOver2,
+                    player.posX + widthOver2, player.posY,          player.posZ + widthOver2
+            );
         }
-    }
+        @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posY -= player.height/2;}
+        @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posY += player.height/2;}
+        @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
+    },
+    DOWN(new Vec3i(0, 0, 0)) {
+        @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, y, z};}
+        @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {/*do nothing*/}
+        @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
+            double widthOver2 = width/2f;
+            return new GravityAxisAlignedBB(
+                    API.getGravityDirectionCapability(player),
+                    player.posX - widthOver2, player.posY,          player.posZ - widthOver2,
+                    player.posX + widthOver2, player.posY + height, player.posZ + widthOver2
+            );
+        }
+        @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posY += player.height/2;}
+        @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posY -= player.height/2;}
+        @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
+    },
+    NORTH(new Vec3i(90, 0, 0)) {
+        @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, -z, y};}
+        @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(0, 0, -API.getStandardEyeHeight(player));}
+        @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
+            double widthOver2 = width/2f;
+            float eyeHeight = API.getStandardEyeHeight(player);
+            return new GravityAxisAlignedBB(
+                    API.getGravityDirectionCapability(player),
+                    player.posX - widthOver2, player.posY - widthOver2, player.posZ - eyeHeight,
+                    player.posX + widthOver2, player.posY + widthOver2, player.posZ + (height - eyeHeight)
+            );
+        }
+        @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return SOUTH;}
+    },
+    EAST(new Vec3i(0, 0, 90)) {
+        @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-y, x, z};}
+        @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(API.getStandardEyeHeight(player), 0, 0);}
+        @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
+            double widthOver2 = width/2f;
+            float eyeHeight = API.getStandardEyeHeight(player);
+            return new GravityAxisAlignedBB(
+                    API.getGravityDirectionCapability(player),
+                    player.posX - (height - eyeHeight), player.posY - widthOver2, player.posZ - widthOver2,
+                    player.posX + eyeHeight,            player.posY + widthOver2, player.posZ + widthOver2
+            );
+        }
+        @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return WEST;}
+    },
+    SOUTH(new Vec3i(-90, 0, 0)) {
+        @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, z, -y};}
+        @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(0, 0, API.getStandardEyeHeight(player));}
+        @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
+            double widthOver2 = width/2f;
+            float eyeHeight = API.getStandardEyeHeight(player);
+            return new GravityAxisAlignedBB(
+                    API.getGravityDirectionCapability(player),
+                    player.posX - widthOver2, player.posY - widthOver2, player.posZ - (height - eyeHeight),
+                    player.posX + widthOver2, player.posY + widthOver2, player.posZ + eyeHeight
+            );
+        }
+        @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return NORTH;}
+    },
+    WEST(new Vec3i(0, 0, -90)) {
+        @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{y, -x, z};}
+        @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(-API.getStandardEyeHeight(player), 0, 0);}
+        @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
+            double widthOver2 = width/2f;
+            float eyeHeight = API.getStandardEyeHeight(player);
+            return new GravityAxisAlignedBB(
+                    API.getGravityDirectionCapability(player),
+                    player.posX - eyeHeight,            player.posY - widthOver2, player.posZ - widthOver2,
+                    player.posX + (height - eyeHeight), player.posY + widthOver2, player.posZ + widthOver2
+            );
+        }
+        @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d));}
+        @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return EAST;}
+    };
 
-    //TODO: Remove playerModificationsOnGravityChange
+    public abstract double[] adjustXYZValues(double x, double y, double z);
+    public abstract void applyOtherPlayerRenderTransformations(EntityPlayer player);
+    public abstract GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height);
+    public abstract void returnCentreOfGravityToPlayerPos(EntityPlayer player);
+    public abstract void offsetCentreOfGravityFromPlayerPos(EntityPlayer player);
+    public abstract EnumGravityDirection getInverseAdjustmentFromDOWNDirection();
+
     private final Vec3i cameraTransformVars;
-    private final TriDoubleFunction<double[]> axisAdjustment;
-    private final Consumer<EntityPlayer> otherPlayerRenderTransformations;
-    private final BiConsumer<EntityPlayer, EnumGravityDirection> playerModificationsOnGravityChange;
-    private final BiDoubleAndObjectFunction<EntityPlayer, AxisAlignedBB> boundingBoxFunction;
-    private final Consumer<EntityPlayer> returnCOGToPlayerPos;
-    private final Consumer<EntityPlayer> offsetCOGFromPlayerPos;
-    private EnumGravityDirection inverseAdjustMentFromDOWNDirection;
 
-    EnumGravityDirection(Vec3i cameraTransformVars,
-                         TriDoubleFunction<double[]> axisAdjustment,
-                         Consumer<EntityPlayer> otherPlayerRenderTransformations,
-                         BiConsumer<EntityPlayer, EnumGravityDirection> playerModificationsOnGravityChange,
-                         BiDoubleAndObjectFunction<EntityPlayer, AxisAlignedBB> boundingBoxFunction,
-                         Consumer<EntityPlayer> returnCOGToPlayerPos,
-                         Consumer<EntityPlayer> offsetCOGFromPlayerPos) {
+    EnumGravityDirection(Vec3i cameraTransformVars) {
         this.cameraTransformVars = cameraTransformVars;
-        this.axisAdjustment = axisAdjustment;
-        this.otherPlayerRenderTransformations = otherPlayerRenderTransformations;
-        this.playerModificationsOnGravityChange = playerModificationsOnGravityChange;
-        this.boundingBoxFunction = boundingBoxFunction;
-        this.returnCOGToPlayerPos = returnCOGToPlayerPos;
-        this.offsetCOGFromPlayerPos = offsetCOGFromPlayerPos;
     }
 
-    public void runCameraTransformation() {
-        Vec3i vars = this.cameraTransformVars;
-        int x = vars.getX();
-        int y = vars.getY();
-        int z = vars.getZ();
-        if (x != 0) {
-            GlStateManager.rotate(x, 1, 0, 0);
-        }
-        if (y != 0) {
-            GlStateManager.rotate(y, 0, 1, 0);
-        }
-        if (z != 0) {
-            GlStateManager.rotate(z, 0, 0, 1);
-        }
+    public Vec3i getCameraTransformVars() {
+        return cameraTransformVars;
+    }
 
+    //TODO: Is it worth removing this method?
+    public void preModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection newDirection) {
+        //Does nothing currently
     }
 
     public Vec3d adjustLookVec(Vec3d input) {
-        double[] adjustedValues = this.axisAdjustment.apply(input.xCoord, input.yCoord, input.zCoord);
-        return new Vec3d(adjustedValues[0], adjustedValues[1], adjustedValues[2]);
+        double[] d = this.adjustXYZValues(input.xCoord, input.yCoord, input.zCoord);
+        return new Vec3d(d[0], d[1], d[2]);
     }
-
-    public double[] adjustXYZValues(double inX, double inY, double inZ) {
-        return this.axisAdjustment.apply(inX, inY, inZ);
-    }
-
-    public void applyOtherPlayerRenderTransformations(EntityPlayer otherPlayerToBeRendered) {
-        this.otherPlayerRenderTransformations.accept(otherPlayerToBeRendered);
-//        this.runCameraTransformation();
-        //this.otherPlayerRenderTransformations.accept(otherPlayerToBeRendered);
-    }
-
-
-    public Vec3d preModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection newDirection) {
-        //TODO: Is this needed? Could this be what's causing players to sometimes get stuck in place when changing gravity direction?
-        return player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
-//        player.resetPositionToBB();
-//        player.setEntityBoundingBox(player.getEntityBoundingBox().offset(0, -API.getStandardEyeHeight(player)/2d, 0));
-    }
-
-    public void postModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d inputEyePos) {
-        // Converts the player current motion
-        this.maintainEffectiveMotion(player, oldDirection);
-//        double deltaX = player.posX - player.prevPosX;
-//        double deltaY = player.posY - player.prevPosY;
-//        double deltaZ = player.posZ - player.prevPosZ;
-//        if (!player.worldObj.isRemote) {
-            // Server will provide the client with the correct change in position that 'should' put the client player
-            // in the correct place
-            oldDirection.returnCentreOfGravityToPlayerPos(player);
-            this.offsetCentreOfGravityFromPlayerPos(player);
-//        }
-
-        // As the client is slightly ahead of the server in terms of client player movement, we'll try to set them outside of a wall here as well
-        // Move player to try and get them out of a wall
-        this.setBoundingBoxAndPositionOnGravityChange(player, oldDirection, inputEyePos);
-        this.playerModificationsOnGravityChange.accept(player, oldDirection);
-//        player.prevPosX = player.posX - deltaX;
-//        player.prevPosY = player.posY - deltaY;
-//        player.prevPosZ = player.posZ - deltaZ;
-    }
-
-    // Converts the old motion of the player to the new direction, such that if the player was moving (a, b, c) from the
-    // perspective of DOWN, that their new motion under the new direction is now (a, b, c) from the perspective of
-    // DOWN
-    //
 
     /**
      * Converts the old motion of the player to the new direction, such that if the player was moving (a, b, c) from the
@@ -334,30 +153,22 @@ public enum EnumGravityDirection {
      * @param oldDirection The old gravity direction.
      */
     private void maintainEffectiveMotion(EntityPlayer player, EnumGravityDirection oldDirection) {
-//        if (!player.worldObj.isRemote) {
-            double[] doubles = oldDirection.adjustXYZValues(player.motionX, player.motionY, player.motionZ);
-            doubles = this.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(doubles[0], doubles[1], doubles[2]);
-            player.motionX = doubles[0];
-            player.motionY = doubles[1];
-            player.motionZ = doubles[2];
-//        }
+        double[] doubles = oldDirection.adjustXYZValues(player.motionX, player.motionY, player.motionZ);
+        doubles = this.getInverseAdjustmentFromDOWNDirection().adjustXYZValues(doubles[0], doubles[1], doubles[2]);
+        player.motionX = doubles[0];
+        player.motionY = doubles[1];
+        player.motionZ = doubles[2];
     }
 
     private void setBoundingBoxAndPositionOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d oldEyePos) {
         AxisAlignedBB axisAlignedBB = this.getGravityAdjustedAABB(player);
-//        player.setEntityBoundingBox(axisAlignedBB);
         player.resetPositionToBB();
-
-//        if (!prevPos.equals(player.getPositionVector())) {
-//            // If we've got thing right, no change in position should have occured
-//            // update: client/server sync says "hahahahahahahahahahahahahaha, good luck with that"
-//            String side = player.worldObj.isRemote ? "Client: " : "Server: ";
-//            FMLLog.warning(side + "Expected to find player at %s, but found player at %s", prevPos.toString(), player.getPositionVector().toString());
-//        }
 
         if (player.worldObj.collidesWithAnyBlock(axisAlignedBB)) {
             // After rotating about the player's centre of gravity, the player is now partially inside of a block
 
+            // TODO: Test being a 'spider' player and trying to change gravity direction in tight places
+            // TODO: Re-add choosing the correct gravity direction and using that to inverseAdjust the movement values, so that 'spider' players don't get stuck in walls
             // Instead of trying to move the player in all 6 directions to see which would, we can eliminate all but 2
             EnumGravityDirection directionToTry;
             double distanceToMove;
@@ -378,6 +189,7 @@ public enum EnumGravityDirection {
             }
             // The player is a cube, meaning that their collision/bounding box won't have actually changed shape after being rotated/moved
             else {
+                // As rotation of the player occurs about their centre of gravity
                 // This scenario means that the player was already inside a block when they rotated as this should be impossible otherwise
 
                 // Not going to do anything in this case
@@ -389,24 +201,17 @@ public enum EnumGravityDirection {
             double[] adjustedMovement = directionToTry.adjustXYZValues(0, distanceToMove, 0);
 
             // Inverse to undo the adjustment caused by GravityAxisAlignedBB.offset(...)
-            adjustedMovement = this.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
+            adjustedMovement = this.getInverseAdjustmentFromDOWNDirection().adjustXYZValues(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
 
             // Moving 'up' from the rotated player's perspective
-//            AxisAlignedBB secondTry = axisAlignedBB.offset(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
-            AxisAlignedBB secondTry = axisAlignedBB.offset(0, distanceToMove, 0);
+            AxisAlignedBB secondTry = axisAlignedBB.offset(adjustedMovement[0], adjustedMovement[1], adjustedMovement[2]);
 
-//            if (1 == 1) {
-//                player.setEntityBoundingBox(secondTry);
-//                player.resetPositionToBB();
-//                return;
-//            }
 
             // We try 'up' first because even if we move the player too far, their gravity will move them back 'down'
             if (player.worldObj.collidesWithAnyBlock(secondTry)) {
 
                 // Moving 'down' from the rotated player's perspective
-//                AxisAlignedBB thirdTry = axisAlignedBB.offset(-adjustedMovement[0], -adjustedMovement[1], -adjustedMovement[2]);
-                AxisAlignedBB thirdTry = axisAlignedBB.offset(0, -distanceToMove, 0);
+                AxisAlignedBB thirdTry = axisAlignedBB.offset(-adjustedMovement[0], -adjustedMovement[1], -adjustedMovement[2]);
 
                 if (player.worldObj.collidesWithAnyBlock(thirdTry)) {
                     // Uh oh, looks like the player decided to rotate in a too small place
@@ -421,7 +226,7 @@ public enum EnumGravityDirection {
 
                     Vec3d newEyePos = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
                     Vec3d eyesDifference = oldEyePos.subtract(newEyePos);
-                    Vec3d adjustedDifference = this.getInverseAdjustMentFromDOWNDirection().adjustLookVec(eyesDifference);
+                    Vec3d adjustedDifference = this.getInverseAdjustmentFromDOWNDirection().adjustLookVec(eyesDifference);
                     AxisAlignedBB givenUp = axisAlignedBB.offset(adjustedDifference.xCoord, adjustedDifference.yCoord, adjustedDifference.zCoord);
                     //TODO: Set position at feet to closest int so we don't fall through blocks
                     double relativeBottomOfBB = GravityAxisAlignedBB.getRelativeBottom(givenUp);
@@ -435,29 +240,16 @@ public enum EnumGravityDirection {
                     }
                     axisAlignedBB = givenUp;
 
-                    // No change to the player's position is needed as their new hitbox is guaranteed to fit inside their old hitbox
-                } else {
+                }
+                else {
                     // Moving 'down' did not collide with the world
-                    //DEBUG
-//                    FMLLog.info("Moving 'down' did not collide with the world");
                     axisAlignedBB = thirdTry;
-////                    if (!player.worldObj.isRemote) {
-//                        player.posX -= adjustedMovement[0];
-//                        player.posY -= adjustedMovement[1];
-//                        player.posZ -= adjustedMovement[2];
-////                    }
+
                 }
             }
             else {
                 // Moving 'up' did not collide with the world
-                //DEBUG
-//                FMLLog.info("Moving 'up' did not collide with the world");
                 axisAlignedBB = secondTry;
-////                if (!player.worldObj.isRemote) {
-//                    player.posX += adjustedMovement[0];
-//                    player.posY += adjustedMovement[1];
-//                    player.posZ += adjustedMovement[2];
-////                }
             }
         }
         else {
@@ -465,42 +257,43 @@ public enum EnumGravityDirection {
 //            FMLLog.info("Player's new hitbox fit in the world without moving the player");
         }
         player.setEntityBoundingBox(axisAlignedBB);
-//        if (player.worldObj.isRemote) {
-//        player.posX = prevPos.xCoord;
-//        player.posY = prevPos.yCoord;
-//        player.posZ = prevPos.zCoord;
-//        }
         player.resetPositionToBB();
+    }
+
+    public void runCameraTransformation() {
+        Vec3i vars = this.getCameraTransformVars();
+        int x = vars.getX();
+        int y = vars.getY();
+        int z = vars.getZ();
+        if (x != 0) {
+            GlStateManager.rotate(x, 1, 0, 0);
+        }
+        if (y != 0) {
+            GlStateManager.rotate(y, 0, 1, 0);
+        }
+        if (z != 0) {
+            GlStateManager.rotate(z, 0, 0, 1);
+        }
+
+    }
+
+    public void postModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d inputEyePos) {
+        // Converts the player current motion
+        this.maintainEffectiveMotion(player, oldDirection);
+
+        // Moves the player's position to their centre of gravity
+        oldDirection.returnCentreOfGravityToPlayerPos(player);
+        // Moves the player's position to the new place for this gravity direction, such that the player's centre of
+        // gravity is in the same place as when postModifyPlayerOnGravityChange was called
+        this.offsetCentreOfGravityFromPlayerPos(player);
+
+        // Move the player to try and get them out of a wall. Being inside of a block for even a single tick causes
+        // suffocation damage
+        this.setBoundingBoxAndPositionOnGravityChange(player, oldDirection, inputEyePos);
     }
 
     public AxisAlignedBB getGravityAdjustedAABB(EntityPlayer player) {
         return this.getGravityAdjustedAABB(player, player.width, player.height);
     }
-
-    public AxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
-        return this.boundingBoxFunction.accept(width, height, player);
-    }
-
-    public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {
-        this.returnCOGToPlayerPos.accept(player);
-    }
-
-    public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {
-        this.offsetCOGFromPlayerPos.accept(player);
-    }
-
-    public EnumGravityDirection getInverseAdjustMentFromDOWNDirection() {
-        return inverseAdjustMentFromDOWNDirection;
-    }
-
-    public Vec3i getCameraTransformVars() {
-        return cameraTransformVars;
-    }
-
-    @FunctionalInterface
-    public interface BiDoubleAndObjectFunction<T, R> {
-        R accept(double d1, double d2, T t);
-    }
-
 
 }

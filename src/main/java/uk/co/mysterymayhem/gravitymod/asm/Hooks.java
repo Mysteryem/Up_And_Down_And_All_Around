@@ -2,13 +2,11 @@ package uk.co.mysterymayhem.gravitymod.asm;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.audio.SoundManager;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -44,7 +42,7 @@ public class Hooks {
 
     //TODO: Where is this used? Is it used in any ASM-ed code?
     public static void moveEntityAbsolute(EntityPlayer player, double x, double y, double z) {
-        double[] doubles = API.getGravityDirection(player).getInverseAdjustMentFromDOWNDirection().adjustXYZValues(x, y, z);
+        double[] doubles = API.getGravityDirection(player).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(x, y, z);
         player.moveEntity(doubles[0], doubles[1], doubles[2]);
     }
 
@@ -85,7 +83,7 @@ public class Hooks {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            return gBB.getDirection().getInverseAdjustMentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).xCoord;
+            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).xCoord;
         }
         else {
             return entity.posX;
@@ -111,7 +109,7 @@ public class Hooks {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            return gBB.getDirection().getInverseAdjustMentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).yCoord;
+            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).yCoord;
         }
         else {
             return entity.posY;
@@ -137,7 +135,7 @@ public class Hooks {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            return gBB.getDirection().getInverseAdjustMentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).zCoord;
+            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).zCoord;
         }
         else {
             return entity.posZ;
@@ -153,7 +151,7 @@ public class Hooks {
     public static double getRelativePosX(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[0];
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[0];
         }
         return entity.posX;
     }
@@ -167,7 +165,7 @@ public class Hooks {
     public static double getRelativePrevPosX(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.prevPosX, entity.prevPosY, entity.prevPosZ)[0];
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.prevPosX, entity.prevPosY, entity.prevPosZ)[0];
         }
         return entity.posX;
     }
@@ -181,7 +179,7 @@ public class Hooks {
     public static double getRelativePosZ(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[2];
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.posX, entity.posY, entity.posZ)[2];
         }
         return entity.posZ;
     }
@@ -195,7 +193,7 @@ public class Hooks {
     public static double getRelativePrevPosZ(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.prevPosX, entity.prevPosY, entity.prevPosZ)[2];
+            return ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.prevPosX, entity.prevPosY, entity.prevPosZ)[2];
         }
         return entity.posZ;
     }
@@ -349,7 +347,7 @@ public class Hooks {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)entityBoundingBox;
             EnumGravityDirection direction = gBB.getDirection();
 
-            double[] doubles = direction.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.motionX, entity.motionY, entity.motionZ);
+            double[] doubles = direction.getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.motionX, entity.motionY, entity.motionZ);
 
             //Relative motionX
             doubles[0] = value;
@@ -369,7 +367,7 @@ public class Hooks {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)entityBoundingBox;
             EnumGravityDirection direction = gBB.getDirection();
 
-            double[] doubles = direction.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.motionX, entity.motionY, entity.motionZ);
+            double[] doubles = direction.getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.motionX, entity.motionY, entity.motionZ);
 
             //Relative motionY
             doubles[1] = value;
@@ -389,7 +387,7 @@ public class Hooks {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)entityBoundingBox;
             EnumGravityDirection direction = gBB.getDirection();
 
-            double[] doubles = direction.getInverseAdjustMentFromDOWNDirection().adjustXYZValues(entity.motionX, entity.motionY, entity.motionZ);
+            double[] doubles = direction.getInverseAdjustmentFromDOWNDirection().adjustXYZValues(entity.motionX, entity.motionY, entity.motionZ);
 
             //Relative motionZ
             doubles[2] = value;
@@ -436,7 +434,7 @@ public class Hooks {
     public static Vec3d inverseAdjustVec(Vec3d normal, Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            EnumGravityDirection direction = ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection();
+            EnumGravityDirection direction = ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection();
             normal = direction.adjustLookVec(normal);
             return new Vec3d(normal.xCoord, normal.yCoord, normal.zCoord);
         }
@@ -758,7 +756,7 @@ public class Hooks {
     public static float getCosOfAngleBetweenVecsOnRelativeXYPlane(Entity entity, Vec3d normal1, Vec3d normal2) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            EnumGravityDirection direction = ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustMentFromDOWNDirection();
+            EnumGravityDirection direction = ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection();
             normal1 = direction.adjustLookVec(normal1);
             normal2 = direction.adjustLookVec(normal2);
         }
@@ -795,7 +793,7 @@ public class Hooks {
     public static double[] inverseAdjustXYZ(Entity entity, double x, double y, double z) {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().getInverseAdjustMentFromDOWNDirection().adjustXYZValues(x, y, z);
+            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().getInverseAdjustmentFromDOWNDirection().adjustXYZValues(x, y, z);
         }
         else {
             return new double[]{x,y,z};
@@ -1126,7 +1124,7 @@ public class Hooks {
     public static double netHandlerPlayServerHandleFallingYChange(EntityPlayerMP player, double oldXPos, double oldYPos, double oldZPos) {
         AxisAlignedBB entityBoundingBox = player.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            EnumGravityDirection direction = ((GravityAxisAlignedBB) entityBoundingBox).getDirection().getInverseAdjustMentFromDOWNDirection();
+            EnumGravityDirection direction = ((GravityAxisAlignedBB) entityBoundingBox).getDirection().getInverseAdjustmentFromDOWNDirection();
             double[] relativePlayerPos = direction.adjustXYZValues(player.posX, player.posY, player.posZ);
             double[] relativeOldPos = direction.adjustXYZValues(oldXPos, oldYPos, oldZPos);
             return relativePlayerPos[1] - relativeOldPos[1];

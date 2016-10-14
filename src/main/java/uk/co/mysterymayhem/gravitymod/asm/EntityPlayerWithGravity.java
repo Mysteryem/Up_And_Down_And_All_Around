@@ -3,12 +3,8 @@ package uk.co.mysterymayhem.gravitymod.asm;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.MobEffects;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -19,13 +15,9 @@ import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
 import uk.co.mysterymayhem.gravitymod.util.Vec3dHelper;
-import uk.co.mysterymayhem.gravitymod.util.reflection.LookupThief;
+
 import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.PITCH;
 import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.YAW;
-
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-09-04.
@@ -69,7 +61,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     void makeMotionRelative() {
 //        if (!this.motionVarsAreRelative) {
-//            double[] doubles = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection().adjustXYZValues(this.motionX, this.motionY, this.motionZ);
+//            double[] doubles = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(this.motionX, this.motionY, this.motionZ);
 //            this.motionVarsAreRelative = true;
 //            this.motionX = doubles[0];
 //            this.motionY = doubles[1];
@@ -89,7 +81,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     void makePositionRelative() {
         if (!this.positionVarsAreRelative) {
-            EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection();
+            EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection();
 
             double[] doubles = direction.adjustXYZValues(this.posX, this.posY, this.posZ);
             this.posX = doubles[0];
@@ -573,7 +565,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             // Absolute values are rotated based on the gravity direction such that code interacting with pitch/yaw works
             //
-            EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection();
+            EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection();
 
             vDeltaPitchYaw = direction.adjustLookVec(vDeltaPitchYaw);
             vDeltaPitchYawHead = direction.adjustLookVec(vDeltaPitchYawHead);
@@ -709,7 +701,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         //new
 
         final EnumGravityDirection direction = API.getGravityDirection(this);
-        final EnumGravityDirection reverseDirection = direction.getInverseAdjustMentFromDOWNDirection();
+        final EnumGravityDirection reverseDirection = direction.getInverseAdjustmentFromDOWNDirection();
 
         final double relativePitchChange = -pitch*0.15d;
         final double relativeYawChange = yaw*0.15d;
@@ -1403,7 +1395,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             // Standard mob attacks, also arrows, not sure about others
             if (xRatio == attacker.posX - this.posX && zRatio == attacker.posZ - this.posZ) {
 //                FMLLog.info("Distance based attack");
-                EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustMentFromDOWNDirection();
+                EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection();
                 double[] d_attacker = direction.adjustXYZValues(attacker.posX, attacker.posY, attacker.posZ);
                 double[] d_player = direction.adjustXYZValues(this.posX, this.posY, this.posZ);
                 xRatio = d_attacker[0] - d_player[0];
