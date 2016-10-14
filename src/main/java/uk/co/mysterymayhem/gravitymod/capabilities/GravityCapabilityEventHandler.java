@@ -17,7 +17,7 @@ public class GravityCapabilityEventHandler {
 
     @SubscribeEvent
     public void onEntityContruct(AttachCapabilitiesEvent<Entity> event) {
-        Entity ent = event.getObject();
+        Object ent = event.getObject();
         if (ent instanceof EntityPlayer) {
             final EntityPlayer player = (EntityPlayer)ent;
             event.addCapability(GravityDirectionCapability.CAPABILITY_RESOURCE_LOCATION, new ICapabilitySerializable<NBTPrimitive>() {
