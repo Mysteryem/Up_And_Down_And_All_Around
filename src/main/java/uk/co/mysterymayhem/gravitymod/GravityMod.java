@@ -16,7 +16,7 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 @Mod(modid = GravityMod.MOD_ID, version = GravityMod.VERSION, acceptedMinecraftVersions = GravityMod.MINECRAFT_VERSION)
 public class GravityMod {
     public static final String MOD_ID = "mysttmtgravitymod";
-    public static final String VERSION = "0.1";
+    public static final String VERSION = "2.0";
     public static final String MINECRAFT_VERSION = "1.10.2";
     public static boolean DEBUG = true;
 

@@ -1,8 +1,8 @@
 [
 {
   "modid": "mysttmtgravitymod",
-  "name": "Up and Down (but not all around :( )",
-  "description": "Mod that lets you turn your gravity upside down.",
+  "name": "Up And Down And All Around",
+  "description": "Mod that lets you change the direction of your gravity",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
