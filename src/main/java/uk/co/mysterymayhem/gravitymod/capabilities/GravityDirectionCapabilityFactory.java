@@ -5,7 +5,7 @@ import java.util.concurrent.Callable;
 /**
  * Created by Mysteryem on 2016-10-10.
  */
-class Factory implements Callable<IGravityDirectionCapability> {
+class GravityDirectionCapabilityFactory implements Callable<IGravityDirectionCapability> {
 
     @Override
     public IGravityDirectionCapability call() throws Exception {

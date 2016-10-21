@@ -10,9 +10,8 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 /**
  * Created by Mysteryem on 2016-10-10.
  */
-class Storage implements Capability.IStorage<IGravityDirectionCapability> {
+class GravityDirectionCapabilityStorage implements Capability.IStorage<IGravityDirectionCapability> {
 
-    //TODO: Store any of the new fields?
     @Override
     public NBTBase writeNBT(Capability<IGravityDirectionCapability> capability, IGravityDirectionCapability instance, EnumFacing side) {
         return new NBTTagInt(instance.getDirection().ordinal());

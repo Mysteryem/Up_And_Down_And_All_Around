@@ -1,8 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.capabilities;
 
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -12,6 +10,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.fml.common.FMLLog;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
@@ -27,8 +26,8 @@ public class GravityDirectionCapability {
     public static final int DEFAULT_TIMEOUT = 20;
 
     public static void registerCapability() {
-        CapabilityManager.INSTANCE.register(IGravityDirectionCapability.class, new Storage(), new Factory());
-        MinecraftForge.EVENT_BUS.register(new GravityCapabilityEventHandler());
+        CapabilityManager.INSTANCE.register(IGravityDirectionCapability.class, new GravityDirectionCapabilityStorage(), new GravityDirectionCapabilityFactory());
+        MinecraftForge.EVENT_BUS.register(new GravityDirectionCapabilityEventHandler());
     }
 
     @CapabilityInject(IGravityDirectionCapability.class)
@@ -62,6 +61,8 @@ public class GravityDirectionCapability {
     public static AxisAlignedBB newGravityAxisAligned(EntityPlayer player, AxisAlignedBB old) {
         IGravityDirectionCapability gravityCapability = getGravityCapability(player);
         if (gravityCapability == null) {
+            // Should no longer occur during Entity::<init>, but there's nothing stopping other mods from calling code
+            // in a EntityConstructingEvent (which happens before Capabilities are added)
             // Occurs during construction of players (<init>)
             // Once the capability is added, we'll make sure the player's bounding box is a GravityAxisAlignedBB
             return old;
@@ -78,10 +79,6 @@ public class GravityDirectionCapability {
         if (playerByUsername != null) {
             setGravityDirection(playerByUsername, direction, noTimeout);
         }
-//        //DEBUG:
-//        else {
-//            FMLLog.info("Could not set gravity for %s, player could not be found in %s", playerName, world.getWorldInfo().getWorldName());
-//        }
     }
 
     private static final HashSet<SPacketPlayerPosLook.EnumFlags> allRelative = new HashSet<>();

@@ -21,6 +21,8 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
 
     public GravityDirectionCapabilityImpl(EnumGravityDirection direction) {
         this.direction = direction;
+        //TODO: Safe to assume not null?
+//        this.direction = Objects.requireNonNull(direction, "Gravity direction cannot be null");
         this.prevDirection = direction;
         this.pendingDirection = direction;
     }
@@ -59,6 +61,8 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     private void updateDirection(EnumGravityDirection direction) {
         this.prevDirection = this.direction;
         this.direction = direction;
+        //TODO: Safe to assume not null?
+        //this.direction = Objects.requireNonNull(direction, "New gravity direction cannot be null");
     }
 
     @Override
