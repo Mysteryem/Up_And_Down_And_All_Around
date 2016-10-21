@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassReader;
 import net.minecraft.launchwrapper.IClassTransformer;
@@ -48,7 +49,6 @@ public class Transformer implements IClassTransformer {
     static {
         classNameToMethodMap.put("net.minecraft.client.entity.AbstractClientPlayer", Transformer::patchEntityPlayerSubClass);
         classNameToMethodMap.put("net.minecraft.entity.player.EntityPlayerMP", Transformer::patchEntityPlayerSubClass);
-
         classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
         classNameToMethodMap.put("net.minecraft.client.entity.EntityPlayerSP", Transformer::patchEntityPlayerSP);
         classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", Transformer::patchNetHandlerPlayClient);
@@ -145,256 +145,235 @@ public class Transformer implements IClassTransformer {
         classReader2.accept(traceClassVisitor, 0);
     }
 
-    /**
-     * See the comment on the DeobfHelper class
-     */
-    private static DeobfHelper HELPER = null;
-
-    /**
-     * The Transformer class is instantiated before we know if we are in a dev environment or not, this means that I
-     * would not be able to make all the static or instance fields for the various methods and fields final and it would
-     * mean having the declarations and assignments in different places.
-     *
-     * Instead, I have opted to introduce a class which will be created once we know if we're in a dev environment.
-     * This class can then have all of its fields be final and can have the declaration and assignment done at the same
-     * time.
-     *
-     * Fields have package-local access so as to prevent compiler from creating an accessor method for every field
-     */
-    private static class DeobfHelper {
-        /*
+    /*
             Mojang method names
          */
-        final MethodName AxisAlignedBB$calculateXOffset_name = new MethodName("calculateXOffset", "func_72316_a");
-        final MethodName AxisAlignedBB$calculateYOffset_name = new MethodName("calculateYOffset", "func_72323_b");
-        final MethodName AxisAlignedBB$calculateZOffset_name = new MethodName("calculateZOffset", "func_72322_c");
+    private static final MethodName AxisAlignedBB$calculateXOffset_name = new MethodName("calculateXOffset", "func_72316_a");
+    private static final MethodName AxisAlignedBB$calculateYOffset_name = new MethodName("calculateYOffset", "func_72323_b");
+    private static final MethodName AxisAlignedBB$calculateZOffset_name = new MethodName("calculateZOffset", "func_72322_c");
 
-        // () arguments
-        final MethodName BlockPos$down_NO_ARGS_name = new MethodName("down", "func_177977_b");
-        final MethodName BlockPos$getY_name = new MethodName("getY", "func_177956_o");
-        final MethodName BlockPos$up_INT_ARG_name = new MethodName("up", "func_177981_b");
-        final MethodName BlockPos$up_NO_ARGS_name = new MethodName("up", "func_177984_a");
+    // () arguments
+    private static final MethodName BlockPos$down_NO_ARGS_name = new MethodName("down", "func_177977_b");
+    private static final MethodName BlockPos$getY_name = new MethodName("getY", "func_177956_o");
+    private static final MethodName BlockPos$up_INT_ARG_name = new MethodName("up", "func_177981_b");
+    private static final MethodName BlockPos$up_NO_ARGS_name = new MethodName("up", "func_177984_a");
 
-        // (DDD) arguments
-        final MethodName BlockPos$PooledMutableBlockPos$retain_name = new MethodName("retain", "func_185345_c");
-        // (DDD) arguments
-        final MethodName BlockPos$PooledMutableBlockPos$setPos_name = new MethodName("setPos", "func_189532_c");
+    // (DDD) arguments
+    private static final MethodName BlockPos$PooledMutableBlockPos$retain_name = new MethodName("retain", "func_185345_c");
+    // (DDD) arguments
+    private static final MethodName BlockPos$PooledMutableBlockPos$setPos_name = new MethodName("setPos", "func_189532_c");
 
-        final MethodName Entity$getEntityBoundingBox_name = new MethodName("getEntityBoundingBox", "func_174813_aQ");
-        final MethodName Entity$getEyeHeight_name = new MethodName("getEyeHeight", "func_70047_e");
-        final MethodName Entity$getForward_name = new MethodName("getForward", "func_189651_aD");
-        final MethodName Entity$getLookVec_name = new MethodName("getLookVec", "func_70040_Z");
-        final MethodName Entity$isOffsetPositionInLiquid_name = new MethodName("isOffsetPositionInLiquid", "func_70038_c");
-        final MethodName Entity$moveEntity_name = new MethodName("moveEntity", "func_70091_d");
-        final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
-        final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
+    private static final MethodName Entity$getEntityBoundingBox_name = new MethodName("getEntityBoundingBox", "func_174813_aQ");
+    private static final MethodName Entity$getEyeHeight_name = new MethodName("getEyeHeight", "func_70047_e");
+    private static final MethodName Entity$getForward_name = new MethodName("getForward", "func_189651_aD");
+    private static final MethodName Entity$getLookVec_name = new MethodName("getLookVec", "func_70040_Z");
+    private static final MethodName Entity$isOffsetPositionInLiquid_name = new MethodName("isOffsetPositionInLiquid", "func_70038_c");
+    private static final MethodName Entity$moveEntity_name = new MethodName("moveEntity", "func_70091_d");
+    private static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
+    private static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
 
-        final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
-        final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
-        final MethodName EntityLivingBase$onLivingUpdate_name = new MethodName("onLivingUpdate", "func_70636_d");
-        final MethodName EntityLivingBase$updateDistance_name = new MethodName("updateDistance", "func_110146_f");
+    private static final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
+    private static final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
+    private static final MethodName EntityLivingBase$onLivingUpdate_name = new MethodName("onLivingUpdate", "func_70636_d");
+    private static final MethodName EntityLivingBase$updateDistance_name = new MethodName("updateDistance", "func_110146_f");
 
-        final MethodName EntityPlayer$getFoodStats_name = new MethodName("getFoodStats", "func_71024_bL");
+    private static final MethodName EntityPlayer$getFoodStats_name = new MethodName("getFoodStats", "func_71024_bL");
 
-        final MethodName EntityPlayerMP$handleFalling_name = new MethodName("handleFalling", "func_71122_b");
+    private static final MethodName EntityPlayerMP$handleFalling_name = new MethodName("handleFalling", "func_71122_b");
 
-        // Method added by forge, so no obf name
-        final MethodName EntityPlayerSP$isHeadspaceFree_name = new MethodName("isHeadspaceFree");
-        final MethodName EntityPlayerSP$onUpdateWalkingPlayer_name = new MethodName("onUpdateWalkingPlayer", "func_175161_p");
-        final MethodName EntityPlayerSP$updateAutoJump_name = new MethodName("updateAutoJump", "func_189810_i");
+    // Method added by forge, so no obf name
+    private static final MethodName EntityPlayerSP$isHeadspaceFree_name = new MethodName("isHeadspaceFree");
+    private static final MethodName EntityPlayerSP$onUpdateWalkingPlayer_name = new MethodName("onUpdateWalkingPlayer", "func_175161_p");
+    private static final MethodName EntityPlayerSP$updateAutoJump_name = new MethodName("updateAutoJump", "func_189810_i");
 
-        final MethodName EntityRenderer$getMouseOver_name = new MethodName("getMouseOver", "func_78473_a");
+    private static final MethodName EntityRenderer$getMouseOver_name = new MethodName("getMouseOver", "func_78473_a");
 
-        final MethodName INetHandlerPlayClient$handlePlayerPosLook_name = new MethodName("handlePlayerPosLook", "func_184330_a");
+    private static final MethodName INetHandlerPlayClient$handlePlayerPosLook_name = new MethodName("handlePlayerPosLook", "func_184330_a");
 
-        final MethodName INetHandlerPlayServer$processPlayer_name = new MethodName("processPlayer", "func_147347_a");
-        final MethodName INetHandlerPlayServer$processPlayerDigging_name = new MethodName("processPlayerDigging", "func_147345_a");
+    private static final MethodName INetHandlerPlayServer$processPlayer_name = new MethodName("processPlayer", "func_147347_a");
+    private static final MethodName INetHandlerPlayServer$processPlayerDigging_name = new MethodName("processPlayerDigging", "func_147345_a");
 
-        final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
+    private static final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
 
-        final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
+    private static final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
 
-        final MethodName Vec3d$addVector_name = new MethodName("addVector", "func_72441_c");
-        final MethodName Vec3d$scale_name = new MethodName("scale", "func_186678_a");
+    private static final MethodName Vec3d$addVector_name = new MethodName("addVector", "func_72441_c");
+    private static final MethodName Vec3d$scale_name = new MethodName("scale", "func_186678_a");
 
-        final MethodName World$getEntitiesInAABBexcluding_name = new MethodName("getEntitiesInAABBexcluding", "func_175674_a");
+    private static final MethodName World$getEntitiesInAABBexcluding_name = new MethodName("getEntitiesInAABBexcluding", "func_175674_a");
 
-        /*
-            PaulsCode method names
-         */
-        final MethodName SoundSystem$setListenerOrientation_name = new MethodName("setListenerOrientation");
-
-        /*
-            Mojang field names
-         */
-        final FieldName AxisAlignedBB$maxY_name = new FieldName("maxY", "field_72337_e");
-        final FieldName AxisAlignedBB$minY_name = new FieldName("minY", "field_72338_b");
-        final FieldName Blocks$LADDER_name = new FieldName("LADDER", "field_150468_ap");
-        final FieldName Entity$posX_name = new FieldName("posX", "field_70165_t");
-        final FieldName Entity$posY_name = new FieldName("posY", "field_70163_u");
-        final FieldName Entity$posZ_name = new FieldName("posZ", "field_70161_v");
-        final FieldName Entity$prevPosX_name = new FieldName("prevPosX", "field_70169_q");
-        final FieldName Entity$prevPosZ_name = new FieldName("prevPosZ", "field_70166_s");
-        final FieldName Entity$prevRotationPitch_name = new FieldName("prevRotationPitch", "field_70127_C");
-        final FieldName Entity$prevRotationYaw_name = new FieldName("prevRotationYaw", "field_70126_B");
-        final FieldName Entity$rotationPitch_name = new FieldName("rotationPitch", "field_70125_A");
-        final FieldName Entity$rotationYaw_name = new FieldName("rotationYaw", "field_70177_z");
-        final FieldName EntityLivingBase$limbSwing_name = new FieldName("limbSwing", "field_184619_aG");
-        final FieldName EntityLivingBase$limbSwingAmount_name = new FieldName("limbSwingAmount", "field_70721_aZ");
-        final FieldName EntityLivingBase$prevRotationYawHead_name = new FieldName("prevRotationYawHead", "field_70758_at");
-        final FieldName EntityLivingBase$rotationYawHead_name = new FieldName("rotationYawHead", "field_70759_as");
-        final FieldName NetHandlerPlayServer$lastGoodX_name = new FieldName("lastGoodX", "field_184352_o");
-        final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
-        final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
-        final FieldName NetHandlerPlayServer$playerEntity_name = new FieldName("playerEntity", "field_147369_b");
-
-        /*
-            Shared reference class names
-         */
-        final ObjectClassName AbstractClientPlayer = new ObjectClassName("net/minecraft/client/entity/AbstractClientPlayer");
-        final ObjectClassName AxisAlignedBB = new ObjectClassName("net/minecraft/util/math/AxisAlignedBB");
-        final ObjectClassName Block = new ObjectClassName("net/minecraft/block/Block");
-        final ObjectClassName BlockPos = new ObjectClassName("net/minecraft/util/math/BlockPos");
-        final ObjectClassName BlockPos$PooledMutableBlockPos = new ObjectClassName("net/minecraft/util/math/BlockPos$PooledMutableBlockPos");
-        final ObjectClassName Blocks = new ObjectClassName("net/minecraft/init/Blocks");
-        final ObjectClassName Entity = new ObjectClassName("net/minecraft/entity/Entity");
-        final ObjectClassName EntityLivingBase = new ObjectClassName("net/minecraft/entity/EntityLivingBase");
-        final ObjectClassName EntityPlayer = new ObjectClassName("net/minecraft/entity/player/EntityPlayer");
-        final ObjectClassName EntityPlayerMP = new ObjectClassName("net/minecraft/entity/player/EntityPlayerMP");
-        final ObjectClassName EntityPlayerSP = new ObjectClassName("net/minecraft/client/entity/EntityPlayerSP");
-        final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
-        final ObjectClassName FoodStats = new ObjectClassName("net/minecraft/util/FoodStats");
-        final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/GravityAxisAlignedBB");
-        final ObjectClassName List = new ObjectClassName("java/util/List");
-        final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
-        final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
-        final ObjectClassName SoundSystem = new ObjectClassName("paulscode/sound/SoundSystem");
-        final ObjectClassName Vec3d = new ObjectClassName("net/minecraft/util/math/Vec3d");
-        final ObjectClassName WorldClient = new ObjectClassName("net/minecraft/client/multiplayer/WorldClient");
-
-        /*
-            Mojang field instructions
-         */
-        final FieldInstruction AxisAlignedBB$maxY_GET = new FieldInstruction(GETFIELD, AxisAlignedBB, AxisAlignedBB$maxY_name, DOUBLE);
-        final FieldInstruction AxisAlignedBB$minY_GET = new FieldInstruction(GETFIELD, AxisAlignedBB, AxisAlignedBB$minY_name, DOUBLE);
-        final FieldInstruction Blocks$LADDER_GET = new FieldInstruction(GETSTATIC, Blocks, Blocks$LADDER_name, Block);
-        final FieldInstruction Entity$posX_GET = new FieldInstruction(GETFIELD, Entity, Entity$posX_name, DOUBLE);
-        final FieldInstruction EntityLivingBase$limbSwing_PUT = new FieldInstruction(PUTFIELD, EntityLivingBase, EntityLivingBase$limbSwing_name, FLOAT);
-        final FieldInstruction EntityLivingBase$limbSwingAmount_GET = new FieldInstruction(GETFIELD, EntityLivingBase, EntityLivingBase$limbSwingAmount_name, FLOAT);
-        final FieldInstruction EntityLivingBase$posX_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posX_name, DOUBLE);
-        final FieldInstruction EntityLivingBase$posY_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posY_name, DOUBLE);
-        final FieldInstruction EntityLivingBase$posZ_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posZ_name, DOUBLE);
-        final FieldInstruction EntityLivingBase$prevPosX_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$prevPosX_name, DOUBLE);
-        final FieldInstruction EntityLivingBase$prevPosZ_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$prevPosZ_name, DOUBLE);
-        final FieldInstruction EntityLivingBase$rotationPitch_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$rotationPitch_name, FLOAT);
-        final FieldInstruction EntityLivingBase$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$rotationYaw_name, FLOAT);
-        final FieldInstruction EntityPlayer$posY_GET = new FieldInstruction(GETFIELD, EntityPlayer, Entity$posY_name, DOUBLE);
-        final FieldInstruction EntityPlayerMP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerMP, Entity$posY_name, DOUBLE);
-        final FieldInstruction EntityPlayerSP$posX_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posX_name, DOUBLE);
-        final FieldInstruction EntityPlayerSP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posY_name, DOUBLE);
-        final FieldInstruction EntityPlayerSP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posZ_name, DOUBLE);
-        final FieldInstruction EntityPlayerSP$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$rotationYaw_name, FLOAT);
-        final FieldInstruction NetHandlerPlayServer$lastGoodX_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodX_name, DOUBLE);
-        final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
-        final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
-        final FieldInstruction NetHandlerPlayServer$playerEntity_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$playerEntity_name, EntityPlayerMP);
-
-        /*
-            Mojang method instructions
-         */
-        // While there could be a constructor for MethodInstruction that doesn't require a MethodDesc, it is useful to
-        // visually split apart the arguments so it's easier to tell what each argument is
-        final MethodInstruction AxisAlignedBB$INIT = new MethodInstruction(INVOKESPECIAL, AxisAlignedBB, INIT, new MethodDesc(VOID, Vec3d, Vec3d));
-        final MethodInstruction AxisAlignedBB$calculateXOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateXOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
-        final MethodInstruction AxisAlignedBB$calculateYOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateYOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
-        final MethodInstruction AxisAlignedBB$calculateZOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateZOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
-        final MethodInstruction BlockPos$down_NO_ARGS = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$down_NO_ARGS_name, new MethodDesc(BlockPos));
-        final MethodInstruction BlockPos$getY = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$getY_name, new MethodDesc(INT));
-        final MethodInstruction BlockPos$INIT = new MethodInstruction(INVOKESPECIAL, BlockPos, INIT, new MethodDesc(VOID, INT, INT, INT));
-        final MethodInstruction BlockPos$up_INT_ARG = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$up_INT_ARG_name, new MethodDesc(BlockPos, INT));
-        final MethodInstruction BlockPos$up_NO_ARGS = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$up_NO_ARGS_name, new MethodDesc(BlockPos));
-        final MethodInstruction BlockPos$PooledMutableBlockPos$setPos = new MethodInstruction(
-                INVOKEVIRTUAL, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$setPos_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
-        final MethodInstruction BlockPos$PooledMutableBlockPos$retain = new MethodInstruction(
-                INVOKESTATIC, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$retain_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
-        final MethodInstruction Entity$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, Entity, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
-        final MethodInstruction EntityLivingBase$getLookVec = new MethodInstruction(INVOKEVIRTUAL, EntityLivingBase, Entity$getLookVec_name, new MethodDesc(Vec3d));
-        final MethodInstruction EntityLivingBase$isOffsetPositionInLiquid = new MethodInstruction(
-                INVOKEVIRTUAL, EntityLivingBase, Entity$isOffsetPositionInLiquid_name, new MethodDesc(BOOLEAN, DOUBLE, DOUBLE, DOUBLE));
-        final MethodInstruction EntityPlayerMP$getEyeHeight = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$getEyeHeight_name, new MethodDesc(FLOAT));
-        final MethodInstruction EntityPlayerMP$handleFalling = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, EntityPlayerMP$handleFalling_name, new MethodDesc(VOID, DOUBLE, BOOLEAN));
-        final MethodInstruction EntityPlayerMP$moveEntity = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
-        final MethodInstruction EntityPlayerSP$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
-        final MethodInstruction EntityPlayerSP$getForward = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
-        final MethodInstruction EntityPlayer$getFoodStats = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
-        final MethodInstruction Vec3d$addVector = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
-        final MethodInstruction Vec3d$scale = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
-        final MethodInstruction WorldClient$getEntitiesInAABBexcluding = new MethodInstruction(
-                INVOKEVIRTUAL, WorldClient, World$getEntitiesInAABBexcluding_name, new MethodDesc(List, Entity, AxisAlignedBB, Predicate));
-
-        /*
-            Up And Down And All Around asm hook method instructions
-         */
-        final HooksMethodInstruction Hooks$addAdjustedVector = new HooksMethodInstruction("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$adjustVec = new HooksMethodInstruction("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
-        final HooksMethodInstruction Hooks$adjustXYZ = new HooksMethodInstruction("adjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
-        final HooksMethodInstruction Hooks$constructNewGAABBFrom2Vec3d = new HooksMethodInstruction("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
-        final HooksMethodInstruction Hooks$getBlockPosAtTopOfPlayer = new HooksMethodInstruction("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
-        final HooksMethodInstruction Hooks$getBlockPostBelowEntity = new HooksMethodInstruction("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
-        final HooksMethodInstruction Hooks$getBottomOfEntity = new HooksMethodInstruction("getBottomOfEntity", new MethodDesc(Vec3d, Entity));
-        final HooksMethodInstruction Hooks$getImmutableBlockPosBelowEntity = new HooksMethodInstruction("getImmutableBlockPosBelowEntity", new MethodDesc(BlockPos, Entity));
-        final HooksMethodInstruction Hooks$getOriginRelativePosX = new HooksMethodInstruction("getOriginRelativePosX", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getOriginRelativePosY = new HooksMethodInstruction("getOriginRelativePosY", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getOriginRelativePosZ = new HooksMethodInstruction("getOriginRelativePosZ", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getPrevRelativeYawHead = new HooksMethodInstruction("getPrevRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
-        final HooksMethodInstruction Hooks$getRelativeBottomOfBB = new HooksMethodInstruction("getRelativeBottomOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
-        final HooksMethodInstruction Hooks$getRelativeDownBlockPos = new HooksMethodInstruction("getRelativeDownBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
-        final HooksMethodInstruction Hooks$getRelativeLookVec = new HooksMethodInstruction("getRelativeLookVec", new MethodDesc(Vec3d, Entity));
-        final HooksMethodInstruction Hooks$getRelativePitch = new HooksMethodInstruction("getRelativePitch", new MethodDesc(FLOAT, Entity));
-        final HooksMethodInstruction Hooks$getRelativePrevPitch = new HooksMethodInstruction("getRelativePrevPitch", new MethodDesc(FLOAT, Entity));
-        final HooksMethodInstruction Hooks$getRelativePrevPosX = new HooksMethodInstruction("getRelativePrevPosX", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getRelativePrevPosZ = new HooksMethodInstruction("getRelativePrevPosZ", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getRelativePrevYaw = new HooksMethodInstruction("getRelativePrevYaw", new MethodDesc(FLOAT, Entity));
-        final HooksMethodInstruction Hooks$getRelativePosX = new HooksMethodInstruction("getRelativePosX", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getRelativePosY = new HooksMethodInstruction("getRelativePosY", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getRelativePosZ = new HooksMethodInstruction("getRelativePosZ", new MethodDesc(DOUBLE, Entity));
-        final HooksMethodInstruction Hooks$getRelativeTopOfBB = new HooksMethodInstruction("getRelativeTopOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
-        final HooksMethodInstruction Hooks$getRelativeUpblockPos_INT_ARG = new HooksMethodInstruction("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, INT, Entity));
-        final HooksMethodInstruction Hooks$getRelativeUpblockPos_NO_ARGS = new HooksMethodInstruction("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
-        final HooksMethodInstruction Hooks$getRelativeYaw = new HooksMethodInstruction("getRelativeYaw", new MethodDesc(FLOAT, Entity));
-        final HooksMethodInstruction Hooks$getRelativeYawHead = new HooksMethodInstruction("getRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
-        final HooksMethodInstruction Hooks$getRelativeYOfBlockPos = new HooksMethodInstruction("getRelativeYOfBlockPos", new MethodDesc(INT, BlockPos, Entity));
-        final HooksMethodInstruction Hooks$getVanillaEntityBoundingBox = new HooksMethodInstruction("getVanillaEntityBoundingBox", new MethodDesc(AxisAlignedBB, Entity));
-        final HooksMethodInstruction Hooks$inverseAdjustXYZ = new HooksMethodInstruction("inverseAdjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
-        final HooksMethodInstruction Hooks$isHeadspaceFree = new HooksMethodInstruction("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
-        final HooksMethodInstruction Hooks$makePositionAbsolute = new HooksMethodInstruction("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
-        final HooksMethodInstruction Hooks$makePositionRelative = new HooksMethodInstruction("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
-        final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
-        final HooksMethodInstruction Hooks$netHandlerPlayServerHandleFallingYChange =
-                new HooksMethodInstruction("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
-        final HooksMethodInstruction Hooks$pushEntityPlayerSPOutOfBlocks = new HooksMethodInstruction("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
-        final HooksMethodInstruction Hooks$reverseXOffset = new HooksMethodInstruction("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-        final HooksMethodInstruction Hooks$reverseYOffset = new HooksMethodInstruction("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-        final HooksMethodInstruction Hooks$reverseZOffset = new HooksMethodInstruction("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-        final HooksMethodInstruction Hooks$setListenerOrientationHook = new HooksMethodInstruction("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
-        final HooksMethodInstruction Hooks$setPooledMutableBlockPosToBelowEntity =
-                new HooksMethodInstruction("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
-
-        /*
-            Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)
-         */
-        final MethodInstruction AbstractClientPlayer$moveEntity_SPECIAL = new MethodInstruction(Opcodes.INVOKESPECIAL, AbstractClientPlayer, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
-        final MethodInstruction AbstractClientPlayer$updateAutoJump_SPECIAL = new MethodInstruction(Opcodes.INVOKESPECIAL, AbstractClientPlayer, EntityPlayerSP$updateAutoJump_name, new MethodDesc(VOID, FLOAT, FLOAT));
-    }
-
-
-    /**
-     * Called when we know if we're in a dev environment or not
+    /*
+        PaulsCode method names
      */
-    static void setup() {
-        // initialise all the DeobfAware stuff here
-        Transformer.HELPER = new DeobfHelper();
-    }
+    private static final MethodName SoundSystem$setListenerOrientation_name = new MethodName("setListenerOrientation");
+
+    /*
+        Mojang field names
+     */
+    private static final FieldName AxisAlignedBB$maxY_name = new FieldName("maxY", "field_72337_e");
+    private static final FieldName AxisAlignedBB$minY_name = new FieldName("minY", "field_72338_b");
+    private static final FieldName Blocks$LADDER_name = new FieldName("LADDER", "field_150468_ap");
+    private static final FieldName Entity$posX_name = new FieldName("posX", "field_70165_t");
+    private static final FieldName Entity$posY_name = new FieldName("posY", "field_70163_u");
+    private static final FieldName Entity$posZ_name = new FieldName("posZ", "field_70161_v");
+    private static final FieldName Entity$prevPosX_name = new FieldName("prevPosX", "field_70169_q");
+    private static final FieldName Entity$prevPosZ_name = new FieldName("prevPosZ", "field_70166_s");
+    private static final FieldName Entity$prevRotationPitch_name = new FieldName("prevRotationPitch", "field_70127_C");
+    private static final FieldName Entity$prevRotationYaw_name = new FieldName("prevRotationYaw", "field_70126_B");
+    private static final FieldName Entity$rotationPitch_name = new FieldName("rotationPitch", "field_70125_A");
+    private static final FieldName Entity$rotationYaw_name = new FieldName("rotationYaw", "field_70177_z");
+    private static final FieldName EntityLivingBase$limbSwing_name = new FieldName("limbSwing", "field_184619_aG");
+    private static final FieldName EntityLivingBase$limbSwingAmount_name = new FieldName("limbSwingAmount", "field_70721_aZ");
+    private static final FieldName EntityLivingBase$prevRotationYawHead_name = new FieldName("prevRotationYawHead", "field_70758_at");
+    private static final FieldName EntityLivingBase$rotationYawHead_name = new FieldName("rotationYawHead", "field_70759_as");
+    private static final FieldName NetHandlerPlayServer$lastGoodX_name = new FieldName("lastGoodX", "field_184352_o");
+    private static final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
+    private static final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
+    private static final FieldName NetHandlerPlayServer$playerEntity_name = new FieldName("playerEntity", "field_147369_b");
+
+    /*
+        Shared reference class names
+     */
+    private static final ObjectClassName AbstractClientPlayer = new ObjectClassName("net/minecraft/client/entity/AbstractClientPlayer");
+    private static final ObjectClassName AxisAlignedBB = new ObjectClassName("net/minecraft/util/math/AxisAlignedBB");
+    private static final ObjectClassName Block = new ObjectClassName("net/minecraft/block/Block");
+    private static final ObjectClassName BlockPos = new ObjectClassName("net/minecraft/util/math/BlockPos");
+    private static final ObjectClassName BlockPos$PooledMutableBlockPos = new ObjectClassName("net/minecraft/util/math/BlockPos$PooledMutableBlockPos");
+    private static final ObjectClassName Blocks = new ObjectClassName("net/minecraft/init/Blocks");
+    private static final ObjectClassName CPacketPlayer = new ObjectClassName("net/minecraft/network/play/client/CPacketPlayer");
+    private static final ObjectClassName Entity = new ObjectClassName("net/minecraft/entity/Entity");
+    private static final ObjectClassName EntityLivingBase = new ObjectClassName("net/minecraft/entity/EntityLivingBase");
+    private static final ObjectClassName EntityPlayer = new ObjectClassName("net/minecraft/entity/player/EntityPlayer");
+    private static final ObjectClassName EntityPlayerMP = new ObjectClassName("net/minecraft/entity/player/EntityPlayerMP");
+    private static final ObjectClassName EntityPlayerSP = new ObjectClassName("net/minecraft/client/entity/EntityPlayerSP");
+    private static final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
+    private static final ObjectClassName FoodStats = new ObjectClassName("net/minecraft/util/FoodStats");
+    private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/GravityAxisAlignedBB");
+    private static final ObjectClassName List = new ObjectClassName("java/util/List");
+    private static final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
+    private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
+    private static final ObjectClassName SoundSystem = new ObjectClassName("paulscode/sound/SoundSystem");
+    private static final ObjectClassName Vec3d = new ObjectClassName("net/minecraft/util/math/Vec3d");
+    private static final ObjectClassName WorldClient = new ObjectClassName("net/minecraft/client/multiplayer/WorldClient");
+
+    /*
+        Mojang field instructions
+     */
+    private static final FieldInstruction AxisAlignedBB$maxY_GET = new FieldInstruction(GETFIELD, AxisAlignedBB, AxisAlignedBB$maxY_name, DOUBLE);
+    private static final FieldInstruction AxisAlignedBB$minY_GET = new FieldInstruction(GETFIELD, AxisAlignedBB, AxisAlignedBB$minY_name, DOUBLE);
+    private static final FieldInstruction Blocks$LADDER_GET = new FieldInstruction(GETSTATIC, Blocks, Blocks$LADDER_name, Block);
+    private static final FieldInstruction Entity$posX_GET = new FieldInstruction(GETFIELD, Entity, Entity$posX_name, DOUBLE);
+    private static final FieldInstruction EntityLivingBase$limbSwing_PUT = new FieldInstruction(PUTFIELD, EntityLivingBase, EntityLivingBase$limbSwing_name, FLOAT);
+    private static final FieldInstruction EntityLivingBase$limbSwingAmount_GET = new FieldInstruction(GETFIELD, EntityLivingBase, EntityLivingBase$limbSwingAmount_name, FLOAT);
+    private static final FieldInstruction EntityLivingBase$posX_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posX_name, DOUBLE);
+    private static final FieldInstruction EntityLivingBase$posY_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posY_name, DOUBLE);
+    private static final FieldInstruction EntityLivingBase$posZ_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posZ_name, DOUBLE);
+    private static final FieldInstruction EntityLivingBase$prevPosX_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$prevPosX_name, DOUBLE);
+    private static final FieldInstruction EntityLivingBase$prevPosZ_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$prevPosZ_name, DOUBLE);
+    private static final FieldInstruction EntityLivingBase$rotationPitch_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$rotationPitch_name, FLOAT);
+    private static final FieldInstruction EntityLivingBase$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$rotationYaw_name, FLOAT);
+    private static final FieldInstruction EntityPlayer$posY_GET = new FieldInstruction(GETFIELD, EntityPlayer, Entity$posY_name, DOUBLE);
+    private static final FieldInstruction EntityPlayerMP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerMP, Entity$posY_name, DOUBLE);
+    private static final FieldInstruction EntityPlayerMP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerMP, Entity$posZ_name, DOUBLE);
+    private static final FieldInstruction EntityPlayerSP$posX_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posX_name, DOUBLE);
+    private static final FieldInstruction EntityPlayerSP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posY_name, DOUBLE);
+    private static final FieldInstruction EntityPlayerSP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posZ_name, DOUBLE);
+    private static final FieldInstruction EntityPlayerSP$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$rotationYaw_name, FLOAT);
+    private static final FieldInstruction NetHandlerPlayServer$lastGoodX_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodX_name, DOUBLE);
+    private static final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
+    private static final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
+    private static final FieldInstruction NetHandlerPlayServer$playerEntity_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$playerEntity_name, EntityPlayerMP);
+
+    /*
+        Mojang method instructions
+     */
+    // While there could be a constructor for MethodInstruction that doesn't require a MethodDesc, it is useful to
+    // visually split apart the arguments so it's easier to tell what each argument is
+    private static final MethodInstruction AxisAlignedBB$INIT = new MethodInstruction(INVOKESPECIAL, AxisAlignedBB, INIT, new MethodDesc(VOID, Vec3d, Vec3d));
+    private static final MethodInstruction AxisAlignedBB$calculateXOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateXOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
+    private static final MethodInstruction AxisAlignedBB$calculateYOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateYOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
+    private static final MethodInstruction AxisAlignedBB$calculateZOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateZOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
+    private static final MethodInstruction BlockPos$down_NO_ARGS = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$down_NO_ARGS_name, new MethodDesc(BlockPos));
+    private static final MethodInstruction BlockPos$getY = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$getY_name, new MethodDesc(INT));
+    private static final MethodInstruction BlockPos$INIT = new MethodInstruction(INVOKESPECIAL, BlockPos, INIT, new MethodDesc(VOID, INT, INT, INT));
+    private static final MethodInstruction BlockPos$up_INT_ARG = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$up_INT_ARG_name, new MethodDesc(BlockPos, INT));
+    private static final MethodInstruction BlockPos$up_NO_ARGS = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$up_NO_ARGS_name, new MethodDesc(BlockPos));
+    private static final MethodInstruction BlockPos$PooledMutableBlockPos$setPos = new MethodInstruction(
+            INVOKEVIRTUAL, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$setPos_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInstruction BlockPos$PooledMutableBlockPos$retain = new MethodInstruction(
+            INVOKESTATIC, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$retain_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInstruction Entity$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, Entity, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
+    private static final MethodInstruction EntityLivingBase$getLookVec = new MethodInstruction(INVOKEVIRTUAL, EntityLivingBase, Entity$getLookVec_name, new MethodDesc(Vec3d));
+    private static final MethodInstruction EntityLivingBase$isOffsetPositionInLiquid = new MethodInstruction(
+            INVOKEVIRTUAL, EntityLivingBase, Entity$isOffsetPositionInLiquid_name, new MethodDesc(BOOLEAN, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInstruction EntityPlayerMP$getEyeHeight = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$getEyeHeight_name, new MethodDesc(FLOAT));
+    private static final MethodInstruction EntityPlayerMP$handleFalling = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, EntityPlayerMP$handleFalling_name, new MethodDesc(VOID, DOUBLE, BOOLEAN));
+    private static final MethodInstruction EntityPlayerMP$moveEntity = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInstruction EntityPlayerSP$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
+    private static final MethodInstruction EntityPlayerSP$getForward = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
+    private static final MethodInstruction EntityPlayer$getFoodStats = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
+    private static final MethodInstruction Vec3d$addVector = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInstruction Vec3d$scale = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
+    private static final MethodInstruction WorldClient$getEntitiesInAABBexcluding = new MethodInstruction(
+            INVOKEVIRTUAL, WorldClient, World$getEntitiesInAABBexcluding_name, new MethodDesc(List, Entity, AxisAlignedBB, Predicate));
+
+    /*
+        Up And Down And All Around asm hook method instructions
+     */
+    private static final HooksMethodInstruction Hooks$addAdjustedVector = new HooksMethodInstruction("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$adjustVec = new HooksMethodInstruction("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
+//    private static final HooksMethodInstruction Hooks$adjustXYZ = new HooksMethodInstruction("adjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$constructNewGAABBFrom2Vec3d = new HooksMethodInstruction("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
+    private static final HooksMethodInstruction Hooks$getBlockPosAtTopOfPlayer = new HooksMethodInstruction("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
+    private static final HooksMethodInstruction Hooks$getBlockPostBelowEntity = new HooksMethodInstruction("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
+    private static final HooksMethodInstruction Hooks$getBottomOfEntity = new HooksMethodInstruction("getBottomOfEntity", new MethodDesc(Vec3d, Entity));
+    private static final HooksMethodInstruction Hooks$getImmutableBlockPosBelowEntity = new HooksMethodInstruction("getImmutableBlockPosBelowEntity", new MethodDesc(BlockPos, Entity));
+    private static final HooksMethodInstruction Hooks$getOriginRelativePosX = new HooksMethodInstruction("getOriginRelativePosX", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getOriginRelativePosY = new HooksMethodInstruction("getOriginRelativePosY", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getOriginRelativePosZ = new HooksMethodInstruction("getOriginRelativePosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getPrevRelativeYawHead = new HooksMethodInstruction("getPrevRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
+    private static final HooksMethodInstruction Hooks$getRelativeBottomOfBB = new HooksMethodInstruction("getRelativeBottomOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeDownBlockPos = new HooksMethodInstruction("getRelativeDownBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeLookVec = new HooksMethodInstruction("getRelativeLookVec", new MethodDesc(Vec3d, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePitch = new HooksMethodInstruction("getRelativePitch", new MethodDesc(FLOAT, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePrevPitch = new HooksMethodInstruction("getRelativePrevPitch", new MethodDesc(FLOAT, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePrevPosX = new HooksMethodInstruction("getRelativePrevPosX", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePrevPosZ = new HooksMethodInstruction("getRelativePrevPosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePrevYaw = new HooksMethodInstruction("getRelativePrevYaw", new MethodDesc(FLOAT, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePosX = new HooksMethodInstruction("getRelativePosX", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePosY = new HooksMethodInstruction("getRelativePosY", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativePosZ = new HooksMethodInstruction("getRelativePosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeTopOfBB = new HooksMethodInstruction("getRelativeTopOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeUpblockPos_INT_ARG = new HooksMethodInstruction("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, INT, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeUpblockPos_NO_ARGS = new HooksMethodInstruction("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeYaw = new HooksMethodInstruction("getRelativeYaw", new MethodDesc(FLOAT, Entity));
+    private static final HooksMethodInstruction Hooks$getRelativeYawHead = new HooksMethodInstruction("getRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
+    private static final HooksMethodInstruction Hooks$getRelativeYOfBlockPos = new HooksMethodInstruction("getRelativeYOfBlockPos", new MethodDesc(INT, BlockPos, Entity));
+    private static final HooksMethodInstruction Hooks$getVanillaEntityBoundingBox = new HooksMethodInstruction("getVanillaEntityBoundingBox", new MethodDesc(AxisAlignedBB, Entity));
+    private static final HooksMethodInstruction Hooks$inverseAdjustXYZ = new HooksMethodInstruction("inverseAdjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$isHeadspaceFree = new HooksMethodInstruction("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
+    private static final HooksMethodInstruction Hooks$makePositionAbsolute = new HooksMethodInstruction("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
+    private static final HooksMethodInstruction Hooks$makePositionRelative = new HooksMethodInstruction("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
+    private static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$netHandlerPlayServerGetPacketZ = new HooksMethodInstruction("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
+    private static final HooksMethodInstruction Hooks$netHandlerPlayServerGetRelativeY = new HooksMethodInstruction("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$netHandlerPlayServerHandleFallingYChange =
+            new HooksMethodInstruction("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$netHandlerPlayServerSetRelativeYToZero =
+            new HooksMethodInstruction("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$pushEntityPlayerSPOutOfBlocks = new HooksMethodInstruction("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
+    private static final HooksMethodInstruction Hooks$reverseXOffset = new HooksMethodInstruction("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksMethodInstruction Hooks$reverseYOffset = new HooksMethodInstruction("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksMethodInstruction Hooks$reverseZOffset = new HooksMethodInstruction("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksMethodInstruction Hooks$setListenerOrientationHook = new HooksMethodInstruction("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$setPooledMutableBlockPosToBelowEntity =
+            new HooksMethodInstruction("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
+
+    /*
+        Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)
+     */
+    private static final MethodInstruction AbstractClientPlayer$moveEntity_SPECIAL = new MethodInstruction(Opcodes.INVOKESPECIAL, AbstractClientPlayer, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInstruction AbstractClientPlayer$updateAutoJump_SPECIAL = new MethodInstruction(Opcodes.INVOKESPECIAL, AbstractClientPlayer, EntityPlayerSP$updateAutoJump_name, new MethodDesc(VOID, FLOAT, FLOAT));
 
     /**
      * Core transformer method. Recieves classes by name and their bytes and processes them if necessary.
@@ -476,10 +455,15 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.RenderLivingBase$doRender_name.is(methodNode)) {
-                logPatchStarting(HELPER.RenderLivingBase$doRender_name);
+            // If a player looks 'up' from their perspective, we want their head to look 'up'.
+            // If a player has non standard gravity, then their pitch (and yaw) won't match their own perspective
+            //      (player rotation is always relative to normal minecraft gravity so that bows and similar work properly)
+            // This replaces all accesses to the player's rotation fields with static hook calls that calculate and
+            //      return the field in question, as seen from the player's perspective.
+            if (Transformer.RenderLivingBase$doRender_name.is(methodNode)) {
+                logPatchStarting(Transformer.RenderLivingBase$doRender_name);
                 patchMethodUsingAbsoluteRotations(methodNode, ALL_GET_ROTATION_VARS);
-                logPatchComplete(HELPER.RenderLivingBase$doRender_name);
+                logPatchComplete(Transformer.RenderLivingBase$doRender_name);
                 methodPatches++;
                 break;
             }
@@ -500,23 +484,38 @@ public class Transformer implements IClassTransformer {
 
         outerfor:
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.EntityRenderer$getMouseOver_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityRenderer$getMouseOver_name);
+            // Minecraft checks if the player is looking at an entity by expanding their bounding box and then effectively
+            // raytracing those found entities (I think it just does some angle and distance calculations).
+            //
+            // The issue is that the player's bounding box is a GravityAxisAlignedBB.
+            //
+            // The vanilla method gets the player's look vector and then adds it's x, y and z coordinates (multiplied by a scalar)
+            // to the player's bounding box. The player's look is absolute, but the player's bounding box moves in a relative fashion.
+            //
+            // Either we have to get the relative look of the player or we have to get a bounding box that doesn't move in a relative fashion.
+            //
+            // I have chosen to insert a hook that calls the instance method GravityAxisAlignedBB::toVanilla if the bounding box in question
+            // is a GravityAxisAlignedBB. The hook returns a vanilla AxisAlignedBB with the same shape/position as the existing GravityAxisAlignedBB.
+            // This vanilla AxisAlignedBB will then move in an absolute fashion
+            if (Transformer.EntityRenderer$getMouseOver_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityRenderer$getMouseOver_name);
 
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
-                    if (HELPER.WorldClient$getEntitiesInAABBexcluding.is(next)) {
+                    // This is a pretty unique method call, so we'll use it as the basis for finding the bytecode to patch
+                    if (Transformer.WorldClient$getEntitiesInAABBexcluding.is(next)) {
+                        // Not strictly necessary, but the first previous() call will return the getEntitiesInAABBexcluding method we just found
                         iterator.previous();
                         while(iterator.hasPrevious()) {
                             next = iterator.previous();
-                            if (HELPER.Entity$getEntityBoundingBox.is(next)) {
-                                HELPER.Hooks$getVanillaEntityBoundingBox.replace(iterator);
-                                logPatchComplete(HELPER.EntityRenderer$getMouseOver_name);
+                            if (Transformer.Entity$getEntityBoundingBox.is(next)) {
+                                Transformer.Hooks$getVanillaEntityBoundingBox.replace(iterator);
+                                logPatchComplete(Transformer.EntityRenderer$getMouseOver_name);
                                 methodPatches++;
                                 break outerfor;
                             }
                         }
-                        die("Failed to find " + HELPER.WorldClient$getEntitiesInAABBexcluding + " in " + classNode.name + "::" + HELPER.EntityRenderer$getMouseOver_name);
+                        die("Failed to find " + Transformer.WorldClient$getEntitiesInAABBexcluding + " in " + classNode.name + "::" + Transformer.EntityRenderer$getMouseOver_name);
                     }
                 }
             }
@@ -536,8 +535,25 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.Entity$moveEntity_name.is(methodNode)) {
-                logPatchStarting(HELPER.Entity$moveEntity_name);
+            // moveEntity moves the player by the arguments supplied to it or until the player collides with a block
+            // in the world.
+            // It also:
+            // performs the player's automatic step-up (half slabs etc.),
+            // keeps the player from falling off of blocks while sneaking,
+            // determines if the player has collided with blocks and/or is on the ground,
+            // updates the fall state (increment damage on landing if still in the air, or cause fall damage if hitting the ground),
+            // increments the player's walked distance and plays step sounds if the distance is great enough,
+            // and decrements the number of ticks the player should be on fire for
+            //
+            // We make almost everything work with non-vanilla gravity by allowing the player's motion fields to be relative
+            // and then having the player's bounding box move in a relative manner through use of the GravityAxisAlignedBB class.
+            //
+            // There are a few cases where instead of calling an instance method on the player's bounding box (which will
+            // be a GravityAxisAlignedBB), it calls the instance method on a bounding box found in the world. These are the
+            // calculateX/Y/ZOffset methods, we replace their calls with static hooks that effectively run the same code, but
+            // on the player's bounding box instead of those found in the world.
+            if (Transformer.Entity$moveEntity_name.is(methodNode)) {
+                logPatchStarting(Transformer.Entity$moveEntity_name);
                 int numReplaced = 0;
                 boolean newBlockPosFound = false;
                 boolean blockPos$downFound = false;
@@ -547,21 +563,31 @@ public class Transformer implements IClassTransformer {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
                         MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                        if (HELPER.AxisAlignedBB$calculateXOffset.is(methodInsnNode)) {
-                            HELPER.Hooks$reverseXOffset.replace(methodInsnNode);
+                        if (Transformer.AxisAlignedBB$calculateXOffset.is(methodInsnNode)) {
+                            Transformer.Hooks$reverseXOffset.replace(methodInsnNode);
                             numReplaced++;
                         }
-                        else if (HELPER.AxisAlignedBB$calculateYOffset.is(methodInsnNode)) {
-                            HELPER.Hooks$reverseYOffset.replace(methodInsnNode);
+                        else if (Transformer.AxisAlignedBB$calculateYOffset.is(methodInsnNode)) {
+                            Transformer.Hooks$reverseYOffset.replace(methodInsnNode);
                             numReplaced++;
                         }
-                        else if (HELPER.AxisAlignedBB$calculateZOffset.is(methodInsnNode)) {
-                            HELPER.Hooks$reverseZOffset.replace(methodInsnNode);
+                        else if (Transformer.AxisAlignedBB$calculateZOffset.is(methodInsnNode)) {
+                            Transformer.Hooks$reverseZOffset.replace(methodInsnNode);
                             numReplaced++;
                         }
-                        else if (!newBlockPosFound && HELPER.BlockPos$INIT.is(methodInsnNode)) {
+                        // To work out what block the player has landed/walked on, the vanilla method creates a BlockPos
+                        // about 0.2 of a block below the player's position. We need to adjust this code so that the new
+                        // BlockPos is _relatively_ about 0.2 below the player's position.
+                        //
+                        // In bytecode, new instances are created by first running a NEW instruction, then loading the
+                        // arguments for the constructor onto the stack and then calling the constructor. We need to remove
+                        // the vanilla bytecode from the NEW instruction to the INVOKESPECIAL instruction (the constructor call).
+                        //
+                        // I've also chosen to remove the instructions that prepare the local variables that are passed as
+                        // arguments to the constructor in question, this isn't necessarry and can be removed if needed.
+                        else if (!newBlockPosFound && Transformer.BlockPos$INIT.is(methodInsnNode)) {
                             // Starts with a simple 1:1 replacement
-                            HELPER.Hooks$getImmutableBlockPosBelowEntity.replace(methodInsnNode);
+                            Transformer.Hooks$getImmutableBlockPosBelowEntity.replace(methodInsnNode);
                             iterator.previous(); // Our INNVOKESTATIC instruction
 
                             // Repeatedly remove the previous instruction until it's GETFIELD Entity.posX
@@ -573,7 +599,7 @@ public class Transformer implements IClassTransformer {
                             // (hopefully it's fine to have local variables that are never used in bytecode)
                             for (;iterator.hasPrevious() && !newBlockPosFound;) {
                                 AbstractInsnNode previous = iterator.previous();
-                                if (HELPER.Entity$posX_GET.is(previous)) {
+                                if (Transformer.Entity$posX_GET.is(previous)) {
                                     newBlockPosFound = true;
                                 }
                                 //TODO: Do the labels and line numbers need to be left in? Just the labels?
@@ -587,23 +613,31 @@ public class Transformer implements IClassTransformer {
                             }
 
                             if(!newBlockPosFound) {
-                                die("Failed to find " + HELPER.Entity$posX_GET + " prior to " + HELPER.BlockPos$INIT);
+                                die("Failed to find " + Transformer.Entity$posX_GET + " prior to " + Transformer.BlockPos$INIT);
                             }
                         }
-                        else if (newBlockPosFound && !blockPos$downFound && HELPER.BlockPos$down_NO_ARGS.is(methodInsnNode)) {
-                            HELPER.Hooks$getRelativeDownBlockPos.replace(methodInsnNode);
+                        // TODO: Change/remove this
+                        // If the block ~0.2 below (relative) the player's feet is air, then vanilla checks if the block
+                        // below that is a fence/wall/fence gate
+                        else if (newBlockPosFound && !blockPos$downFound && Transformer.BlockPos$down_NO_ARGS.is(methodInsnNode)) {
+                            Transformer.Hooks$getRelativeDownBlockPos.replace(methodInsnNode);
                             iterator.previous();
                             VarInsnNode aload0 = new VarInsnNode(Opcodes.ALOAD, 0);
                             iterator.add(aload0);
                             blockPos$downFound = true;
                         }
                     }
+                    // When the player moves, minecraft tracks how far they've moved and uses it to work out the distance
+                    // they've walked, which is used to play step sounds and water 'sloshing' sounds and it might be used
+                    // to do walking animations too.
+                    //
+                    // We fix this by loading the local variables that store the change in X/Y/Z, adjusting them and then
+                    // storing the adjusted values back into the local variables
                     else if (next instanceof FieldInsnNode
                             && newBlockPosFound && blockPos$downFound
                             /*&& !Blocks$LADDERFound*/) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        //TODO: Work out a way to find the correct localvariable indices instead of hardcoding them
-                        if (!Blocks$LADDERFound && HELPER.Blocks$LADDER_GET.is(fieldInsnNode)){
+                        if (!Blocks$LADDERFound && Transformer.Blocks$LADDER_GET.is(fieldInsnNode)){
                             iterator.previous(); // returns the same GETSTATIC instruction
                             iterator.previous(); // should be ALOAD 29
 
@@ -648,7 +682,7 @@ public class Transformer implements IClassTransformer {
                             iterator.add(new VarInsnNode(Opcodes.DLOAD, posXVar));//30
                             iterator.add(new VarInsnNode(Opcodes.DLOAD, posYVar));//32
                             iterator.add(new VarInsnNode(Opcodes.DLOAD, posZVar));//34
-                            HELPER.Hooks$inverseAdjustXYZ.addTo(iterator);
+                            Transformer.Hooks$inverseAdjustXYZ.addTo(iterator);
                             iterator.add(new InsnNode(Opcodes.DUP));
                             iterator.add(new InsnNode(Opcodes.DUP));
                             iterator.add(new InsnNode(Opcodes.ICONST_0));
@@ -669,13 +703,15 @@ public class Transformer implements IClassTransformer {
                 dieIfFalse(newBlockPosFound, "Failed to find new instance creation of BlockPos");
                 dieIfFalse(blockPos$downFound, "Failed to find usage of BlockPos::down");
                 dieIfFalse(Blocks$LADDERFound, "Failed to find usage of Blocks.LADDER");
-                logPatchComplete(HELPER.Entity$moveEntity_name);
+                logPatchComplete(Transformer.Entity$moveEntity_name);
                 methodPatches++;
             }
-            else if (HELPER.Entity$moveRelative_name.is(methodNode)) {
-                logPatchStarting(HELPER.Entity$moveRelative_name);
+            // Movement of the player is based off of their yaw and their forwards and strafing input
+            // We need to get the relative yaw when calculating the resultant movement due to strafe/forwards input
+            else if (Transformer.Entity$moveRelative_name.is(methodNode)) {
+                logPatchStarting(Transformer.Entity$moveRelative_name);
                 patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW);
-                logPatchComplete(HELPER.Entity$moveRelative_name);
+                logPatchComplete(Transformer.Entity$moveRelative_name);
                 methodPatches++;
             }
         }
@@ -694,8 +730,9 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.EntityLivingBase$moveEntityWithHeading_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityLivingBase$moveEntityWithHeading_name);
+            //FIXME: Elytra flying doesn't work! Why not?!
+            if (Transformer.EntityLivingBase$moveEntityWithHeading_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityLivingBase$moveEntityWithHeading_name);
 
                 boolean replaced_getLookVec = false;
 
@@ -712,14 +749,19 @@ public class Transformer implements IClassTransformer {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
                         MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                        if (!replaced_getLookVec && HELPER.EntityLivingBase$getLookVec.is(methodInsnNode)) {
-                            HELPER.Hooks$getRelativeLookVec.replace(methodInsnNode);
+                        // Replaces getLookVec in the Elytra movement with a relative version
+                        if (!replaced_getLookVec && Transformer.EntityLivingBase$getLookVec.is(methodInsnNode)) {
+                            Transformer.Hooks$getRelativeLookVec.replace(methodInsnNode);
                             replaced_getLookVec = true;
                         }
+                        // In normal movement, a PooledMutableBlockPos is create 1.0 below the player's position. We
+                        // need to change it to be relative below.
+                        //
+                        // The original code that is called is removed
                         else if (replaced_rotationPitch
                                 && !BlockPos$PooledMutableBlockPos$retainFound
-                                && HELPER.BlockPos$PooledMutableBlockPos$retain.is(methodInsnNode)){
-                            HELPER.Hooks$getBlockPostBelowEntity.replace(methodInsnNode);
+                                && Transformer.BlockPos$PooledMutableBlockPos$retain.is(methodInsnNode)){
+                            Transformer.Hooks$getBlockPostBelowEntity.replace(methodInsnNode);
 
                             iterator.previous(); //Our replacment INVOKESTATIC
 
@@ -742,13 +784,15 @@ public class Transformer implements IClassTransformer {
                                 BlockPos$PooledMutableBlockPos$retainFound = true;
                             }
                             else {
-                                die("Failed to find 3 uses of ALOAD 0 before inserted \"" + HELPER.Hooks$getBlockPostBelowEntity + "\" in " + HELPER.EntityLivingBase$moveEntityWithHeading_name);
+                                die("Failed to find 3 uses of ALOAD 0 before inserted \"" + Transformer.Hooks$getBlockPostBelowEntity + "\" in " + Transformer.EntityLivingBase$moveEntityWithHeading_name);
                             }
                         }
+                        // In normal movement, if the player is on the ground, the mutable BlockPos gets set back to 1.0
+                        // below the player, again, we set it to be relatively below the player
                         else if (BlockPos$PooledMutableBlockPos$retainFound
                                 && !BlockPos$PooledMutableBlockPos$setPosFound
-                                && HELPER.BlockPos$PooledMutableBlockPos$setPos.is(methodInsnNode)) {
-                            HELPER.Hooks$setPooledMutableBlockPosToBelowEntity.replace(methodInsnNode);
+                                && Transformer.BlockPos$PooledMutableBlockPos$setPos.is(methodInsnNode)) {
+                            Transformer.Hooks$setPooledMutableBlockPosToBelowEntity.replace(methodInsnNode);
 
                             iterator.previous(); //Our replacement INVOKESTATIC
 
@@ -772,12 +816,16 @@ public class Transformer implements IClassTransformer {
                                 BlockPos$PooledMutableBlockPos$setPosFound = true;
                             }
                             else {
-                                die("Failed to find 3 uses of ALOAD 0 before inserted \"" + HELPER.Hooks$setPooledMutableBlockPosToBelowEntity + "\" in " + HELPER.EntityLivingBase$moveEntityWithHeading_name);
+                                die("Failed to find 3 uses of ALOAD 0 before inserted \"" + Transformer.Hooks$setPooledMutableBlockPosToBelowEntity + "\" in " + Transformer.EntityLivingBase$moveEntityWithHeading_name);
                             }
                         }
+                        // For these liquid calculations, the passed arguments are (motionX, motionY + change in posY, motionZ)
+                        // The motion fields are all relative, but the change in posY is absolute, so we need to get the change
+                        // in whatever direction positive Y is from the player's perspective. Both the initial posY and the
+                        // later posY are modified
                         else if (BlockPos$PooledMutableBlockPos$setPosFound
                                 && numEntityLivingBase$isOffsetPositionInLiquidFound < 2
-                                && HELPER.EntityLivingBase$isOffsetPositionInLiquid.is(methodInsnNode)){
+                                && Transformer.EntityLivingBase$isOffsetPositionInLiquid.is(methodInsnNode)){
                             if (methodInsnNode == previousisOffsetPositionInLiquidMethodInsnNode) {
                                 continue;
                             }
@@ -787,9 +835,9 @@ public class Transformer implements IClassTransformer {
                                 AbstractInsnNode previous = iterator.previous();
                                 if (previous instanceof FieldInsnNode) {
                                     FieldInsnNode fieldInsnNode = (FieldInsnNode)previous;
-                                    if (HELPER.EntityLivingBase$posY_GET.is(fieldInsnNode)) {
+                                    if (Transformer.EntityLivingBase$posY_GET.is(fieldInsnNode)) {
                                         // Replace the GETFIELD with an INVOKESTATIC of the Hook
-                                        HELPER.Hooks$getRelativePosY.replace(iterator);
+                                        Transformer.Hooks$getRelativePosY.replace(iterator);
                                         numReplacementsMade++;
                                     }
                                 }
@@ -801,26 +849,33 @@ public class Transformer implements IClassTransformer {
                     }
                     else if(next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                        // Replaces access of the player's pitch with a get-relative-pitch hook, in the Elytra movement
                         if (replaced_getLookVec
                                 && !replaced_rotationPitch
-                                && HELPER.EntityLivingBase$rotationPitch_GET.is(fieldInsnNode)) {
-                            HELPER.Hooks$getRelativePitch.replace(iterator);
+                                && Transformer.EntityLivingBase$rotationPitch_GET.is(fieldInsnNode)) {
+                            Transformer.Hooks$getRelativePitch.replace(iterator);
                             replaced_rotationPitch = true;
                         }
+                        // Limb swing (arms+legs swinging as you walk around) is based on change in X and Z position
+                        // instead of messing with the existing code, we can insert a hook that changes the player's
+                        // position fields to act as if they're relative, so that when the vanilla code calculates
+                        // the change in X and Z position, it's instead the relative X and Z movement the player made
                         else if (numEntityLivingBase$isOffsetPositionInLiquidFound == 2
                                 && !GETFIELD_limbSwingAmount_found
-                                && HELPER.EntityLivingBase$limbSwingAmount_GET.is(fieldInsnNode)) {
+                                && Transformer.EntityLivingBase$limbSwingAmount_GET.is(fieldInsnNode)) {
                             iterator.previous(); // The GETFIELD instruction
                             iterator.previous(); // ALOAD 0
-                            HELPER.Hooks$makePositionRelative.addTo(iterator);
+                            Transformer.Hooks$makePositionRelative.addTo(iterator);
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             GETFIELD_limbSwingAmount_found = true;
                         }
+                        // Once the limb swing has been set properly, we need to put the player's position fields back to
+                        // normal
                         else if (GETFIELD_limbSwingAmount_found
                                 && !PUTFIELD_limbSwing_found
-                                && HELPER.EntityLivingBase$limbSwing_PUT.is(fieldInsnNode)) {
+                                && Transformer.EntityLivingBase$limbSwing_PUT.is(fieldInsnNode)) {
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            HELPER.Hooks$makePositionAbsolute.addTo(iterator);
+                            Transformer.Hooks$makePositionAbsolute.addTo(iterator);
                             PUTFIELD_limbSwing_found = true;
                         }
                     }
@@ -834,49 +889,58 @@ public class Transformer implements IClassTransformer {
                 dieIfFalse(GETFIELD_limbSwingAmount_found, "Failed to find GETFIELD limbSwingAmount");
                 dieIfFalse(PUTFIELD_limbSwing_found, "Failed to find PUTFIELD limbSwing");
 
-                logPatchComplete(HELPER.EntityLivingBase$moveEntityWithHeading_name);
+                logPatchComplete(Transformer.EntityLivingBase$moveEntityWithHeading_name);
                 methodPatches++;
             }
-            else if (HELPER.EntityLivingBase$updateDistance_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityLivingBase$updateDistance_name);
+            // This method is pretty badly named in my opinion, it seems to set up the turn of the player's head or body
+            // (I'm not sure), however it's rendering based and the rotation needs to be made relative. Only the
+            // rotationYaw field is accessed, so that is all that is changed
+            else if (Transformer.EntityLivingBase$updateDistance_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityLivingBase$updateDistance_name);
                 patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW);
-                logPatchComplete(HELPER.EntityLivingBase$updateDistance_name);
+                logPatchComplete(Transformer.EntityLivingBase$updateDistance_name);
                 methodPatches++;
             }
-            else if (HELPER.Entity$onUpdate_name.is(methodNode)) {
-                logPatchStarting(HELPER.Entity$onUpdate_name);
+            // For some of the vanilla code that also seems to be to do with head turning, the vanilla code uses the
+            // change in X and Z pos from last tick to the current tick, as well as the player's rotationYaw.
+            //
+            // We replace these field accesses with hooks that get the relative equivalents to them
+            else if (Transformer.Entity$onUpdate_name.is(methodNode)) {
+                logPatchStarting(Transformer.Entity$onUpdate_name);
                 boolean patchComplete = false;
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        if (HELPER.EntityLivingBase$posX_GET.is(fieldInsnNode)) {
-                            HELPER.Hooks$getRelativePosX.replace(iterator);
+                        if (Transformer.EntityLivingBase$posX_GET.is(fieldInsnNode)) {
+                            Transformer.Hooks$getRelativePosX.replace(iterator);
                         }
-                        else if (HELPER.EntityLivingBase$prevPosX_GET.is(fieldInsnNode)) {
-                            HELPER.Hooks$getRelativePrevPosX.replace(iterator);
+                        else if (Transformer.EntityLivingBase$prevPosX_GET.is(fieldInsnNode)) {
+                            Transformer.Hooks$getRelativePrevPosX.replace(iterator);
                         }
-                        else if (HELPER.EntityLivingBase$posZ_GET.is(fieldInsnNode)) {
-                            HELPER.Hooks$getRelativePosZ.replace(iterator);
+                        else if (Transformer.EntityLivingBase$posZ_GET.is(fieldInsnNode)) {
+                            Transformer.Hooks$getRelativePosZ.replace(iterator);
                         }
-                        else if (HELPER.EntityLivingBase$prevPosZ_GET.is(fieldInsnNode)) {
-                            HELPER.Hooks$getRelativePrevPosZ.replace(iterator);
+                        else if (Transformer.EntityLivingBase$prevPosZ_GET.is(fieldInsnNode)) {
+                            Transformer.Hooks$getRelativePrevPosZ.replace(iterator);
                         }
-                        else if (HELPER.EntityLivingBase$rotationYaw_GET.is(fieldInsnNode)) {
-                            HELPER.Hooks$getRelativeYaw.replace(iterator);
+                        else if (Transformer.EntityLivingBase$rotationYaw_GET.is(fieldInsnNode)) {
+                            Transformer.Hooks$getRelativeYaw.replace(iterator);
                             patchComplete = true;
                             break;
                         }
                     }
                 }
-                dieIfFalse(patchComplete, "Failed to patch " + HELPER.Entity$onUpdate_name);
-                logPatchComplete(HELPER.Entity$onUpdate_name);
+                dieIfFalse(patchComplete, "Failed to patch " + Transformer.Entity$onUpdate_name);
+                logPatchComplete(Transformer.Entity$onUpdate_name);
                 methodPatches++;
             }
-            else if (HELPER.EntityLivingBase$jump_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityLivingBase$jump_name);
+            // When sprinting, the player's rotationYaw is used to determine the boost in forwards movement to add
+            // This needs to be made relative to match the direction the player is actually sprinting in
+            else if (Transformer.EntityLivingBase$jump_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityLivingBase$jump_name);
                 patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW);
-                logPatchComplete(HELPER.EntityLivingBase$jump_name);
+                logPatchComplete(Transformer.EntityLivingBase$jump_name);
                 methodPatches++;
             }
         }
@@ -896,15 +960,19 @@ public class Transformer implements IClassTransformer {
 
 
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.INetHandlerPlayClient$handlePlayerPosLook_name.is(methodNode)) {
-                logPatchStarting(HELPER.INetHandlerPlayClient$handlePlayerPosLook_name);
+            // Mojang seems to assume that the bottom of a player's bounding box is equivalent to a player's posY a lot
+            // of the time, which is pretty wrong in my opinion (and breaks things when players have non-standard bounding
+            // boxes). So I replaced the access of minY of the player's bounding box with
+            // their Y position
+            if (Transformer.INetHandlerPlayClient$handlePlayerPosLook_name.is(methodNode)) {
+                logPatchStarting(Transformer.INetHandlerPlayClient$handlePlayerPosLook_name);
                 boolean foundAtLeastOneMinY = false;
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator();iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        if (HELPER.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
-                            HELPER.EntityPlayer$posY_GET.replace(iterator);
+                        if (Transformer.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
+                            Transformer.EntityPlayer$posY_GET.replace(iterator);
                             iterator.previous(); // the instruction we just replaced the old one with
                             iterator.previous(); // getEntityBoundingBox()
                             iterator.remove();
@@ -912,8 +980,8 @@ public class Transformer implements IClassTransformer {
                         }
                     }
                 }
-                dieIfFalse(foundAtLeastOneMinY, "Could not find \"playerEntity.geEntityBoundingBox().minY\" in " + HELPER.INetHandlerPlayClient$handlePlayerPosLook_name);
-                logPatchComplete(HELPER.INetHandlerPlayClient$handlePlayerPosLook_name);
+                dieIfFalse(foundAtLeastOneMinY, "Could not find \"playerEntity.geEntityBoundingBox().minY\" in " + Transformer.INetHandlerPlayClient$handlePlayerPosLook_name);
+                logPatchComplete(Transformer.INetHandlerPlayClient$handlePlayerPosLook_name);
                 methodPatches++;
             }
         }
@@ -925,6 +993,7 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
+    //TODO: processPlayer patch is still using hardcoded localvariable indices
     private static byte[] patchNetHandlerPlayServer(byte[] bytes) {
         int methodPatches = 0;
 
@@ -933,8 +1002,16 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.INetHandlerPlayServer$processPlayer_name.is(methodNode)) {
-                logPatchStarting(HELPER.INetHandlerPlayServer$processPlayer_name);
+            // When syncing player position between the client and server, the server moves the player by the difference
+            // between their server-side position and position received in a packet sent by the player. But player movement
+            // is done in a relative manner, so the arguments supplied to moveEntity must be adjusted for the player's
+            // current gravity.
+            //
+            // In a similar manner, the player has handleFalling called on them, but the vanilla code passes the change
+            // in Y position as one of the arguments, this has to be changed to a change in the relative upwards
+            // direction of the player.
+            if (Transformer.INetHandlerPlayServer$processPlayer_name.is(methodNode)) {
+                logPatchStarting(Transformer.INetHandlerPlayServer$processPlayer_name);
 
                 boolean foundMoveEntity = false;
                 boolean foundHandleFalling = false;
@@ -944,17 +1021,23 @@ public class Transformer implements IClassTransformer {
                 int yDiffLocalVar = -1;
                 int zDiffLocalVar = -1;
                 int yDiffLoadCount = 0;
-                boolean patchedYDiffLocalUsedToCalculate_floating = false;
+                boolean patchedXYZDiffLocalVars = false;
 
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
                         MethodInsnNode methodInsnNode = (MethodInsnNode) next;
-                        if (!foundMoveEntity && HELPER.EntityPlayerMP$moveEntity.is(methodInsnNode)) {
-                            HELPER.Hooks$moveEntityAbsolute.replace(methodInsnNode);
+                        //TODO: Remove once moveEntity uses 'MotionStack' with makes input values relative if motion is not currently relative
+                        // Replaces the call to moveEntity with a Hook that inverseAdjusts the arguments and then
+                        // calls moveEntity with those new arguments
+                        if (!foundMoveEntity && Transformer.EntityPlayerMP$moveEntity.is(methodInsnNode)) {
+                            Transformer.Hooks$moveEntityAbsolute.replace(methodInsnNode);
                             foundMoveEntity = true;
                         }
-                        else if (!foundHandleFalling && HELPER.EntityPlayerMP$handleFalling.is(methodInsnNode)) {
+                        // processPlayer calls handleFalling(...) with the player's change in Y position
+                        // We insert a hook that calculates the player's relative Y change and deletes the instructions
+                        // that calculate the change in Y position (this.playerEntity.posY - d3)
+                        else if (!foundHandleFalling && Transformer.EntityPlayerMP$handleFalling.is(methodInsnNode)) {
                             iterator.previous(); // INVOKEVIRTUAL handleFalling again
                             iterator.previous(); // INVOKEVIRTUAL isOnGround
                             iterator.previous(); // ALOAD 1 (CPacketPlayer method argument)
@@ -963,14 +1046,14 @@ public class Transformer implements IClassTransformer {
                                 iterator.remove();
                                 VarInsnNode dload7 = new VarInsnNode(Opcodes.DLOAD, 7);
                                 iterator.add(dload7);
-                                HELPER.Hooks$netHandlerPlayServerHandleFallingYChange.addTo(iterator);
+                                Transformer.Hooks$netHandlerPlayServerHandleFallingYChange.addTo(iterator);
                                 iterator.previous(); // Our newly added INVOKESTATIC
                                 iterator.previous(); // Our newly added DLOAD 7
                                 iterator.previous(); // DLOAD 9
                                 next = iterator.previous(); // GETFIELD posY
                                 if (next instanceof FieldInsnNode) {
                                     FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                                    if (HELPER.EntityPlayerMP$posY_GET.is(fieldInsnNode))
+                                    if (Transformer.EntityPlayerMP$posY_GET.is(fieldInsnNode))
                                     {
                                         VarInsnNode dload3 = new VarInsnNode(Opcodes.DLOAD, 3);
                                         iterator.remove();
@@ -992,7 +1075,8 @@ public class Transformer implements IClassTransformer {
                     }
                     else if (next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        if (!foundDifferenceLocalVars && HELPER.NetHandlerPlayServer$lastGoodX_GET.is(fieldInsnNode)) {
+                        // We use the lastGoodX field access as a basis for finding the local variable indices we need
+                        if (!foundDifferenceLocalVars && Transformer.NetHandlerPlayServer$lastGoodX_GET.is(fieldInsnNode)) {
                             foundDifferenceLocalVars = true;
                             for (int foundCount = 0; foundCount < 3; ) {
                                 next = iterator.next();
@@ -1016,37 +1100,117 @@ public class Transformer implements IClassTransformer {
                     }
                     else if (next instanceof VarInsnNode) {
                         VarInsnNode varInsnNode = (VarInsnNode)next;
+                        // Some parts of processPlayer need the change in X/Y/Z local variables to be absolute, while
+                        // some need them relative, so we change the instructions where they get loaded as necessary.
                         if (foundDifferenceLocalVars
-                                && !patchedYDiffLocalUsedToCalculate_floating
+                                && !patchedXYZDiffLocalVars
                                 && varInsnNode.var == yDiffLocalVar
                                 && varInsnNode.getOpcode() == Opcodes.DLOAD) {
                             yDiffLoadCount++;
-                            if (yDiffLoadCount == 3) {
-                                //Insert instructions to do Hooks.adjustXYZ
-                                iterator.previous();//DLOAD yDiff
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
-                                HELPER.NetHandlerPlayServer$playerEntity_GET.addTo(iterator);
-                                iterator.add(new VarInsnNode(Opcodes.DLOAD, xDiffLocalVar));
-                                iterator.next();//DLOAD yDiff again
-                                iterator.add(new VarInsnNode(Opcodes.DLOAD, zDiffLocalVar));
-                                HELPER.Hooks$adjustXYZ.addTo(iterator);
-                                iterator.add(new InsnNode(Opcodes.ICONST_1));
-                                iterator.add(new InsnNode(Opcodes.DALOAD));
-                                //next instruction stores to local variable
-                                patchedYDiffLocalUsedToCalculate_floating = true;
+                            switch(yDiffLoadCount) {
+                                case 4://d8 > -0.5D
+
+                                    // run "d9 = d6 - this.playerEntity.posZ;" early so that d9 is given the correct value
+                                    // for when it is passed to Hooks$netHandlerPlayServerGetRelativeY which will be
+                                    // called instead of loading [yDiffLocalVar]/[d8]/[21]
+                                    iterator.previous(); // the DLOAD [yDiffLocalVar]/[21] instruction
+
+                                    // Get z from the packet, (instead of tracking the localvariable's index)
+                                    // In which case, you would add this:
+                                    //iterator.add(new VarInsnNode(Opcodes.DLOAD, [zPosFromPacket]));
+                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
+                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); //this, packetIn
+                                    Hooks$netHandlerPlayServerGetPacketZ.addTo(iterator); //packetIn.getZ(this.playerEntity.posZ), same as local variable d6
+                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));//'d6', this
+                                    NetHandlerPlayServer$playerEntity_GET.addTo(iterator);//'d6', this.playerEntity
+                                    EntityPlayerMP$posZ_GET.addTo(iterator);//'d6', this.playerEntity.posZ
+                                    iterator.add(new InsnNode(Opcodes.DSUB));//'d6' - this.playerEntity.posZ
+                                    iterator.add(new VarInsnNode(Opcodes.DSTORE, zDiffLocalVar));//[empty]
+                                    iterator.next(); // back to the DLOAD [yDiffLocalVar]/[21] instruction
+
+                                case 1://if (this.playerEntity.onGround && !packetIn.isOnGround() && d8 > 0.0D)
+                                case 3://double d12 = d8;
+                                case 5://d8 < 0.5D
+                                    //get relative y
+                                    iterator.remove();
+                                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
+                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, xDiffLocalVar)); //this, xDiff
+                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, yDiffLocalVar)); //this, xDiff, yDiff
+                                    iterator.add(new VarInsnNode(Opcodes.DLOAD, zDiffLocalVar)); //this, xDiff, yDiff, zDiff
+                                    Hooks$netHandlerPlayServerGetRelativeY.addTo(iterator); //relativeY
+                                    break;
+                                //case 2://this.playerEntity.moveEntity(d7, d8, d9);
+                                    // no change, as we're going to call moveEntityAbsolute hook, or the method will take
+                                    // care of the absolute arguments on its own when using the MotionStack (NYI)
+                                    // Either way, we'll delegate this to the default case
+                                default:
+                                    break;
                             }
 
+                            // After patching the 5th load, (assuming we jump inside the if statement), vanilla code does d8 = 0.0D;
+                            // We need to set the local variable which coincides with the player's relative y axis to
+                            // zero, instead of always the absolute y axis
+                            if (yDiffLoadCount == 5) {
+                                while (true) {
+                                    if (iterator.next().getOpcode() == Opcodes.DCONST_0) {
+                                        iterator.remove(); // remove the first instruction
+                                        iterator.next(); // DSTORE [yDiffLocalVar]
+                                        iterator.remove(); // remove the DSTORE instruction
+
+                                        // Load this and the localvariables
+                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
+                                        iterator.add(new VarInsnNode(Opcodes.DLOAD, xDiffLocalVar)); //this, xDiff
+                                        iterator.add(new VarInsnNode(Opcodes.DLOAD, yDiffLocalVar)); //this, xDiff, yDiff
+                                        iterator.add(new VarInsnNode(Opcodes.DLOAD, zDiffLocalVar)); //this, xDiff, yDiff, zDiff
+                                        // Call the hook that returns an array of size == 3
+                                        Hooks$netHandlerPlayServerSetRelativeYToZero.addTo(iterator); //double[]
+
+                                        // So we don't need to create any extra local variables, we duplicate the array reference
+                                        // on the top of the stack
+                                        iterator.add(new InsnNode(Opcodes.DUP)); //double[], double[]
+                                        iterator.add(new InsnNode(Opcodes.DUP)); //double[], double[], double[]
+
+                                        // double[0] -> xDiffLocalVar
+                                        iterator.add(new InsnNode(Opcodes.ICONST_0)); //double[], double[], double[], 0
+                                        iterator.add(new InsnNode(Opcodes.DALOAD)); //double[], double[], double[0]
+                                        iterator.add(new VarInsnNode(Opcodes.DSTORE, xDiffLocalVar)); //double[], double[]
+
+                                        // double[1] -> yDiffLocalVar
+                                        iterator.add(new InsnNode(Opcodes.ICONST_1)); //double[], double[], 1
+                                        iterator.add(new InsnNode(Opcodes.DALOAD)); //double[], double[1]
+                                        iterator.add(new VarInsnNode(Opcodes.DSTORE, yDiffLocalVar)); //double[]
+
+                                        // double[2] -> zDiffLocalVar
+                                        iterator.add(new InsnNode(Opcodes.ICONST_2)); //double[], 2
+                                        iterator.add(new InsnNode(Opcodes.DALOAD)); //double[2]
+                                        iterator.add(new VarInsnNode(Opcodes.DSTORE, zDiffLocalVar)); //[empty]
+
+                                        patchedXYZDiffLocalVars = true;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                dieIfFalse(patchedXYZDiffLocalVars, "Could not find 5 DLOADs of local variable " + yDiffLocalVar);
                 dieIfFalse(foundMoveEntity, "Could not find \"playerEntity.moveEntity(...)\"");
                 dieIfFalse(foundHandleFalling, "Could not find \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\"");
 
-                logPatchComplete(HELPER.INetHandlerPlayServer$processPlayer_name);
+                logPatchComplete(Transformer.INetHandlerPlayServer$processPlayer_name);
                 methodPatches++;
             }
-            else if (HELPER.INetHandlerPlayServer$processPlayerDigging_name.is(methodNode)) {
-                logPatchStarting(HELPER.INetHandlerPlayServer$processPlayerDigging_name);
+            // When the server checks if a player can actually reach a block they're trying to break, instead of getting
+            // the player's eye height and adding that to their position, for some reason, Mojang have it hardcoded to
+            // xPos, yPos + 1.5, zPos
+            //
+            // This patch removes the "+ 1.5" and replaces it with "this.playerEntity.getEyeHeight()".
+            // The patch is very much needed with this mod, as upwards gravity gives the player a negative eye height
+            // for example
+            //
+            // This behaviour should actually be buggy in vanilla, as sneaking changes the player's eye height slightly
+            else if (Transformer.INetHandlerPlayServer$processPlayerDigging_name.is(methodNode)) {
+                logPatchStarting(Transformer.INetHandlerPlayServer$processPlayerDigging_name);
 
                 boolean patched1point5ToGetEyeHeight = false;
 
@@ -1060,8 +1224,8 @@ public class Transformer implements IClassTransformer {
                             if (d == 1.5D) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this.
-                                HELPER.NetHandlerPlayServer$playerEntity_GET.addTo(iterator); //this.playerEntity
-                                HELPER.EntityPlayerMP$getEyeHeight.addTo(iterator); //this.playerEntity.getEyeHeight()
+                                Transformer.NetHandlerPlayServer$playerEntity_GET.addTo(iterator); //this.playerEntity
+                                Transformer.EntityPlayerMP$getEyeHeight.addTo(iterator); //this.playerEntity.getEyeHeight()
                                 iterator.add(new InsnNode(Opcodes.F2D)); //(double)this.playerEntity.getEyeHeight()
                                 patched1point5ToGetEyeHeight = true;
                                 break;
@@ -1071,7 +1235,7 @@ public class Transformer implements IClassTransformer {
                 }
                 dieIfFalse(patched1point5ToGetEyeHeight, "Could not find \"1.5D\"");
 
-                logPatchComplete(HELPER.INetHandlerPlayServer$processPlayerDigging_name);
+                logPatchComplete(Transformer.INetHandlerPlayServer$processPlayerDigging_name);
                 methodPatches++;
             }
         }
@@ -1085,7 +1249,7 @@ public class Transformer implements IClassTransformer {
 
     private static final boolean DEBUG_AUTO_JUMP = false;
 
-    //TODO: Instead of changing the field, call a method in Hooks that takes the aabb as an argument and returns GravityAxisAlignedBB.getOrigin().getY() or AxisAlignedBB.minY
+
     private static byte[] patchEntityPlayerSP(byte[] bytes) {
         int methodPatches = 0;
         int expectedMethodPatches = 5;
@@ -1095,25 +1259,18 @@ public class Transformer implements IClassTransformer {
 
         int numReplacements = 0;
 
-//        IDeobfAware onUpdateWalkingPlayer = new DeobfAwareString("onUpdateWalkingPlayer", "func_175161_p");
-//        IDeobfAwareClass AxisAlignedBB = new ObjectClassName("net/minecraft/util/math/AxisAlignedBB");
-//        IDeobfAware minY = new DeobfAwareString("minY", "field_72338_b");
-//        FieldInstruction minYFieldInsn = new FieldInstruction(GETFIELD, AxisAlignedBB, minY, DOUBLE);
-//        IDeobfAwareClass EntityPlayerSP = new ObjectClassName("net/minecraft/client/entity/EntityPlayerSP");
-//        IDeobfAware posY = new DeobfAwareString("posY", "field_70163_u");
-//        FieldInstruction posYFieldInsn = new FieldInstruction(GETFIELD, EntityPlayerSP, posY, DOUBLE);
-
-//        IDeobfAware onLivingUpdate = new DeobfAwareString("onLivingUpdate", "func_70636_d");
-
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.EntityPlayerSP$onUpdateWalkingPlayer_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityPlayerSP$onUpdateWalkingPlayer_name);
+            // onUpdateWalkingPlayer makes the assumption that the minY of the player's bounding box is the same as their y position
+            //
+            // We remove the usage of axisalignedbb.minY and replace it with this.posY
+            if (Transformer.EntityPlayerSP$onUpdateWalkingPlayer_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityPlayerSP$onUpdateWalkingPlayer_name);
 
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode) next;
-                        if (HELPER.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
+                        if (Transformer.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
                             if (iterator.hasPrevious()) {
                                 iterator.previous();
                                 AbstractInsnNode previous = iterator.previous();
@@ -1129,7 +1286,7 @@ public class Transformer implements IClassTransformer {
                                                 EntityPlayerSP::onUpdateWalkingPlayer
                                                  */
                                         varInsnNode.var = 0;
-                                        HELPER.EntityPlayerSP$posY_GET.replace(fieldInsnNode);
+                                        Transformer.EntityPlayerSP$posY_GET.replace(fieldInsnNode);
                                         numReplacements++;
 
                                         // We went back two with .previous(), so go forwards again the same amount
@@ -1142,22 +1299,24 @@ public class Transformer implements IClassTransformer {
                     }
                 }
                 dieIfFalse(numReplacements != 0, "Failed to find any instances of \"axisalignedbb.minY\"");
-                logPatchComplete(HELPER.EntityPlayerSP$onUpdateWalkingPlayer_name);
+                logPatchComplete(Transformer.EntityPlayerSP$onUpdateWalkingPlayer_name);
                 methodPatches++;
             }
-            else if (HELPER.EntityLivingBase$onLivingUpdate_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityLivingBase$onLivingUpdate_name);
+            // onLivingUpdate calls EntityPlayerSP::pushOutOfBlocks a bunch of times with arguments that look like they won't respect
+            //      non-standard gravity, the inserted Hook currently just performs the vanilla behaviour
+            else if (Transformer.EntityLivingBase$onLivingUpdate_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityLivingBase$onLivingUpdate_name);
 
                 boolean error = true;
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
-                    if (HELPER.EntityPlayerSP$getEntityBoundingBox.is(next)) {
+                    if (Transformer.EntityPlayerSP$getEntityBoundingBox.is(next)) {
                         next = iterator.next();
                         if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ASTORE) {
                             int axisalignedbb_var = ((VarInsnNode)next).var;
 
                             VarInsnNode aLoad6 = new VarInsnNode(Opcodes.ALOAD, axisalignedbb_var);
-                            TypeInsnNode instanceofGravityAxisAlignedBB = new TypeInsnNode(Opcodes.INSTANCEOF, HELPER.GravityAxisAlignedBB.toString());
+                            TypeInsnNode instanceofGravityAxisAlignedBB = new TypeInsnNode(Opcodes.INSTANCEOF, Transformer.GravityAxisAlignedBB.toString());
                             JumpInsnNode ifeqJumpInsnNode = new JumpInsnNode(Opcodes.IFEQ, null);
                             VarInsnNode aLoad0 = new VarInsnNode(Opcodes.ALOAD, 0);
 //                            VarInsnNode aLoad6_2 = new VarInsnNode(Opcodes.ALOAD, axisalignedbb_var);
@@ -1174,7 +1333,7 @@ public class Transformer implements IClassTransformer {
                             // Load the localvariable which holds the value previously...
                             iterator.add(aLoad6.clone(null));
                             // Add our static hooks call
-                            HELPER.Hooks$pushEntityPlayerSPOutOfBlocks.addTo(iterator);
+                            Transformer.Hooks$pushEntityPlayerSPOutOfBlocks.addTo(iterator);
                             // Add the unconditional jump
                             iterator.add(gotoJumpInsnNode);
 
@@ -1196,7 +1355,7 @@ public class Transformer implements IClassTransformer {
                                         next = iterator.next();
                                         if (next instanceof MethodInsnNode) {
                                             MethodInsnNode methodInsnNode = (MethodInsnNode) next;
-                                            if (HELPER.EntityPlayer$getFoodStats.is(methodInsnNode)) {
+                                            if (Transformer.EntityPlayer$getFoodStats.is(methodInsnNode)) {
                                                 for (; iterator.hasPrevious(); ) {
                                                     AbstractInsnNode previous = iterator.previous();
                                                     if (previous instanceof LabelNode) {
@@ -1234,10 +1393,12 @@ public class Transformer implements IClassTransformer {
                 }
                 dieIfFalse(!error, "Patch failed");
                 methodPatches++;
-                logPatchComplete(HELPER.EntityLivingBase$onLivingUpdate_name);
+                logPatchComplete(Transformer.EntityLivingBase$onLivingUpdate_name);
             }
-            else if (HELPER.EntityPlayerSP$isHeadspaceFree_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityPlayerSP$isHeadspaceFree_name);
+            // isHeadSpaceFree checks upwards, it's changed to check upwards relative to the player (the method is small,
+            //      I deleted the original entirely for the time being.
+            else if (Transformer.EntityPlayerSP$isHeadspaceFree_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityPlayerSP$isHeadspaceFree_name);
                 InsnList instructions = methodNode.instructions;
                 AbstractInsnNode label = instructions.get(0);
                 AbstractInsnNode lineNumber = instructions.get(1);
@@ -1252,14 +1413,21 @@ public class Transformer implements IClassTransformer {
                 //TODO: Introduce a way to grab the localvariable indices
                 instructions.add(new VarInsnNode(Opcodes.ALOAD, 1));
                 instructions.add(new VarInsnNode(Opcodes.ILOAD, 2));
-                HELPER.Hooks$isHeadspaceFree.addTo(instructions);
+                Transformer.Hooks$isHeadspaceFree.addTo(instructions);
                 instructions.add(new InsnNode(Opcodes.IRETURN));
                 instructions.add(labelEnd);
                 methodPatches++;
-                logPatchComplete(HELPER.EntityPlayerSP$isHeadspaceFree_name);
+                logPatchComplete(Transformer.EntityPlayerSP$isHeadspaceFree_name);
             }
-            else if (HELPER.EntityPlayerSP$updateAutoJump_name.is(methodNode)) {
-                logPatchStarting(HELPER.EntityPlayerSP$updateAutoJump_name);
+            // updateAutoJump assumes the player has normal gravity in a lot of places, a few patches may not be neccessary now
+            //      that player pitch and yaw is absolute, but it will likely still be the largest patch by far // TODO: 2016-10-19 Update for absolute pitch/yaw.
+            //
+            //      DEBUG_AUTO_JUMP instead makes the method call super.updateAutoJump(...), which doesn't exist normally, but
+            //      EntityPlayerWithGravity (the class we insert into the hierarchy) can be given its own updateAutoJump method.
+            //      This can copy the vanilla code with changes that take into account the gravity direction. This method is then
+            //      used to create the patches for the vanilla method
+            else if (Transformer.EntityPlayerSP$updateAutoJump_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityPlayerSP$updateAutoJump_name);
                 int addVectorReplacements = 0;
                 int blockPosUPCount = 0;
                 int blockPosUPCountI = 0;
@@ -1294,7 +1462,7 @@ public class Transformer implements IClassTransformer {
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             iterator.add(new VarInsnNode(Opcodes.FLOAD, 1));
                             iterator.add(new VarInsnNode(Opcodes.FLOAD, 2));
-                            HELPER.AbstractClientPlayer$updateAutoJump_SPECIAL.addTo(iterator);
+                            Transformer.AbstractClientPlayer$updateAutoJump_SPECIAL.addTo(iterator);
                             iterator.add(new InsnNode(Opcodes.RETURN));
                         }
                     }
@@ -1307,21 +1475,21 @@ public class Transformer implements IClassTransformer {
                             //newPATCH #4
                             if (patch3Complete
                                     && !patch4Complete
-                                    && HELPER.EntityPlayerSP$getEntityBoundingBox.is(methodInsnNode)) {
+                                    && Transformer.EntityPlayerSP$getEntityBoundingBox.is(methodInsnNode)) {
                                 iterator.remove();
                                 iterator.next();
                                 iterator.remove(); // GETFIELD net/minecraft/util/math/AxisAlignedBB.minY : D
-                                HELPER.Hooks$getOriginRelativePosY.addTo(iterator);
+                                Transformer.Hooks$getOriginRelativePosY.addTo(iterator);
                                 iterator.next(); // DLOAD ? (likely 7)
                                 iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // Have to pass 'this' to adjustVec as well
-                                HELPER.Hooks$adjustVec.addTo(iterator);
+                                Transformer.Hooks$adjustVec.addTo(iterator);
                                 patch4Complete = true;
                             }
                             //newPatch #5
                             else if (patch4Point5Complete
                                     && !patch5Complete
-                                    && HELPER.Vec3d$scale.is(methodInsnNode)) {
+                                    && Transformer.Vec3d$scale.is(methodInsnNode)) {
                                 next = iterator.next();
                                 if (next instanceof VarInsnNode) {
                                     // Should also be ASTORE
@@ -1334,45 +1502,45 @@ public class Transformer implements IClassTransformer {
                             }
                             else if (patch5Complete
                                     && !patch5Point5Complete
-                                    && HELPER.EntityPlayerSP$getForward.is(methodInsnNode)) {
-                                HELPER.Hooks$getRelativeLookVec.replace(methodInsnNode);
+                                    && Transformer.EntityPlayerSP$getForward.is(methodInsnNode)) {
+                                Transformer.Hooks$getRelativeLookVec.replace(methodInsnNode);
                                 patch5Point5Complete = true;
                             }
                             //PATCH #1
-                            else if (HELPER.Vec3d$addVector.is(methodInsnNode)){
+                            else if (Transformer.Vec3d$addVector.is(methodInsnNode)){
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$addAdjustedVector.addTo(iterator);
+                                Transformer.Hooks$addAdjustedVector.addTo(iterator);
                                 addVectorReplacements++;
                             }
                             //newPATCH #8
                             else if (patch7Complete
                                     && !patch8Complete
-                                    && HELPER.AxisAlignedBB$INIT.is(methodInsnNode)) {
+                                    && Transformer.AxisAlignedBB$INIT.is(methodInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$constructNewGAABBFrom2Vec3d.addTo(iterator);
+                                Transformer.Hooks$constructNewGAABBFrom2Vec3d.addTo(iterator);
                                 patch8Complete = true;
                             }
                             //PATCH #3
-                            else if (HELPER.BlockPos$up_NO_ARGS.is(methodInsnNode)) {
+                            else if (Transformer.BlockPos$up_NO_ARGS.is(methodInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$getRelativeUpblockPos_NO_ARGS.addTo(iterator);
+                                Transformer.Hooks$getRelativeUpblockPos_NO_ARGS.addTo(iterator);
                                 blockPosUPCount++;
                             }
-                            else if (HELPER.BlockPos$up_INT_ARG.is(methodInsnNode)) {
+                            else if (Transformer.BlockPos$up_INT_ARG.is(methodInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$getRelativeUpblockPos_INT_ARG.addTo(iterator);
+                                Transformer.Hooks$getRelativeUpblockPos_INT_ARG.addTo(iterator);
                                 blockPosUPCountI++;
                             }
                             //PATCH #4
                             else if (!foundFirstBlockPosGetY
-                                    && HELPER.BlockPos$getY.is(methodInsnNode)) {
+                                    && Transformer.BlockPos$getY.is(methodInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$getRelativeYOfBlockPos.addTo(iterator);
+                                Transformer.Hooks$getRelativeYOfBlockPos.addTo(iterator);
                                 foundFirstBlockPosGetY = true;
                             }
 
@@ -1383,14 +1551,14 @@ public class Transformer implements IClassTransformer {
                             //newPATCH #1
                             if (!patch1Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(HELPER.Vec3d.toString())) {
+                                    && typeInsnNode.desc.equals(Transformer.Vec3d.toString())) {
                                 iterator.remove();
                                 while(!patch1Complete) {
                                     next = iterator.next();
                                     if (next instanceof MethodInsnNode && next.getOpcode() == INVOKESPECIAL) {
                                         iterator.remove();
                                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        HELPER.Hooks$getBottomOfEntity.addTo(iterator);
+                                        Transformer.Hooks$getBottomOfEntity.addTo(iterator);
                                         patch1Complete = true;
                                     }
                                     else {
@@ -1402,7 +1570,7 @@ public class Transformer implements IClassTransformer {
                             else if (!patch7Complete
                                     && patch6Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(HELPER.AxisAlignedBB.toString())) {
+                                    && typeInsnNode.desc.equals(Transformer.AxisAlignedBB.toString())) {
                                 iterator.remove();
                                 next = iterator.next();
                                 if (next instanceof InsnNode && next.getOpcode() == Opcodes.DUP) {
@@ -1418,20 +1586,20 @@ public class Transformer implements IClassTransformer {
                             else if(patch5Point5Complete
                                     && !patch6Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(HELPER.BlockPos.toString())) {
+                                    && typeInsnNode.desc.equals(Transformer.BlockPos.toString())) {
                                 iterator.remove();
                                 while(!patch6Complete) {
                                     next = iterator.next();
                                     if (next instanceof MethodInsnNode && next.getOpcode() == INVOKESPECIAL) {
                                         iterator.remove();
                                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        HELPER.Hooks$getBlockPosAtTopOfPlayer.addTo(iterator);
+                                        Transformer.Hooks$getBlockPosAtTopOfPlayer.addTo(iterator);
 
                                         //newPATCH #6.5
                                         iterator.next(); //ASTORE ? (probably 17)
                                         iterator.add(new VarInsnNode(Opcodes.ALOAD, vec3d12_var));
                                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        HELPER.Hooks$adjustVec.addTo(iterator);
+                                        Transformer.Hooks$adjustVec.addTo(iterator);
                                         iterator.add(new VarInsnNode(Opcodes.ASTORE, vec3d12_var));
 
                                         patch6Complete = true;
@@ -1445,7 +1613,7 @@ public class Transformer implements IClassTransformer {
                             else if(patch8Complete
                                     && !patch9Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(HELPER.Vec3d.toString())) {
+                                    && typeInsnNode.desc.equals(Transformer.Vec3d.toString())) {
                                 iterator.next(); // DUP
                                 iterator.next(); // DCONST_0
                                 next = iterator.next();
@@ -1463,7 +1631,7 @@ public class Transformer implements IClassTransformer {
                                 iterator.add(new InsnNode(Opcodes.DCONST_1));
                                 iterator.add(new InsnNode(Opcodes.DCONST_0));
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$addAdjustedVector.addTo(iterator);
+                                Transformer.Hooks$addAdjustedVector.addTo(iterator);
 
                                 patch9Complete = true;
                             }
@@ -1474,21 +1642,21 @@ public class Transformer implements IClassTransformer {
                             //newPATCH #2
                             if (patch1Complete
                                     && !patch2Complete
-                                    && HELPER.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
-                                HELPER.Hooks$getOriginRelativePosX.replace(iterator);
+                                    && Transformer.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
+                                Transformer.Hooks$getOriginRelativePosX.replace(iterator);
                                 patch2Complete = true;
                             }
                             //newPATCH #3
                             else if(patch2Complete
                                     && !patch3Complete
-                                    && HELPER.EntityPlayerSP$posZ_GET.is(fieldInsnNode)) {
-                                HELPER.Hooks$getOriginRelativePosZ.replace(iterator);
+                                    && Transformer.EntityPlayerSP$posZ_GET.is(fieldInsnNode)) {
+                                Transformer.Hooks$getOriginRelativePosZ.replace(iterator);
                                 patch3Complete = true;
                             }
                             else if(patch4Complete
                                     && !patch4Point5Complete
-                                    && HELPER.EntityPlayerSP$rotationYaw_GET.is(fieldInsnNode)) {
-                                HELPER.Hooks$getRelativeYaw.replace(iterator);
+                                    && Transformer.EntityPlayerSP$rotationYaw_GET.is(fieldInsnNode)) {
+                                Transformer.Hooks$getRelativeYaw.replace(iterator);
                                 patch4Point5ReplacementCount++;
                                 if (patch4Point5ReplacementCount >= 2) {
                                     patch4Point5Complete = true;
@@ -1497,19 +1665,19 @@ public class Transformer implements IClassTransformer {
                             //newPATCH #10
                             else if (patch9Complete
                                     && axisAlignedBBmaxYCount < 2
-                                    && HELPER.AxisAlignedBB$maxY_GET.is(fieldInsnNode)) {
+                                    && Transformer.AxisAlignedBB$maxY_GET.is(fieldInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$getRelativeTopOfBB.addTo(iterator);
+                                Transformer.Hooks$getRelativeTopOfBB.addTo(iterator);
                                 axisAlignedBBmaxYCount++;
                             }
                             //newPATCH #11
                             else if (axisAlignedBBmaxYCount == 2
                                     && axisAlignedBBminYCount < 2
-                                    && HELPER.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
+                                    && Transformer.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                HELPER.Hooks$getRelativeBottomOfBB.addTo(iterator);
+                                Transformer.Hooks$getRelativeBottomOfBB.addTo(iterator);
                                 axisAlignedBBminYCount++;
                             }
                         }
@@ -1529,11 +1697,15 @@ public class Transformer implements IClassTransformer {
                 if (!patch9Complete && !DEBUG_AUTO_JUMP) {
                     die("Unknown error occurred while patching EntityPlayerSP");
                 }
-                logPatchComplete(HELPER.EntityPlayerSP$updateAutoJump_name);
+                logPatchComplete(Transformer.EntityPlayerSP$updateAutoJump_name);
                 methodPatches++;
             }
-            else if (HELPER.Entity$moveEntity_name.is(methodNode)) {
-                logPatchStarting(HELPER.Entity$moveEntity_name);
+            // moveEntity passes the change in X and Z movement to the updateAutoJump method, we need to pass the change in
+            //      X and Z relative to the player's view instead
+            //
+            //      DEBUG_AUTO_JUMP instead calls super to help with debugging EntityPlayerWithGravity::updateAutoJump
+            else if (Transformer.Entity$moveEntity_name.is(methodNode)) {
+                logPatchStarting(Transformer.Entity$moveEntity_name);
                 if (DEBUG_AUTO_JUMP) {
                     for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                         AbstractInsnNode next = iterator.next();
@@ -1542,7 +1714,7 @@ public class Transformer implements IClassTransformer {
                             iterator.add(new VarInsnNode(Opcodes.DLOAD, 1));
                             iterator.add(new VarInsnNode(Opcodes.DLOAD, 3));
                             iterator.add(new VarInsnNode(Opcodes.DLOAD, 5));
-                            HELPER.AbstractClientPlayer$moveEntity_SPECIAL.addTo(iterator);
+                            Transformer.AbstractClientPlayer$moveEntity_SPECIAL.addTo(iterator);
                             iterator.add(new InsnNode(Opcodes.RETURN));
                         }
                     }
@@ -1558,10 +1730,10 @@ public class Transformer implements IClassTransformer {
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             iterator.next(); // GETFIELD net/minecraft/client/entity/EntityPlayerSP.posX : D
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            HELPER.EntityPlayerSP$posY_GET.addTo(iterator);
+                            Transformer.EntityPlayerSP$posY_GET.addTo(iterator);
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            HELPER.EntityPlayerSP$posZ_GET.addTo(iterator);
-                            HELPER.Hooks$inverseAdjustXYZ.addTo(iterator);
+                            Transformer.EntityPlayerSP$posZ_GET.addTo(iterator);
+                            Transformer.Hooks$inverseAdjustXYZ.addTo(iterator);
                             iterator.add(new InsnNode(Opcodes.DUP));
                             iterator.add(new InsnNode(Opcodes.ICONST_0));
                             iterator.add(new InsnNode(Opcodes.DALOAD));
@@ -1596,15 +1768,15 @@ public class Transformer implements IClassTransformer {
                                         next = iterator.next();
                                         if(next instanceof FieldInsnNode) {
                                             FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                                            if (HELPER.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
+                                            if (Transformer.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
                                                 iterator.previous();
                                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
                                                 iterator.next(); // same GETFIELD instruction
                                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                                HELPER.EntityPlayerSP$posY_GET.addTo(iterator);
+                                                Transformer.EntityPlayerSP$posY_GET.addTo(iterator);
                                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                                HELPER.EntityPlayerSP$posZ_GET.addTo(iterator);
-                                                HELPER.Hooks$inverseAdjustXYZ.addTo(iterator);
+                                                Transformer.EntityPlayerSP$posZ_GET.addTo(iterator);
+                                                Transformer.Hooks$inverseAdjustXYZ.addTo(iterator);
                                                 iterator.add(new InsnNode(Opcodes.DUP));
                                                 iterator.add(new InsnNode(Opcodes.ICONST_2));
                                                 iterator.add(new InsnNode(Opcodes.DALOAD));
@@ -1719,7 +1891,7 @@ public class Transformer implements IClassTransformer {
                        L5
                      */
                 }
-                logPatchComplete(HELPER.Entity$moveEntity_name);
+                logPatchComplete(Transformer.Entity$moveEntity_name);
                 methodPatches++;
             }
         }
@@ -1742,15 +1914,19 @@ public class Transformer implements IClassTransformer {
         classReader.accept(classNode, 0);
 
         for (MethodNode methodNode : classNode.methods) {
-            if (HELPER.SoundManager$setListener_name.is(methodNode)) {
-                logPatchStarting(HELPER.SoundManager$setListener_name);
+            // When the camera rotates due to a change in gravity, the player's ears would also have to be rotated
+            //      setListener calls SoundSystem::setListenerOrientation as if the player has normal gravity. A hook is inserted
+            //      that replaces this call and calls SoundSystem::setListenerOrientation with arguments that take into account
+            //      the rotation of the player's camera
+            if (Transformer.SoundManager$setListener_name.is(methodNode)) {
+                logPatchStarting(Transformer.SoundManager$setListener_name);
                 boolean patched_setListenerOrientationInstruction = false;
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof  MethodInsnNode) {
                         MethodInsnNode methodInsnNode = (MethodInsnNode) next;
-                        if (HELPER.SoundSystem$setListenerOrientation_name.is(methodInsnNode.name)) {
-                            HELPER.Hooks$setListenerOrientationHook.replace(methodInsnNode);
+                        if (Transformer.SoundSystem$setListenerOrientation_name.is(methodInsnNode.name)) {
+                            Transformer.Hooks$setListenerOrientationHook.replace(methodInsnNode);
                             iterator.previous();
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // load EntityPlayer method argument
                             patched_setListenerOrientationInstruction = true;
@@ -1759,11 +1935,11 @@ public class Transformer implements IClassTransformer {
                 }
                 patchMethodUsingAbsoluteRotations(methodNode, GET_ROTATIONYAW + GET_PREVROTATIONYAW + GET_ROTATIONPITCH + GET_PREVROTATIONPITCH);
                 dieIfFalse(patched_setListenerOrientationInstruction, "Failed to patch setListenerOrientation instruction");
-                logPatchComplete(HELPER.SoundManager$setListener_name);
+                logPatchComplete(Transformer.SoundManager$setListener_name);
                 methodPatches++;
             }
         }
-        dieIfFalse(methodPatches == expectedMethodPatches, "Could not find " + HELPER.SoundManager$setListener_name + " method");
+        dieIfFalse(methodPatches == expectedMethodPatches, "Could not find " + Transformer.SoundManager$setListener_name + " method");
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
@@ -1804,8 +1980,8 @@ public class Transformer implements IClassTransformer {
         int index = 0;
         if (changeRotationYaw) {
             biPredicates[index] = (iterator, node) -> {
-                if (HELPER.Entity$rotationYaw_name.is(node.name)) {
-                    HELPER.Hooks$getRelativeYaw.replace(iterator);
+                if (Transformer.Entity$rotationYaw_name.is(node.name)) {
+                    Transformer.Hooks$getRelativeYaw.replace(iterator);
                     return true;
                 }
                 return false;
@@ -1814,8 +1990,8 @@ public class Transformer implements IClassTransformer {
         }
         if (changeRotationPitch) {
             biPredicates[index] = (iterator, node) -> {
-                if (HELPER.Entity$rotationPitch_name.is(node.name)) {
-                    HELPER.Hooks$getRelativePitch.replace(iterator);
+                if (Transformer.Entity$rotationPitch_name.is(node.name)) {
+                    Transformer.Hooks$getRelativePitch.replace(iterator);
                     return true;
                 }
                 return false;
@@ -1824,8 +2000,8 @@ public class Transformer implements IClassTransformer {
         }
         if (changePrevRotationYaw) {
             biPredicates[index] = (iterator, node) -> {
-                if (HELPER.Entity$prevRotationYaw_name.is(node.name)) {
-                    HELPER.Hooks$getRelativePrevYaw.replace(iterator);
+                if (Transformer.Entity$prevRotationYaw_name.is(node.name)) {
+                    Transformer.Hooks$getRelativePrevYaw.replace(iterator);
                     return true;
                 }
                 return false;
@@ -1834,8 +2010,8 @@ public class Transformer implements IClassTransformer {
         }
         if (changePrevRotationPitch) {
             biPredicates[index] = (iterator, node) -> {
-                if (HELPER.Entity$prevRotationPitch_name.is(node.name)) {
-                    HELPER.Hooks$getRelativePrevPitch.replace(iterator);
+                if (Transformer.Entity$prevRotationPitch_name.is(node.name)) {
+                    Transformer.Hooks$getRelativePrevPitch.replace(iterator);
                     return true;
                 }
                 return false;
@@ -1844,8 +2020,8 @@ public class Transformer implements IClassTransformer {
         }
         if (changeRotationYawHead) {
             biPredicates[index] = (iterator, node) -> {
-                if (HELPER.EntityLivingBase$rotationYawHead_name.is(node.name)) {
-                    HELPER.Hooks$getRelativeYawHead.replace(iterator);
+                if (Transformer.EntityLivingBase$rotationYawHead_name.is(node.name)) {
+                    Transformer.Hooks$getRelativeYawHead.replace(iterator);
                     return true;
                 }
                 return false;
@@ -1854,8 +2030,8 @@ public class Transformer implements IClassTransformer {
         }
         if (changePrevRotationYawHead) {
             biPredicates[index] = (iterator, node) -> {
-                if (HELPER.EntityLivingBase$prevRotationYawHead_name.is(node.name)) {
-                    HELPER.Hooks$getPrevRelativeYawHead.replace(iterator);
+                if (Transformer.EntityLivingBase$prevRotationYawHead_name.is(node.name)) {
+                    Transformer.Hooks$getPrevRelativeYawHead.replace(iterator);
                     return true;
                 }
                 return false;

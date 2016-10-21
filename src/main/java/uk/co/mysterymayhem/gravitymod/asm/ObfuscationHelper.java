@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
+import net.minecraft.launchwrapper.Launch;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -10,6 +11,8 @@ import java.util.Objects;
  * Created by Mysteryem on 2016-09-21.
  */
 public class ObfuscationHelper {
+    public static final boolean IS_DEV_ENVIRONMENT = (Boolean)Launch.blackboard.get("fml.deobfuscatedEnvironment");
+
     public static final IDeobfAware INIT = new DeobfAwareString("<init>");
     public static final IDeobfAwareClass VOID = new PrimitiveClassName("V");
     public static final IDeobfAwareClass CHAR = new PrimitiveClassName("C");
@@ -249,7 +252,7 @@ public class ObfuscationHelper {
         private final String value;
 
         public DeobfAwareString(String deobf, String obf) {
-            this.value = FMLLoadingPlugin.isDevEnvironment ? Objects.requireNonNull(deobf) : Objects.requireNonNull(obf);
+            this.value = ObfuscationHelper.IS_DEV_ENVIRONMENT ? Objects.requireNonNull(deobf) : Objects.requireNonNull(obf);
         }
 
         public DeobfAwareString(String name) {
@@ -267,7 +270,7 @@ public class ObfuscationHelper {
      */
     public interface IDeobfAware {
         default boolean isRuntimeDeobfEnabled() {
-            return FMLLoadingPlugin.isDevEnvironment;
+            return ObfuscationHelper.IS_DEV_ENVIRONMENT;
         }
 
         default boolean is(String input) {

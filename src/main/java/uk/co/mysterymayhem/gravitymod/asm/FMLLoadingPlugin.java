@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
@@ -12,10 +13,6 @@ import java.util.Map;
 @IFMLLoadingPlugin.MCVersion("1.10.2")
 @IFMLLoadingPlugin.SortingIndex(value = 1001)
 public class FMLLoadingPlugin implements IFMLLoadingPlugin {
-
-    public static boolean DEBUG = true;
-
-    static boolean isDevEnvironment = false;
 
     @Override
     public String[] getASMTransformerClass() {
@@ -35,8 +32,7 @@ public class FMLLoadingPlugin implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-        isDevEnvironment = !(Boolean)data.get("runtimeDeobfuscationEnabled");
-        Transformer.setup();
+        // nothing to do here
     }
 
     @Override
