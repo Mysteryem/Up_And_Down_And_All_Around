@@ -8,6 +8,7 @@ import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Created by Mysteryem on 2016-08-26.
@@ -26,7 +27,7 @@ public class API {
      * @param priority The priority of this 'prepared gravity transition'
      */
     public static void setPlayerGravity(EnumGravityDirection newGravity, EntityPlayerMP player, int priority) {
-        GravityMod.proxy.getGravityManager().prepareGravityTransition(newGravity, player, priority);
+        GravityMod.proxy.getGravityManager().prepareGravityTransition(Objects.requireNonNull(newGravity), player, priority);
     }
 
     /**
@@ -38,7 +39,7 @@ public class API {
      *                  True to specifically set a zero timeout, normal changes will be able to take place immediately.
      */
     public static void forceSetPlayerGravity(EnumGravityDirection newGravity, EntityPlayerMP player, boolean noTimeout) {
-        GravityMod.proxy.getGravityManager().doGravityTransition(newGravity, player, noTimeout);
+        GravityMod.proxy.getGravityManager().doGravityTransition(Objects.requireNonNull(newGravity), player, noTimeout);
     }
 
 

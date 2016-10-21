@@ -441,19 +441,7 @@ public class Hooks {
 
     /////////////////////////////////////////////////////////////////////////
 
-    public static void makeAnglesRelative(Entity entity) {
-        if (entity instanceof EntityPlayerWithGravity) {
-            ((EntityPlayerWithGravity) entity).makeAngleVarsRelative();
-        }
-    }
-
-    public static void makeAnglesAbsolute(Entity entity) {
-        if (entity instanceof EntityPlayerWithGravity) {
-            ((EntityPlayerWithGravity) entity).makeAngleVarsAbsolute();
-        }
-    }
-
-    //TODO: Where is this used? Is it used in any ASM-ed code?
+    //TODO: Where is this used? Is it used in any ASM-ed code? - Somewhere in NetHandlerPlayServer
     public static void moveEntityAbsolute(EntityPlayer player, double x, double y, double z) {
         double[] doubles = API.getGravityDirection(player).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(x, y, z);
         player.moveEntity(doubles[0], doubles[1], doubles[2]);
