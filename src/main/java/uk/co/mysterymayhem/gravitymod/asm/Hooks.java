@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.play.client.CPacketPlayer;
 import net.minecraft.util.EnumParticleTypes;
@@ -15,7 +16,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLLog;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.util.vector.Vector3f;
@@ -23,6 +26,7 @@ import paulscode.sound.SoundSystem;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.events.ItemStackRightClickEvent;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
 
 /**
@@ -441,10 +445,32 @@ public class Hooks {
 
     /////////////////////////////////////////////////////////////////////////
 
+    public static void onItemUsePre(ItemStack stack, EntityPlayer player) {
+//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.BLOCK));
+        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.BLOCK));
+    }
+
+    public static void onItemUsePost(ItemStack stack, EntityPlayer player) {
+//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.BLOCK));
+        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.BLOCK));
+    }
+
+    public static void onItemRightClickPre(ItemStack stack, EntityPlayer player) {
+//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.NOTHING));
+        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.NOTHING));
+    }
+
+    public static void onItemRightClickPost(ItemStack stack, EntityPlayer player) {
+//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.NOTHING));
+        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.NOTHING));
+    }
+
+    //TODO: DELETE
     //TODO: Where is this used? Is it used in any ASM-ed code? - Somewhere in NetHandlerPlayServer
     public static void moveEntityAbsolute(EntityPlayer player, double x, double y, double z) {
-        double[] doubles = API.getGravityDirection(player).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(x, y, z);
-        player.moveEntity(doubles[0], doubles[1], doubles[2]);
+//        double[] doubles = API.getGravityDirection(player).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(x, y, z);
+//        player.moveEntity(doubles[0], doubles[1], doubles[2]);
+        player.moveEntity(x, y, z);
     }
 
     //TODO: Insert Hook
@@ -563,6 +589,8 @@ public class Hooks {
      */
     public static void pushEntityPlayerSPOutOfBlocks(EntityPlayerWithGravity playerWithGravity, AxisAlignedBB bb) {
         // Called from ASM-ed code where we do an INSTANCEOF check beforehand, so this cast is fine
+//        playerWithGravity.makeMotionAbsolute();
+
         GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
         Vec3d origin = gBB.offset(-playerWithGravity.width * 0.35, 0.5, playerWithGravity.width * 0.35).getOrigin();
         playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
@@ -572,6 +600,13 @@ public class Hooks {
         playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
         origin = gBB.offset(playerWithGravity.width * 0.35, 0.5, playerWithGravity.width * 0.35).getOrigin();
         playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
+
+//        AxisAlignedBB axisalignedbb = playerWithGravity.getEntityBoundingBox();
+//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX - (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ + (double)playerWithGravity.width * 0.35D);
+//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX - (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ - (double)playerWithGravity.width * 0.35D);
+//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX + (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ - (double)playerWithGravity.width * 0.35D);
+//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX + (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ + (double)playerWithGravity.width * 0.35D);
+//        playerWithGravity.popMotionStack();
     }
 
     /**
@@ -661,6 +696,23 @@ public class Hooks {
         if (entity instanceof EntityPlayerWithGravity) {
             ((EntityPlayerWithGravity)entity).makeMotionRelative();
         }
+    }
+
+    public static void popMotionStack(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            ((EntityPlayerWithGravity)entity).popMotionStack();
+        }
+    }
+
+    public static boolean isMotionRelative(Entity entity) {
+        return !Hooks.isMotionAbsolute(entity);
+    }
+
+    public static boolean isMotionAbsolute(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            return ((EntityPlayerWithGravity) entity).isMotionAbsolute();
+        }
+        return true;
     }
 
     public static void setRelativeMotionX(Entity entity, double value) {

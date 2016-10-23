@@ -32,6 +32,7 @@ import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FLOAT;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -56,6 +57,7 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
+        classNameToMethodMap.put("net.minecraft.item.ItemStack", Transformer::patchItemStack);
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
     }
 
@@ -193,6 +195,12 @@ public class Transformer implements IClassTransformer {
     private static final MethodName INetHandlerPlayServer$processPlayer_name = new MethodName("processPlayer", "func_147347_a");
     private static final MethodName INetHandlerPlayServer$processPlayerDigging_name = new MethodName("processPlayerDigging", "func_147345_a");
 
+    private static final MethodName Item$onRightClick_name = new MethodName("onItemRightClick", "func_77659_a");
+    private static final MethodName Item$onItemUse_name = new MethodName("onItemUse", "func_180614_a");
+
+    private static final MethodName ItemStack$onItemUse_name = new MethodName("onItemUse", "func_179546_a");
+    private static final MethodName ItemStack$useItemRightClick_name = new MethodName("useItemRightClick", "func_77957_a");
+
     private static final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
 
     private static final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
@@ -234,6 +242,7 @@ public class Transformer implements IClassTransformer {
     /*
         Shared reference class names
      */
+    private static final ObjectClassName ActionResult = new ObjectClassName("net/minecraft/util/ActionResult");
     private static final ObjectClassName AbstractClientPlayer = new ObjectClassName("net/minecraft/client/entity/AbstractClientPlayer");
     private static final ObjectClassName AxisAlignedBB = new ObjectClassName("net/minecraft/util/math/AxisAlignedBB");
     private static final ObjectClassName Block = new ObjectClassName("net/minecraft/block/Block");
@@ -247,13 +256,19 @@ public class Transformer implements IClassTransformer {
     private static final ObjectClassName EntityPlayerMP = new ObjectClassName("net/minecraft/entity/player/EntityPlayerMP");
     private static final ObjectClassName EntityPlayerSP = new ObjectClassName("net/minecraft/client/entity/EntityPlayerSP");
     private static final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
+    private static final ObjectClassName EnumActionResult = new ObjectClassName("net/minecraft/util/EnumActionResult");
+    private static final ObjectClassName EnumFacing = new ObjectClassName("net/minecraft/util/EnumFacing");
+    private static final ObjectClassName EnumHand = new ObjectClassName("net/minecraft/util/EnumHand");
     private static final ObjectClassName FoodStats = new ObjectClassName("net/minecraft/util/FoodStats");
     private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/GravityAxisAlignedBB");
+    private static final ObjectClassName Item = new ObjectClassName("net/minecraft/item/Item");
+    private static final ObjectClassName ItemStack = new ObjectClassName("net/minecraft/item/ItemStack");
     private static final ObjectClassName List = new ObjectClassName("java/util/List");
     private static final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
     private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
     private static final ObjectClassName SoundSystem = new ObjectClassName("paulscode/sound/SoundSystem");
     private static final ObjectClassName Vec3d = new ObjectClassName("net/minecraft/util/math/Vec3d");
+    private static final ObjectClassName World = new ObjectClassName("net/minecraft/world/World");
     private static final ObjectClassName WorldClient = new ObjectClassName("net/minecraft/client/multiplayer/WorldClient");
 
     /*
@@ -312,6 +327,9 @@ public class Transformer implements IClassTransformer {
     private static final MethodInstruction EntityPlayerSP$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
     private static final MethodInstruction EntityPlayerSP$getForward = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
     private static final MethodInstruction EntityPlayer$getFoodStats = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
+    private static final MethodInstruction Item$onItemRightClick = new MethodInstruction(INVOKEVIRTUAL, Item, Item$onRightClick_name, new MethodDesc(ActionResult, ItemStack, World, EntityPlayer, EnumHand));
+    private static final MethodInstruction Item$onItemUse = new MethodInstruction(
+            INVOKEVIRTUAL, Item, Item$onItemUse_name, new MethodDesc(EnumActionResult, ItemStack, EntityPlayer, World, BlockPos, EnumHand, EnumFacing, FLOAT, FLOAT, FLOAT));
     private static final MethodInstruction Vec3d$addVector = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
     private static final MethodInstruction Vec3d$scale = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
     private static final MethodInstruction WorldClient$getEntitiesInAABBexcluding = new MethodInstruction(
@@ -361,6 +379,10 @@ public class Transformer implements IClassTransformer {
             new HooksMethodInstruction("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
     private static final HooksMethodInstruction Hooks$netHandlerPlayServerSetRelativeYToZero =
             new HooksMethodInstruction("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksMethodInstruction Hooks$onItemRightClickPost = new HooksMethodInstruction("onItemRightClickPost", new MethodDesc(VOID, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemRightClickPre = new HooksMethodInstruction("onItemRightClickPre", new MethodDesc(VOID, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemUsePost = new HooksMethodInstruction("onItemUsePost", new MethodDesc(VOID, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemUsePre = new HooksMethodInstruction("onItemUsePre", new MethodDesc(VOID, ItemStack, EntityPlayer));
     private static final HooksMethodInstruction Hooks$pushEntityPlayerSPOutOfBlocks = new HooksMethodInstruction("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
     private static final HooksMethodInstruction Hooks$reverseXOffset = new HooksMethodInstruction("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
     private static final HooksMethodInstruction Hooks$reverseYOffset = new HooksMethodInstruction("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
@@ -444,6 +466,68 @@ public class Transformer implements IClassTransformer {
         log("Injected super class into " + classNode.name);
 
         ClassWriter classWriter = new ClassWriter(0);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    // Upon using items, we generally need to ensure the player has absolute motion fields, while there are events that
+    // are fired before items are used, there aren't any events fired immediately after the item is used. I need a way
+    // to put the player's rotation fields back to normal after the item has finished processing, so I've added what is
+    // effectively some events around the item use methods in the ItemStack class.
+    private static byte[] patchItemStack(byte[] bytes) {
+        int methodPatches = 0;
+        final int expectedMethodPatches = 2;
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            if (Transformer.ItemStack$onItemUse_name.is(methodNode)) {
+                logPatchStarting(Transformer.ItemStack$onItemUse_name);
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (Item$onItemUse.is(next)) {
+                        iterator.previous();
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
+                        Hooks$onItemUsePre.addTo(iterator);
+                        iterator.next();
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
+                        Hooks$onItemUsePost.addTo(iterator);
+                        methodPatches++;
+                        logPatchComplete(Transformer.ItemStack$onItemUse_name);
+                        break;
+                    }
+                }
+            }
+            else if (Transformer.ItemStack$useItemRightClick_name.is(methodNode)) {
+                logPatchStarting(Transformer.ItemStack$useItemRightClick_name);
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (Item$onItemRightClick.is(next)) {
+                        iterator.previous();
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
+                        Hooks$onItemRightClickPre.addTo(iterator);
+                        iterator.next();
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
+                        Hooks$onItemRightClickPost.addTo(iterator);
+                        methodPatches++;
+                        logPatchComplete(Transformer.ItemStack$useItemRightClick_name);
+                        break;
+                    }
+                }
+            }
+            if (methodPatches == 2) {
+                break;
+            }
+        }
+
+        dieIfFalse(methodPatches == 2, classNode);
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
     }
@@ -1013,7 +1097,6 @@ public class Transformer implements IClassTransformer {
             if (Transformer.INetHandlerPlayServer$processPlayer_name.is(methodNode)) {
                 logPatchStarting(Transformer.INetHandlerPlayServer$processPlayer_name);
 
-                boolean foundMoveEntity = false;
                 boolean foundHandleFalling = false;
 
                 boolean foundDifferenceLocalVars = false;
@@ -1027,17 +1110,10 @@ public class Transformer implements IClassTransformer {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
                         MethodInsnNode methodInsnNode = (MethodInsnNode) next;
-                        //TODO: Remove once moveEntity uses 'MotionStack' with makes input values relative if motion is not currently relative
-                        // Replaces the call to moveEntity with a Hook that inverseAdjusts the arguments and then
-                        // calls moveEntity with those new arguments
-                        if (!foundMoveEntity && Transformer.EntityPlayerMP$moveEntity.is(methodInsnNode)) {
-                            Transformer.Hooks$moveEntityAbsolute.replace(methodInsnNode);
-                            foundMoveEntity = true;
-                        }
                         // processPlayer calls handleFalling(...) with the player's change in Y position
                         // We insert a hook that calculates the player's relative Y change and deletes the instructions
                         // that calculate the change in Y position (this.playerEntity.posY - d3)
-                        else if (!foundHandleFalling && Transformer.EntityPlayerMP$handleFalling.is(methodInsnNode)) {
+                        if (!foundHandleFalling && Transformer.EntityPlayerMP$handleFalling.is(methodInsnNode)) {
                             iterator.previous(); // INVOKEVIRTUAL handleFalling again
                             iterator.previous(); // INVOKEVIRTUAL isOnGround
                             iterator.previous(); // ALOAD 1 (CPacketPlayer method argument)
@@ -1194,7 +1270,6 @@ public class Transformer implements IClassTransformer {
                     }
                 }
                 dieIfFalse(patchedXYZDiffLocalVars, "Could not find 5 DLOADs of local variable " + yDiffLocalVar);
-                dieIfFalse(foundMoveEntity, "Could not find \"playerEntity.moveEntity(...)\"");
                 dieIfFalse(foundHandleFalling, "Could not find \"this.playerEntity.handleFalling(this.playerEntity.posY - d3, packetIn.isOnGround());\"");
 
                 logPatchComplete(Transformer.INetHandlerPlayServer$processPlayer_name);
@@ -1894,6 +1969,7 @@ public class Transformer implements IClassTransformer {
                 logPatchComplete(Transformer.Entity$moveEntity_name);
                 methodPatches++;
             }
+            // TODO: Patch pushOutOfBlocks
         }
 
         dieIfFalse(methodPatches == expectedMethodPatches, classNode);

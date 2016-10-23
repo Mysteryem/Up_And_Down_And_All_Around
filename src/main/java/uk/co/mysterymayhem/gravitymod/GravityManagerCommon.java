@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,6 +16,8 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
+import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
@@ -138,6 +141,7 @@ public class GravityManagerCommon {
         }
     }
 
+    //TODO: Split into two event handling methods, one that deals with the start of the tick with HIGHEST priority and one that deals with the end with LOWEST
     @SubscribeEvent
     public void onPlayerUpdateTick(PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
@@ -149,32 +153,36 @@ public class GravityManagerCommon {
                     EnumGravityDirection currentDirection = gravityCapability.getDirection();
                     EnumGravityDirection newDirection = gravityCapability.getPendingDirection();
                     if (currentDirection != newDirection) {
-                        doGravityTransition(newDirection, (EntityPlayerMP)player, false);
+                        doGravityTransition(newDirection, (EntityPlayerMP) player, false);
                     }
                 }
 
             }
             //decrements timeOut on both client and server
             gravityCapability.tick();
+            Hooks.makeMotionRelative(event.player);
         }
-        //Phase = END
-        //If done at start of tick, when putting an item onto the mouse cursor, when it's put back into the player's
-        //inventory, there's a single tick where the item won't be ticked. Issue does not occur when done at the end of
-        //the player tick.
-        //VANILLA_BUG:
-        //  The item on the mouse cursor is always null if the player is in creative and in their own inventory
-        else if(event.side == Side.SERVER) {
-            EntityPlayer player = event.player;
-            if (player.inventory != null) {
+        else {
+            //Phase = END
+            //If done at start of tick, when putting an item onto the mouse cursor, when it's put back into the player's
+            //inventory, there's a single tick where the item won't be ticked. Issue does not occur when done at the end of
+            //the player tick.
+            //VANILLA_BUG:
+            //  The item on the mouse cursor is always null if the player is in creative and in their own inventory
+            if (event.side == Side.SERVER) {
+                EntityPlayer player = event.player;
+                if (player.inventory != null) {
 //                    ItemStack itemStack = event.player.inventoryContainer.inventorySlots.getItemStack();
-                ItemStack itemStack = event.player.inventory.getItemStack();
-                if (itemStack != null) {
-                    Item item = itemStack.getItem();
-                    if (item instanceof ITickOnMouseCursor) {
-                        item.onUpdate(itemStack, player.worldObj, player, -1, false);
+                    ItemStack itemStack = event.player.inventory.getItemStack();
+                    if (itemStack != null) {
+                        Item item = itemStack.getItem();
+                        if (item instanceof ITickOnMouseCursor) {
+                            item.onUpdate(itemStack, player.worldObj, player, -1, false);
+                        }
                     }
                 }
             }
+            Hooks.popMotionStack(event.player);
         }
 
     }

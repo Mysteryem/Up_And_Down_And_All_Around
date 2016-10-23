@@ -3,24 +3,23 @@ package uk.co.mysterymayhem.gravitymod.asm;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
 import uk.co.mysterymayhem.gravitymod.util.Vec3dHelper;
 
-import java.lang.reflect.Field;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.PITCH;
 import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.YAW;
@@ -30,11 +29,22 @@ import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.YAW;
  */
 public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
+    enum MotionFieldState {
+        ABSOLUTE,
+        RELATIVE
+    }
+
     // Relative position doesn't exist, but this allows adjustments made in other methods such as 'this.posY+=3',
     // to correspond to whatever we think 'UP' is
     private boolean positionVarsAreRelative;
 
     private boolean superConstructorsFinished = false;
+
+    private final Deque<MotionFieldState> motionFieldStateStack = new ArrayDeque<>();
+    {
+        // starting state is ABSOLUTE
+        motionFieldStateStack.push(MotionFieldState.ABSOLUTE);
+    }
 
     public EntityPlayerWithGravity(World worldIn, GameProfile gameProfileIn) {
         super(worldIn, gameProfileIn);
@@ -58,24 +68,63 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         this.positionVarsAreRelative = false;
     }
 
+    // Should only ever be used within makeMotionRelative/Absolute and popMotionStack
+    @Deprecated
+    private void makeMotionFieldsRelative() {
+        double[] doubles = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(this.motionX, this.motionY, this.motionZ);
+        this.motionX = doubles[0];
+        this.motionY = doubles[1];
+        this.motionZ = doubles[2];
+    }
+
+    // Should only ever be used within makeMotionRelative/Absolute and popMotionStack
+    @Deprecated
+    private void makeMotionFieldsAbsolute() {
+        double[] doubles = API.getGravityDirection(this).adjustXYZValues(this.motionX, this.motionY, this.motionZ);
+        this.motionX = doubles[0];
+        this.motionY = doubles[1];
+        this.motionZ = doubles[2];
+    }
+
     void makeMotionRelative() {
-//        if (!this.motionVarsAreRelative) {
-//            double[] doubles = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(this.motionX, this.motionY, this.motionZ);
-//            this.motionVarsAreRelative = true;
-//            this.motionX = doubles[0];
-//            this.motionY = doubles[1];
-//            this.motionZ = doubles[2];
-//        }
+        MotionFieldState top = motionFieldStateStack.peek();
+        if (top == MotionFieldState.ABSOLUTE) {
+            //noinspection deprecation
+            this.makeMotionFieldsRelative();
+        }
+        motionFieldStateStack.push(MotionFieldState.RELATIVE);
     }
 
     void makeMotionAbsolute() {
-//        if (this.motionVarsAreRelative) {
-//            double[] doubles = API.getGravityDirection(this).adjustXYZValues(this.motionX, this.motionY, this.motionZ);
-//            this.motionVarsAreRelative = false;
-//            this.motionX = doubles[0];
-//            this.motionY = doubles[1];
-//            this.motionZ = doubles[2];
-//        }
+        MotionFieldState top = motionFieldStateStack.peek();
+        if (top == MotionFieldState.RELATIVE) {
+            //noinspection deprecation
+            this.makeMotionFieldsAbsolute();
+        }
+        motionFieldStateStack.push(MotionFieldState.ABSOLUTE);
+    }
+
+    void popMotionStack() {
+        MotionFieldState removed = motionFieldStateStack.pop();
+        MotionFieldState top = motionFieldStateStack.peek();
+        if (top != removed) {
+            switch(top) {
+                case ABSOLUTE:
+                    this.makeMotionFieldsAbsolute();
+                    break;
+                case RELATIVE:
+                    this.makeMotionFieldsRelative();
+                    break;
+            }
+        }
+    }
+
+    boolean isMotionRelative() {
+        return motionFieldStateStack.peek() == MotionFieldState.RELATIVE;
+    }
+
+    boolean isMotionAbsolute() {
+        return !this.isMotionRelative();
     }
 
     void makePositionRelative() {
@@ -112,6 +161,39 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             this.positionVarsAreRelative = false;
         }
+    }
+
+    @Override
+    public void moveEntity(double x, double y, double z) {
+        if (this.isMotionAbsolute()) {
+            // If moveEntity is called outside of the player tick, then some external force is moving the player
+            double[] doubles = Hooks.inverseAdjustXYZ(this, x, y, z);
+            x = doubles[0];
+            y = doubles[1];
+            z = doubles[2];
+            this.makeMotionRelative();
+            super.moveEntity(x, y, z);
+            this.popMotionStack();
+        }
+        else {
+            super.moveEntity(x, y, z);
+        }
+    }
+
+    // motion should always be relative when jump is called
+    @Override
+    public void jump() {
+        this.makeMotionRelative();
+        super.jump();
+        this.popMotionStack();
+    }
+
+    @Override
+    public boolean handleWaterMovement() {
+        this.makeMotionAbsolute();
+        boolean toReturn = super.handleWaterMovement();
+        this.popMotionStack();
+        return toReturn;
     }
 
     @Override
@@ -622,6 +704,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     @Override
     public void knockBack(Entity attacker, float strength, double xRatio, double zRatio) {
 //        FMLLog.info("x:%s, z:%s", xRatio, zRatio);
+        this.makeMotionRelative();
         if (attacker != null) {
             // Standard mob attacks, also arrows, not sure about others
             if (xRatio == attacker.posX - this.posX && zRatio == attacker.posZ - this.posZ) {
@@ -631,6 +714,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 double[] d_player = direction.adjustXYZValues(this.posX, this.posY, this.posZ);
                 xRatio = d_attacker[0] - d_player[0];
                 zRatio = d_attacker[2] - d_player[2];
+                super.knockBack(attacker, strength, xRatio, zRatio);
             }
             // Usually the knockback enchantment
             else if (xRatio == (double)MathHelper.sin(attacker.rotationYaw * 0.017453292F) && zRatio == (double)-MathHelper.cos(attacker.rotationYaw * 0.017453292F)) {
@@ -640,12 +724,17 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 Vec3d adjustedLook = direction.adjustLookVec(lookVec);
                 xRatio = -adjustedLook.xCoord;
                 zRatio = -adjustedLook.zCoord;
+                super.knockBack(attacker, strength, xRatio, zRatio);
             }
             else {
 //                FMLLog.info("Unknown attack");
+                super.knockBack(attacker, strength, xRatio, zRatio);
             }
         }
-        super.knockBack(attacker, strength, xRatio, zRatio);
+        else {
+            super.knockBack(attacker, strength, xRatio, zRatio);
+        }
+        this.popMotionStack();
     }
 
 }
