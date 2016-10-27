@@ -5,23 +5,25 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
  * Created by Mysteryem on 2016-08-07.
  */
 public class GravityChangeMessage implements IMessage {
 
+    @SuppressWarnings("unused")
     public GravityChangeMessage(){
 
     }
 
     String toSend;
     EnumGravityDirection newGravityDirection;
-    private EnumPacketType packetType;
+    private EnumChangePacketType packetType;
     Collection<String> toSendMultiple;
     boolean noTimeout;
 
-    public EnumPacketType getPacketType() {
+    public EnumChangePacketType getPacketType() {
         return this.packetType;
     }
 
@@ -41,31 +43,26 @@ public class GravityChangeMessage implements IMessage {
         this.toSend = stringToSend;
         this.newGravityDirection = newGravityDirection;
         this.noTimeout = noTimeout;
-        this.packetType = EnumPacketType.SINGLE;
-    }
-
-    public GravityChangeMessage(Collection<String> stringsToSend, boolean noTimeout) {
-        this.toSendMultiple = stringsToSend;
-        this.packetType = EnumPacketType.ALL_UPSIDE_DOWN;
+        this.packetType = EnumChangePacketType.SINGLE;
     }
 
     public GravityChangeMessage(String playerToRequest) {
         this.toSend = playerToRequest;
-        this.packetType = EnumPacketType.CLIENT_REQUEST_GRAVITY_OF_PLAYER;
+        this.packetType = EnumChangePacketType.CLIENT_REQUEST_GRAVITY_OF_PLAYER;
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeInt(this.packetType.ordinal());
-        this.packetType.toBytesFunction.accept(this, buf);
+        this.packetType.writeToBuff(this, buf);
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        int packetTypeOrdinal = buf.readInt();
-        EnumPacketType type = EnumPacketType.values()[packetTypeOrdinal];
+        final int packetTypeOrdinal = buf.readInt();
+        final EnumChangePacketType type = EnumChangePacketType.values()[packetTypeOrdinal];
         this.packetType = type;
-        type.fromBytesFunction.accept(this, buf);
+        type.readFromBuff(this, buf);
     }
 
 }

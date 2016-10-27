@@ -135,31 +135,6 @@ public enum EnumGravityDirection {
         return new Vec3d(d[0], d[1], d[2]);
     }
 
-    /**
-     * Converts the old motion of the player to the new direction, such that if the player was moving (a, b, c) from the
-     * perspective of DOWN, that their new motion under the new direction is now also (a, b, c) from the perspective of
-     * DOWN.<br><br>
-     * You can consider it a bit like applying matrices:<br><br>
-     * The effective motion is the player's motion multiplied by the gravity adjustment matrix<br>
-     * EFFECTIVE_MOTION = OLD_MOTION x OLD_GRAV_ADJUST<br><br>
-     * But we will multiply by NEW_GRAV_ADJUST to get EFFECTIVE_MOTION under the new gravity so:<br>
-     * EFFECTIVE_MOTION = ? x NEW_GRAV_ADJUST<br><br>
-     * To solve, we need to multiple by the inverse of NEW_GRAV_ADJUST<br>
-     * EFFECTIVE_MOTION = EFFECTIVE_MOTION x NEW_GRAV_ADJUST^(-1) x NEW_GRAV_ADJUST<br><br>
-     * This gives us a single line solution of:<br>
-     * EFFECTIVE_MOTION = OLD_MOTION x OLD_GRAV_ADJUST x NEW_GRAV_ADJUST^(-1) x NEW_GRAV_ADJUST<br>
-     * (NEW_GRAV_ADJUST is applied when the player moves)
-     * @param player The player whose effective motion we wish to maintain.
-     * @param oldDirection The old gravity direction.
-     */
-    private void maintainEffectiveMotion(EntityPlayer player, EnumGravityDirection oldDirection) {
-        double[] doubles = oldDirection.adjustXYZValues(player.motionX, player.motionY, player.motionZ);
-        doubles = this.getInverseAdjustmentFromDOWNDirection().adjustXYZValues(doubles[0], doubles[1], doubles[2]);
-        player.motionX = doubles[0];
-        player.motionY = doubles[1];
-        player.motionZ = doubles[2];
-    }
-
     private void setBoundingBoxAndPositionOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d oldEyePos) {
         AxisAlignedBB axisAlignedBB = this.getGravityAdjustedAABB(player);
         player.resetPositionToBB();
@@ -278,8 +253,6 @@ public enum EnumGravityDirection {
     }
 
     public void postModifyPlayerOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d inputEyePos) {
-        // Converts the player current motion
-        this.maintainEffectiveMotion(player, oldDirection);
 
         // Moves the player's position to their centre of gravity
         oldDirection.returnCentreOfGravityToPlayerPos(player);

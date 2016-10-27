@@ -3,6 +3,10 @@ package uk.co.mysterymayhem.gravitymod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import uk.co.mysterymayhem.gravitymod.client.GravityManagerClient;
+import uk.co.mysterymayhem.gravitymod.client.PlayerCameraListener;
+import uk.co.mysterymayhem.gravitymod.client.PlayerRenderListener;
+import uk.co.mysterymayhem.gravitymod.common.ModItems;
 
 /**
  * Created by Mysteryem on 2016-08-04.

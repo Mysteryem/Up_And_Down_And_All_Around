@@ -1,4 +1,4 @@
-package uk.co.mysterymayhem.gravitymod.item;
+package uk.co.mysterymayhem.gravitymod.util.item;
 
 /**
  * Implement on an Item subclass if it should tick while held on the mouse cursor

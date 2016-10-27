@@ -1,12 +1,15 @@
-package uk.co.mysterymayhem.gravitymod;
+package uk.co.mysterymayhem.gravitymod.common;
 
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -16,14 +19,14 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
-import uk.co.mysterymayhem.gravitymod.item.ITickOnMouseCursor;
+import uk.co.mysterymayhem.gravitymod.packets.PacketHandler;
+import uk.co.mysterymayhem.gravitymod.packets.config.ModCompatConfigCheckMessage;
+import uk.co.mysterymayhem.gravitymod.util.item.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangeMessage;
-import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangePacketHandler;
 import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
@@ -75,21 +78,21 @@ public class GravityManagerCommon {
         gravityCapability.setPendingDirection(newDirection, priority);
     }
 
-
     @SubscribeEvent
     public void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
-            GravityChangePacketHandler.INSTANCE.sendTo(
+            PacketHandler.INSTANCE.sendTo(
                     new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player), true),
                     (EntityPlayerMP) event.player
             );
+            PacketHandler.INSTANCE.sendTo(new ModCompatConfigCheckMessage(ItemStackUseListener.getHashCode()), (EntityPlayerMP) event.player);
         }
     }
 
     @SubscribeEvent
     public void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.player instanceof EntityPlayerMP) {
-            GravityChangePacketHandler.INSTANCE.sendTo(
+            PacketHandler.INSTANCE.sendTo(
                     new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player), true),
                     (EntityPlayerMP) event.player
             );
@@ -106,7 +109,7 @@ public class GravityManagerCommon {
         EntityPlayer original = event.getOriginal();
         if (clone instanceof EntityPlayerMP && original instanceof EntityPlayerMP) {
             if (event.isWasDeath()) {
-                GravityChangePacketHandler.INSTANCE.sendTo(
+                PacketHandler.INSTANCE.sendTo(
                         new GravityChangeMessage(clone.getName(), GravityDirectionCapability.getGravityDirection(clone), true),
                         (EntityPlayerMP) clone
                 );
@@ -141,9 +144,8 @@ public class GravityManagerCommon {
         }
     }
 
-    //TODO: Split into two event handling methods, one that deals with the start of the tick with HIGHEST priority and one that deals with the end with LOWEST
-    @SubscribeEvent
-    public void onPlayerUpdateTick(PlayerTickEvent event) {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onPlayerUpdateTickStart(PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(event.player);
             if (event.side == Side.SERVER) {
@@ -162,7 +164,11 @@ public class GravityManagerCommon {
             gravityCapability.tick();
             Hooks.makeMotionRelative(event.player);
         }
-        else {
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlayerUpdateTickEnd(PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
             //Phase = END
             //If done at start of tick, when putting an item onto the mouse cursor, when it's put back into the player's
             //inventory, there's a single tick where the item won't be ticked. Issue does not occur when done at the end of
@@ -184,7 +190,6 @@ public class GravityManagerCommon {
             }
             Hooks.popMotionStack(event.player);
         }
-
     }
 
 //    //@SubscribeEvent(priority = EventPriority.LOW)
@@ -203,10 +208,25 @@ public class GravityManagerCommon {
 //    }
 
     //Dedicated/Integrated Server only
-    private void sendUpdatePacketToDimension(EntityPlayer player, EnumGravityDirection newGravityDirection, boolean noTimeout) {
+    private void sendUpdatePacketToDimension(EntityPlayerMP player, EnumGravityDirection newGravityDirection, boolean noTimeout) {
         //DEBUG
         //FMLLog.info("Sending gravity data for %s to all players in the same dimension", player.getName());
-        GravityChangePacketHandler.INSTANCE.sendToDimension(new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout), player.dimension);
+        PacketHandler.INSTANCE.sendToDimension(new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout), player.dimension);
+
+        //TODO: see if it works
+//        if (player.worldObj instanceof WorldServer) {
+//            WorldServer worldServer = (WorldServer)player.worldObj;
+//            Chunk chunkFromBlockCoords = worldServer.getChunkFromBlockCoords(new BlockPos(player));
+//            GravityChangeMessage gravityChangeMessage = new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout);
+//            for (EntityPlayer otherPlayer : player.worldObj.playerEntities) {
+//                if (otherPlayer instanceof EntityPlayerMP) {
+//                    EntityPlayerMP otherPlayerMP = (EntityPlayerMP)otherPlayer;
+//                    if (worldServer.getPlayerChunkMap().isPlayerWatchingChunk(otherPlayerMP, chunkFromBlockCoords.xPosition, chunkFromBlockCoords.zPosition)) {
+//                        PacketHandler.INSTANCE.sendTo(gravityChangeMessage, otherPlayerMP);
+//                    }
+//                }
+//            }
+//        }
     }
 
     public void handlePacket(GravityChangeMessage message, MessageContext context) {

@@ -1,4 +1,4 @@
-package uk.co.mysterymayhem.gravitymod.item;
+package uk.co.mysterymayhem.gravitymod.items;
 
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
@@ -17,6 +17,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.util.item.ITickOnMouseCursor;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
-import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassReader;
 import net.minecraft.launchwrapper.IClassTransformer;
@@ -12,6 +11,9 @@ import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
+
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.TraceClassVisitor;
 
@@ -32,7 +34,6 @@ import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FLOAT;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -70,8 +71,16 @@ public class Transformer implements IClassTransformer {
         FMLLog.info("[UpAndDown] " + string, objects);
     }
 
+    private static void logPatchStarting(ObfuscationHelper.DeobfAwareString deobfAwareString) {
+        logPatchStarting(deobfAwareString.getDeobf());
+    }
+
     private static void logPatchStarting(Object object) {
         log("Patching %s", object);
+    }
+
+    private static void logPatchComplete(ObfuscationHelper.DeobfAwareString deobfAwareString) {
+        logPatchComplete(deobfAwareString.getDeobf());
     }
 
     private static void logPatchComplete(Object object) {
@@ -147,6 +156,11 @@ public class Transformer implements IClassTransformer {
         classReader2.accept(traceClassVisitor, 0);
     }
 
+    private static int addLocalVar(MethodNode methodNode, ObjectClassName objectClassName) {
+        LocalVariablesSorter localVariablesSorter = new LocalVariablesSorter(methodNode.access, methodNode.desc, methodNode);
+        return localVariablesSorter.newLocal(Type.getObjectType(objectClassName.toString()));
+    }
+
     /*
             Mojang method names
          */
@@ -197,8 +211,10 @@ public class Transformer implements IClassTransformer {
 
     private static final MethodName Item$onRightClick_name = new MethodName("onItemRightClick", "func_77659_a");
     private static final MethodName Item$onItemUse_name = new MethodName("onItemUse", "func_180614_a");
+    private static final MethodName Item$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77615_a");
 
     private static final MethodName ItemStack$onItemUse_name = new MethodName("onItemUse", "func_179546_a");
+    private static final MethodName ItemStack$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77974_b");
     private static final MethodName ItemStack$useItemRightClick_name = new MethodName("useItemRightClick", "func_77957_a");
 
     private static final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
@@ -263,6 +279,7 @@ public class Transformer implements IClassTransformer {
     private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/GravityAxisAlignedBB");
     private static final ObjectClassName Item = new ObjectClassName("net/minecraft/item/Item");
     private static final ObjectClassName ItemStack = new ObjectClassName("net/minecraft/item/ItemStack");
+    private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/ItemStackAndBoolean");
     private static final ObjectClassName List = new ObjectClassName("java/util/List");
     private static final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
     private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
@@ -323,13 +340,14 @@ public class Transformer implements IClassTransformer {
             INVOKEVIRTUAL, EntityLivingBase, Entity$isOffsetPositionInLiquid_name, new MethodDesc(BOOLEAN, DOUBLE, DOUBLE, DOUBLE));
     private static final MethodInstruction EntityPlayerMP$getEyeHeight = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$getEyeHeight_name, new MethodDesc(FLOAT));
     private static final MethodInstruction EntityPlayerMP$handleFalling = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, EntityPlayerMP$handleFalling_name, new MethodDesc(VOID, DOUBLE, BOOLEAN));
-    private static final MethodInstruction EntityPlayerMP$moveEntity = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
+//    private static final MethodInstruction EntityPlayerMP$moveEntity = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
     private static final MethodInstruction EntityPlayerSP$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
     private static final MethodInstruction EntityPlayerSP$getForward = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
     private static final MethodInstruction EntityPlayer$getFoodStats = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
     private static final MethodInstruction Item$onItemRightClick = new MethodInstruction(INVOKEVIRTUAL, Item, Item$onRightClick_name, new MethodDesc(ActionResult, ItemStack, World, EntityPlayer, EnumHand));
     private static final MethodInstruction Item$onItemUse = new MethodInstruction(
             INVOKEVIRTUAL, Item, Item$onItemUse_name, new MethodDesc(EnumActionResult, ItemStack, EntityPlayer, World, BlockPos, EnumHand, EnumFacing, FLOAT, FLOAT, FLOAT));
+    private static final MethodInstruction Item$onPlayerStoppedUsing = new MethodInstruction(INVOKEVIRTUAL, Item, Item$onPlayerStoppedUsing_name, new MethodDesc(VOID, ItemStack, World, EntityLivingBase, INT));
     private static final MethodInstruction Vec3d$addVector = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
     private static final MethodInstruction Vec3d$scale = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
     private static final MethodInstruction WorldClient$getEntitiesInAABBexcluding = new MethodInstruction(
@@ -372,17 +390,19 @@ public class Transformer implements IClassTransformer {
     private static final HooksMethodInstruction Hooks$isHeadspaceFree = new HooksMethodInstruction("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
     private static final HooksMethodInstruction Hooks$makePositionAbsolute = new HooksMethodInstruction("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
     private static final HooksMethodInstruction Hooks$makePositionRelative = new HooksMethodInstruction("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
-    private static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
+//    private static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
     private static final HooksMethodInstruction Hooks$netHandlerPlayServerGetPacketZ = new HooksMethodInstruction("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
     private static final HooksMethodInstruction Hooks$netHandlerPlayServerGetRelativeY = new HooksMethodInstruction("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
     private static final HooksMethodInstruction Hooks$netHandlerPlayServerHandleFallingYChange =
             new HooksMethodInstruction("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
     private static final HooksMethodInstruction Hooks$netHandlerPlayServerSetRelativeYToZero =
             new HooksMethodInstruction("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$onItemRightClickPost = new HooksMethodInstruction("onItemRightClickPost", new MethodDesc(VOID, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onItemRightClickPre = new HooksMethodInstruction("onItemRightClickPre", new MethodDesc(VOID, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onItemUsePost = new HooksMethodInstruction("onItemUsePost", new MethodDesc(VOID, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onItemUsePre = new HooksMethodInstruction("onItemUsePre", new MethodDesc(VOID, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemRightClickPost = new HooksMethodInstruction("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemRightClickPre = new HooksMethodInstruction("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemUsePost = new HooksMethodInstruction("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onItemUsePre = new HooksMethodInstruction("onItemUsePre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksMethodInstruction Hooks$onPlayerStoppedUsingPost = new HooksMethodInstruction("onPlayerStoppedUsingPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityLivingBase));
+    private static final HooksMethodInstruction Hooks$onPlayerStoppedUsingPre = new HooksMethodInstruction("onPlayerStoppedUsingPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityLivingBase));
     private static final HooksMethodInstruction Hooks$pushEntityPlayerSPOutOfBlocks = new HooksMethodInstruction("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
     private static final HooksMethodInstruction Hooks$reverseXOffset = new HooksMethodInstruction("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
     private static final HooksMethodInstruction Hooks$reverseYOffset = new HooksMethodInstruction("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
@@ -415,9 +435,9 @@ public class Transformer implements IClassTransformer {
         if (function == null) {
             return bytes;
         } else {
-            log("Patching class %s", className);
+            log("Patching class %s", transformedClassName);
             byte[] toReturn = function.apply(bytes);
-            log("Patched class  %s", className);
+            log("Patched class  %s", transformedClassName);
             return toReturn;
         }
     }
@@ -476,7 +496,7 @@ public class Transformer implements IClassTransformer {
     // effectively some events around the item use methods in the ItemStack class.
     private static byte[] patchItemStack(byte[] bytes) {
         int methodPatches = 0;
-        final int expectedMethodPatches = 2;
+        final int expectedMethodPatches = 3;
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
         classReader.accept(classNode, 0);
@@ -484,6 +504,9 @@ public class Transformer implements IClassTransformer {
         for (MethodNode methodNode : classNode.methods) {
             if (Transformer.ItemStack$onItemUse_name.is(methodNode)) {
                 logPatchStarting(Transformer.ItemStack$onItemUse_name);
+
+                int insertedLocalIndex = addLocalVar(methodNode, ItemStackAndBoolean);
+
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (Item$onItemUse.is(next)) {
@@ -491,7 +514,9 @@ public class Transformer implements IClassTransformer {
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
                         Hooks$onItemUsePre.addTo(iterator);
-                        iterator.next();
+                        iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
+                        iterator.next(); // Item$onItemUse
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
                         Hooks$onItemUsePost.addTo(iterator);
@@ -503,6 +528,9 @@ public class Transformer implements IClassTransformer {
             }
             else if (Transformer.ItemStack$useItemRightClick_name.is(methodNode)) {
                 logPatchStarting(Transformer.ItemStack$useItemRightClick_name);
+
+                int insertedLocalIndex = addLocalVar(methodNode, ItemStackAndBoolean);
+
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (Item$onItemRightClick.is(next)) {
@@ -510,7 +538,9 @@ public class Transformer implements IClassTransformer {
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
                         Hooks$onItemRightClickPre.addTo(iterator);
-                        iterator.next();
+                        iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
+                        iterator.next(); // Item$onItemRightClick
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
                         iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
                         Hooks$onItemRightClickPost.addTo(iterator);
@@ -520,12 +550,36 @@ public class Transformer implements IClassTransformer {
                     }
                 }
             }
-            if (methodPatches == 2) {
+            else if (Transformer.ItemStack$onPlayerStoppedUsing_name.is(methodNode)) {
+                logPatchStarting(Transformer.ItemStack$onPlayerStoppedUsing_name);
+
+                int insertedLocalIndex = addLocalVar(methodNode, ItemStackAndBoolean);
+
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (Item$onPlayerStoppedUsing.is(next)) {
+                        iterator.previous();
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityLivingBase
+                        Hooks$onPlayerStoppedUsingPre.addTo(iterator);
+                        iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
+                        iterator.next(); // Item$onPlayerStoppedUsing
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityLivingBase
+                        Hooks$onPlayerStoppedUsingPost.addTo(iterator);
+                        methodPatches++;
+                        logPatchComplete(Transformer.ItemStack$onPlayerStoppedUsing_name);
+                        break;
+                    }
+                }
+            }
+            if (methodPatches == 3) {
                 break;
             }
         }
 
-        dieIfFalse(methodPatches == 2, classNode);
+        dieIfFalse(methodPatches == expectedMethodPatches, classNode);
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         classNode.accept(classWriter);

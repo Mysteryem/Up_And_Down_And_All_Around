@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod;
 
-import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -8,9 +7,9 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import uk.co.mysterymayhem.gravitymod.events.ItemStackRightClickEvent;
-
-import java.io.File;
+import uk.co.mysterymayhem.gravitymod.common.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.util.prepostmodifier.CombinedPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.util.prepostmodifier.EnumPrePostModifier;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -21,7 +20,18 @@ public class GravityMod {
     public static final String VERSION = "2.0";
     public static final String MINECRAFT_VERSION = "1.10.2";
 
-    static boolean MOTION_IS_RELATIVE_WHEN_PLAYERS_USE_ITEMS = true;
+    public static final boolean GENERAL_DEBUG = false;
+
+    public static void logInfo(String formattableString, Object... objects) {
+        FMLLog.info("[UpAndDownAndAllAround] " + formattableString, objects);
+    }
+
+    public static void logWarning(String formattableString, Object... objects) {
+        FMLLog.warning("[UpAndDownAndAllAround] " + formattableString, objects);
+    }
+
+    @Mod.Instance(GravityMod.MOD_ID)
+    public static GravityMod INSTANCE;
 
     @SidedProxy(clientSide = "uk.co.mysterymayhem.gravitymod.ClientProxy", serverSide = "uk.co.mysterymayhem.gravitymod.CommonProxy")
     public static CommonProxy proxy;
@@ -56,12 +66,13 @@ public class GravityMod {
     public void postInit(FMLPostInitializationEvent event) {
         //TODO:'Un-hardcode' this and instead use a config file
         // Hardcoded for the time being
-        if (ItemStackRightClickEvent.addRelativeMotionItem("botania", "tornadoRod")) {
-            FMLLog.info("[UpAndDownAndAllAround] Added support for botania:tornadoRod");
-        }
-        else {
-            FMLLog.info("[UpAndDownAndAllAround] Could not add support for botania:tornadoRod (does the specified item exist?)");
-        }
+        ItemStackUseListener.addPrePostModifier("tconstruct:longsword", CombinedPrePostModifier.getModifierFor(EnumPrePostModifier.ALL_MOTION_RELATIVE, EnumPrePostModifier.ROTATION_RELATIVE), ItemStackUseListener.EnumItemStackUseCompat.STOPPED_USING);
+        ItemStackUseListener.addPrePostModifier("tconstruct:rapier", CombinedPrePostModifier.getModifierFor(EnumPrePostModifier.ALL_MOTION_RELATIVE, EnumPrePostModifier.ROTATION_RELATIVE), ItemStackUseListener.EnumItemStackUseCompat.GENERAL);
+//        ItemStackUseListener.addPrePostModifier("minecraft:stick", CombinedPrePostModifier.getModifierFor(EnumPrePostModifier.ROTATION_RELATIVE, EnumPrePostModifier.ABSOLUTE_Z), ItemStackUseListener.EnumItemStackUseCompat.GENERAL, 1, 52, 12, 18, 19);
+//        ItemStackUseListener.addPrePostModifier("minecraft:coal", EnumPrePostModifier.RELATIVE_Y, ItemStackUseListener.EnumItemStackUseCompat.BLOCK, 9, 8, 7, 6, 0);
+        ItemStackUseListener.makeHash();
+        ItemStackUseListener.buildPacketData();
+        FMLLog.info("HashCode: " + ItemStackUseListener.getHashCode());
     }
 
 }

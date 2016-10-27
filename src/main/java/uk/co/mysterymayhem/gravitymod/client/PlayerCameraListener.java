@@ -1,4 +1,4 @@
-package uk.co.mysterymayhem.gravitymod;
+package uk.co.mysterymayhem.gravitymod.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;

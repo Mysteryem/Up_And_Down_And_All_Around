@@ -1,9 +1,15 @@
-package uk.co.mysterymayhem.gravitymod;
+package uk.co.mysterymayhem.gravitymod.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.Vec3i;
+import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
@@ -26,10 +32,47 @@ public class PlayerRenderListener {
     private boolean needToPop = false;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onRender(RenderLivingEvent.Pre<EntityPlayer> event) {
-        EntityLivingBase entity = event.getEntity();
-        if (entity instanceof EntityPlayer) {
-            EntityPlayer entityPlayer = (EntityPlayer)entity;
+    public void onRender(RenderPlayerEvent.Pre event) {
+//        if (event.getEntity() instanceof EntityPlayer) {
+//            EntityPlayer playerEntity = (EntityPlayer)event.getEntity();
+//            float partialTicks = Minecraft.getMinecraft().getRenderPartialTicks();
+////            double interpolatedPitch = (playerEntity.prevRotationPitch + (playerEntity.rotationPitch - playerEntity.prevRotationPitch) * partialTicks);
+////            double interpolatedYaw = (playerEntity.prevRotationYaw + (playerEntity.rotationYaw - playerEntity.prevRotationYaw) * partialTicks);
+//            double interpolatedYaw = playerEntity.rotationYaw;
+//
+//            GlStateManager.pushMatrix();
+//            //7. Set position back to normal
+//            GlStateManager.translate(event.getX(), event.getY(), event.getZ());
+//            //6. Redo yaw rotation
+//            GlStateManager.rotate((float)-interpolatedYaw, 0, 1, 0);
+//            //5. Move back to (0, 0, 0)
+//            GlStateManager.translate(0, playerEntity.height/2f, 0);
+//            //4. Rotate about x, so player leans over forward (z direction is forwards)
+//            GlStateManager.rotate(70, 1, 0, 0);
+//            //3. So we rotate around the centre of the player instead of the bottom of the player
+//            GlStateManager.translate(0, -playerEntity.height/2f, 0);
+//            //2. Undo yaw rotation (this will make the player face +z (south)
+//            GlStateManager.rotate((float)interpolatedYaw, 0, 1, 0);
+//            //1. Set position to (0, 0, 0)
+//            GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
+//            this.needToPop = true;
+//            return;
+//        }
+
+        EntityPlayer entityPlayer = event.getEntityPlayer();
+        if (entityPlayer instanceof EntityPlayerSP
+                && event.getX() == 0
+                && event.getY() == 0
+                && event.getZ() == 0
+                && event.getPartialRenderTick() == 1f) {
+            // This is the player being rendered in the inventory screen (or very very unlikely to be the player at (0, 0, 0) )
+            //if we could get the yaw argument (it's not passed to the event), we would check if it was zero
+            //if we could get the boolean argument (it's not passed to the event), we would check if it was false
+            return;
+        }
+
+
+
             IGravityDirectionCapability capability = GravityDirectionCapability.getGravityCapability(entityPlayer);
             EnumGravityDirection gravityDirection = capability.getDirection();
             GlStateManager.pushMatrix();
@@ -127,12 +170,11 @@ public class PlayerRenderListener {
             //entityPlayer.cameraPitch += 180;
             //entityPlayer.prevCameraYaw += 180;
             //entityPlayer.prevCameraPitch += 180;
-        }
 
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public void onRender(RenderLivingEvent.Post<EntityPlayer> event) {
+    public void onRender(RenderPlayerEvent.Post event) {
 //        if (this.rotationNeedsUndo) {
 //            this.rotationNeedsUndo = false;
 //            player.rotationYawHead *= -1;

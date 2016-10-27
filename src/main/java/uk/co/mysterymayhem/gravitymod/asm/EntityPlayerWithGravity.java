@@ -1,9 +1,9 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
 import com.mojang.authlib.GameProfile;
+import gnu.trove.stack.array.TFloatArrayStack;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.*;
@@ -17,6 +17,7 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
 import uk.co.mysterymayhem.gravitymod.util.Vec3dHelper;
+import gnu.trove.stack.array.TDoubleArrayStack;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -29,7 +30,7 @@ import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.YAW;
  */
 public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
-    enum MotionFieldState {
+    private enum FieldState {
         ABSOLUTE,
         RELATIVE
     }
@@ -40,10 +41,60 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     private boolean superConstructorsFinished = false;
 
-    private final Deque<MotionFieldState> motionFieldStateStack = new ArrayDeque<>();
+    private final TDoubleArrayStack motionXStore = new TDoubleArrayStack(TDoubleArrayStack.DEFAULT_CAPACITY, 0);
+    private final TDoubleArrayStack motionYStore = new TDoubleArrayStack(TDoubleArrayStack.DEFAULT_CAPACITY, 0);
+    private final TDoubleArrayStack motionZStore = new TDoubleArrayStack(TDoubleArrayStack.DEFAULT_CAPACITY, 0);
+    private float rotationYawStore;
+    private float rotationPitchStore;
+
+    public TDoubleArrayStack getXMotionStore() {
+        return motionXStore;
+    }
+    public TDoubleArrayStack getYMotionStore() {
+        return motionYStore;
+    }
+    public TDoubleArrayStack getZMotionStore() {
+        return motionZStore;
+    }
+
+    public double undoMotionXChange() {
+        double storedMotion = this.motionXStore.pop();
+        double motionChange = this.motionX - storedMotion;
+        this.motionX = storedMotion;
+        return motionChange;
+    }
+    public double undoMotionYChange() {
+        double storedMotion = this.motionYStore.pop();
+        double motionChange = this.motionY - storedMotion;
+        this.motionY = storedMotion;
+        return motionChange;
+    }
+    public double undoMotionZChange() {
+        double storedMotion = this.motionZStore.pop();
+        double motionChange = this.motionZ - storedMotion;
+        this.motionZ = storedMotion;
+        return motionChange;
+    }
+    
+    public void storeMotionX() {
+        this.motionXStore.push(this.motionX);
+    }
+    public void storeMotionY() {
+        this.motionYStore.push(this.motionY);
+    }
+    public void storeMotionZ() {
+        this.motionZStore.push(this.motionZ);
+    }
+
+    private final Deque<FieldState> motionFieldStateStack = new ArrayDeque<>();
     {
         // starting state is ABSOLUTE
-        motionFieldStateStack.push(MotionFieldState.ABSOLUTE);
+        motionFieldStateStack.push(FieldState.ABSOLUTE);
+    }
+    private final Deque<FieldState> rotationFieldStateStack = new ArrayDeque<>();
+    {
+        // starting state is ABSOLUTE
+        rotationFieldStateStack.push(FieldState.ABSOLUTE);
     }
 
     public EntityPlayerWithGravity(World worldIn, GameProfile gameProfileIn) {
@@ -86,27 +137,28 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         this.motionZ = doubles[2];
     }
 
+    @SuppressWarnings("deprecation")
     void makeMotionRelative() {
-        MotionFieldState top = motionFieldStateStack.peek();
-        if (top == MotionFieldState.ABSOLUTE) {
-            //noinspection deprecation
+        FieldState top = motionFieldStateStack.peek();
+        if (top == FieldState.ABSOLUTE) {
             this.makeMotionFieldsRelative();
         }
-        motionFieldStateStack.push(MotionFieldState.RELATIVE);
+        motionFieldStateStack.push(FieldState.RELATIVE);
     }
 
+    @SuppressWarnings("deprecation")
     void makeMotionAbsolute() {
-        MotionFieldState top = motionFieldStateStack.peek();
-        if (top == MotionFieldState.RELATIVE) {
-            //noinspection deprecation
+        FieldState top = motionFieldStateStack.peek();
+        if (top == FieldState.RELATIVE) {
             this.makeMotionFieldsAbsolute();
         }
-        motionFieldStateStack.push(MotionFieldState.ABSOLUTE);
+        motionFieldStateStack.push(FieldState.ABSOLUTE);
     }
 
+    @SuppressWarnings("deprecation")
     void popMotionStack() {
-        MotionFieldState removed = motionFieldStateStack.pop();
-        MotionFieldState top = motionFieldStateStack.peek();
+        FieldState removed = motionFieldStateStack.pop();
+        FieldState top = motionFieldStateStack.peek();
         if (top != removed) {
             switch(top) {
                 case ABSOLUTE:
@@ -120,11 +172,73 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     boolean isMotionRelative() {
-        return motionFieldStateStack.peek() == MotionFieldState.RELATIVE;
+        return motionFieldStateStack.peek() == FieldState.RELATIVE;
     }
 
     boolean isMotionAbsolute() {
         return !this.isMotionRelative();
+    }
+
+    /**
+     * Should only be called by makeRotationAbsolute and popRotationStack
+     */
+    @Deprecated
+    private void makeRotationFieldsAbsolute() {
+        this.rotationYaw = this.rotationYawStore;
+        this.rotationPitch = this.rotationPitchStore;
+    }
+
+    /**
+     * Should only be called by makeRotationRelative and popRotationStack
+     */
+    @Deprecated
+    private void makeRotationFieldsRelative() {
+        final Vec3d fastAdjustedVectorForRotation =
+                API.getGravityDirection(this)
+                        .getInverseAdjustmentFromDOWNDirection()
+                        .adjustLookVec(Vec3dHelper.getFastVectorForRotation(this.rotationPitch, this.rotationYaw));
+        double[] fastPitchAndYawFromVector = Vec3dHelper.getFastPitchAndYawFromVector(fastAdjustedVectorForRotation);
+
+        // Store the absolute yaw and pitch to instance fields so they can be restored easily
+        this.rotationYawStore = this.rotationYaw;
+        this.rotationPitchStore = this.rotationPitch;
+        this.rotationYaw = (float)fastPitchAndYawFromVector[Vec3dHelper.YAW];
+        this.rotationPitch = (float)fastPitchAndYawFromVector[Vec3dHelper.PITCH];
+    }
+
+
+    @SuppressWarnings("deprecation")
+    void makeRotationAbsolute() {
+        FieldState top = rotationFieldStateStack.peek();
+        if (top == FieldState.RELATIVE) {
+            this.makeRotationFieldsAbsolute();
+        }
+        rotationFieldStateStack.push(FieldState.ABSOLUTE);
+    }
+
+    @SuppressWarnings("deprecation")
+    void makeRotationRelative() {
+        FieldState top = rotationFieldStateStack.peek();
+        if (top == FieldState.ABSOLUTE) {
+            this.makeRotationFieldsRelative();
+        }
+        rotationFieldStateStack.push(FieldState.RELATIVE);
+    }
+
+    @SuppressWarnings("deprecation")
+    void popRotationStack() {
+        FieldState removed = rotationFieldStateStack.pop();
+        FieldState top = rotationFieldStateStack.peek();
+        if (top != removed) {
+            switch(top) {
+                case ABSOLUTE:
+                    this.makeRotationFieldsAbsolute();
+                    break;
+                case RELATIVE:
+                    this.makeRotationFieldsRelative();
+                    break;
+            }
+        }
     }
 
     void makePositionRelative() {

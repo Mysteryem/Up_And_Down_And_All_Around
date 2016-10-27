@@ -1,23 +1,29 @@
-package uk.co.mysterymayhem.gravitymod;
+package uk.co.mysterymayhem.gravitymod.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.GravityManagerCommon;
+import uk.co.mysterymayhem.gravitymod.common.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.events.GravityTransitionEvent;
+import uk.co.mysterymayhem.gravitymod.packets.PacketHandler;
+import uk.co.mysterymayhem.gravitymod.packets.config.ModCompatConfigCheckMessage;
 import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangeMessage;
-import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangePacketHandler;
 
 /**
  * Used to control/record the gravity of all players
@@ -119,7 +125,7 @@ public class GravityManagerClient extends GravityManagerCommon {
     }
 
     public void sendRequestToServer(String nameOfPlayerRequested) {
-        GravityChangePacketHandler.INSTANCE.sendToServer(new GravityChangeMessage(nameOfPlayerRequested));
+        PacketHandler.INSTANCE.sendToServer(new GravityChangeMessage(nameOfPlayerRequested));
     }
 
     @Override

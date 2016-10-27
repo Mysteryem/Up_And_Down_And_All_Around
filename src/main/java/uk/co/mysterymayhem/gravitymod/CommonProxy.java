@@ -1,30 +1,37 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
-import uk.co.mysterymayhem.gravitymod.packets.gravitychange.GravityChangePacketHandler;
+import uk.co.mysterymayhem.gravitymod.common.GravityManagerCommon;
+import uk.co.mysterymayhem.gravitymod.common.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.packets.PacketHandler;
 
 /**
  * Created by Mysteryem on 2016-08-04.
  */
 public class CommonProxy {
+
     public GravityManagerCommon gravityManagerCommon;
 
     public void preInit() {
         GravityDirectionCapability.registerCapability();
         this.registerGravityManager();
-        GravityChangePacketHandler.registerMessages();
+        PacketHandler.registerMessages();
         ModItems.initItems();
         ModItems.initRecipes();
     }
 
     public void init() {
         this.registerListeners();
+    }
+
+    public void postInit() {
+
     }
 
     public void registerGravityManager() {
@@ -34,6 +41,7 @@ public class CommonProxy {
     public void registerListeners() {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(this.getGravityManager());
+        MinecraftForge.EVENT_BUS.register(new ItemStackUseListener());
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
 //        MinecraftForge.EVENT_BUS.register(new MovementInterceptionListener());
     }

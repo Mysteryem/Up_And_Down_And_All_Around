@@ -1,8 +1,7 @@
-package uk.co.mysterymayhem.gravitymod.item;
+package uk.co.mysterymayhem.gravitymod.items;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemArmor;
 import net.minecraftforge.client.model.ModelLoader;

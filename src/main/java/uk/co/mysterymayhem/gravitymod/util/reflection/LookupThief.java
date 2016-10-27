@@ -6,6 +6,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 
 /**
+ * Used during development or to access methods that could be overridden, without altering their access with an AT.
  * Created by Mysteryem on 2016-09-05.
  */
 public final class LookupThief {
@@ -23,6 +24,15 @@ public final class LookupThief {
         }
     }
 
+    /**
+     * Get a Lookup object with the same access as the class argument (as if the Lookup object had been created inside
+     * of the class in question).<br>
+     * Note that some classes are not valid, such as java.lang.*<br>
+     * This Lookup can create method handles for any fields/methods accessible from inside the class in question,
+     * including calls to super methods, e.g. super.toString()
+     * @param clazz Class whose access the Lookup object will inherit.
+     * @return A Lookup object as if created by MethodHandles.lookup() from inside clazz.
+     */
     public MethodHandles.Lookup lookup(Class<?> clazz) {
         try {
             return (MethodHandles.Lookup) this.lookupConstructor.invokeExact(clazz);

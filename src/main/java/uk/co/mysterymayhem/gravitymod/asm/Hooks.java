@@ -15,6 +15,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLLog;
@@ -27,7 +28,9 @@ import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.events.ItemStackRightClickEvent;
+import uk.co.mysterymayhem.gravitymod.events.ItemStackUseEvent;
 import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.gravitymod.util.ItemStackAndBoolean;
 
 /**
  * Hooks called through ASM-ed code in order to simplify changes to vanilla classes.
@@ -445,24 +448,100 @@ public class Hooks {
 
     /////////////////////////////////////////////////////////////////////////
 
-    public static void onItemUsePre(ItemStack stack, EntityPlayer player) {
-//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.BLOCK));
-        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.BLOCK));
+    /*
+
+     */
+    public static ItemStackAndBoolean onItemUsePre(ItemStack stack, EntityPlayer player) {
+        World world;
+        if (player == null || (world = player.worldObj) == null) {
+            return null;
+        }
+
+        ItemStack toReturn = stack.copy();
+
+        if (world.isRemote) {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseOnBlock.Pre(stack, player, true));
+            return new ItemStackAndBoolean(toReturn, true);
+        }
+        else {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseOnBlock.Pre(stack, player, false));
+            return new ItemStackAndBoolean(toReturn, false);
+        }
     }
 
-    public static void onItemUsePost(ItemStack stack, EntityPlayer player) {
-//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.BLOCK));
-        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.BLOCK));
+    public static void onItemUsePost(ItemStackAndBoolean preCopyAndIsRemote, ItemStack stack, EntityPlayer player) {
+        if (preCopyAndIsRemote == null) {
+            return;
+        }
+
+        if (preCopyAndIsRemote.isRemote) {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseOnBlock.Post(stack, player, true));
+        }
+        else {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseOnBlock.Post(stack, player, false));
+        }
     }
 
-    public static void onItemRightClickPre(ItemStack stack, EntityPlayer player) {
-//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.NOTHING));
-        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.START, ItemStackRightClickEvent.Type.NOTHING));
+    public static ItemStackAndBoolean onItemRightClickPre(ItemStack stack, EntityPlayer player) {
+        World world;
+        if (player == null || (world = player.worldObj) == null) {
+            return null;
+        }
+
+        ItemStack toReturn = stack.copy();
+
+        if (world.isRemote) {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseGeneral.Pre(stack, player, true));
+            return new ItemStackAndBoolean(toReturn, true);
+        }
+        else {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseGeneral.Pre(stack, player, false));
+            return new ItemStackAndBoolean(toReturn, false);
+        }
     }
 
-    public static void onItemRightClickPost(ItemStack stack, EntityPlayer player) {
-//        MinecraftForge.EVENT_BUS.post(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.NOTHING));
-        ItemStackRightClickEvent.processEvent(new ItemStackRightClickEvent(stack, player, TickEvent.Phase.END, ItemStackRightClickEvent.Type.NOTHING));
+    public static void onItemRightClickPost(ItemStackAndBoolean preCopyAndIsRemote, ItemStack stack, EntityPlayer player) {
+        if (preCopyAndIsRemote == null) {
+            return;
+        }
+
+        if (preCopyAndIsRemote.isRemote) {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseGeneral.Post(stack, player, true));
+        }
+        else {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnUseGeneral.Post(stack, player, false));
+        }
+    }
+
+    public static ItemStackAndBoolean onPlayerStoppedUsingPre(ItemStack stack, EntityLivingBase entity) {
+        World world;
+        if (entity == null || (world = entity.worldObj) == null) {
+            return null;
+        }
+
+        ItemStack toReturn = stack.copy();
+
+        if (world.isRemote) {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnStoppedUsing.Pre(stack, entity, true));
+            return new ItemStackAndBoolean(toReturn, true);
+        }
+        else {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnStoppedUsing.Pre(stack, entity, false));
+            return new ItemStackAndBoolean(toReturn, false);
+        }
+    }
+
+    public static void onPlayerStoppedUsingPost(ItemStackAndBoolean preCopyAndIsRemote, ItemStack stack, EntityLivingBase entity) {
+        if (preCopyAndIsRemote == null) {
+            return;
+        }
+
+        if (preCopyAndIsRemote.isRemote) {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnStoppedUsing.Post(stack, entity, true));
+        }
+        else {
+            MinecraftForge.EVENT_BUS.post(new ItemStackUseEvent.OnStoppedUsing.Post(stack, entity, false));
+        }
     }
 
     //TODO: DELETE
@@ -713,6 +792,24 @@ public class Hooks {
             return ((EntityPlayerWithGravity) entity).isMotionAbsolute();
         }
         return true;
+    }
+
+    public static void makeRotationAbsolute(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            ((EntityPlayerWithGravity)entity).makeRotationAbsolute();
+        }
+    }
+
+    public static void makeRotationRelative(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            ((EntityPlayerWithGravity)entity).makeRotationRelative();
+        }
+    }
+
+    public static void popRotationStack(Entity entity) {
+        if (entity instanceof EntityPlayerWithGravity) {
+            ((EntityPlayerWithGravity)entity).popRotationStack();
+        }
     }
 
     public static void setRelativeMotionX(Entity entity, double value) {

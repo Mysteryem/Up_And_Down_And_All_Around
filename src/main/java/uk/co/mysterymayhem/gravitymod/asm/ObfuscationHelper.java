@@ -14,23 +14,23 @@ public class ObfuscationHelper {
     public static final boolean IS_DEV_ENVIRONMENT = (Boolean)Launch.blackboard.get("fml.deobfuscatedEnvironment");
 
     public static final IDeobfAware INIT = new DeobfAwareString("<init>");
-    public static final IDeobfAwareClass VOID = new PrimitiveClassName("V");
-    public static final IDeobfAwareClass CHAR = new PrimitiveClassName("C");
-    public static final IDeobfAwareClass DOUBLE = new PrimitiveClassName("D");
-    public static final IDeobfAwareClass FLOAT = new PrimitiveClassName("F");
-    public static final IDeobfAwareClass INT = new PrimitiveClassName("I");
-    public static final IDeobfAwareClass LONG = new PrimitiveClassName("J");
-    public static final IDeobfAwareClass SHORT = new PrimitiveClassName("S");
-    public static final IDeobfAwareClass BOOLEAN = new PrimitiveClassName("Z");
+    public static final IClassProxy VOID = new PrimitiveClassName("V");
+    public static final IClassProxy CHAR = new PrimitiveClassName("C");
+    public static final IClassProxy DOUBLE = new PrimitiveClassName("D");
+    public static final IClassProxy FLOAT = new PrimitiveClassName("F");
+    public static final IClassProxy INT = new PrimitiveClassName("I");
+    public static final IClassProxy LONG = new PrimitiveClassName("J");
+    public static final IClassProxy SHORT = new PrimitiveClassName("S");
+    public static final IClassProxy BOOLEAN = new PrimitiveClassName("Z");
 
 
     public static class FieldInstruction extends FieldInsnNode implements IDeobfAwareInstruction {
 
-        public FieldInstruction(int opcode, UnqualifiedName ownerAndName, IDeobfAwareClass type) {
+        public FieldInstruction(int opcode, UnqualifiedName ownerAndName, IClassProxy type) {
             super(opcode, ownerAndName.owner, ownerAndName.name, type.asDescriptor());
         }
 
-        public FieldInstruction(int opcode, IDeobfAwareClass owner, IDeobfAware name, IDeobfAwareClass type) {
+        public FieldInstruction(int opcode, IClassProxy owner, IDeobfAware name, IClassProxy type) {
             super(opcode, owner.toString(), name.toString(), type.asDescriptor());
         }
 
@@ -86,19 +86,19 @@ public class ObfuscationHelper {
             super(opcode, ownerAndName.owner, ownerAndName.name, description.toString(), ownerIsInterface);
         }
 
-        public MethodInstruction(int opcode, IDeobfAwareClass owner, IDeobfAware name, MethodDesc description, boolean ownerIsInterface) {
+        public MethodInstruction(int opcode, IClassProxy owner, IDeobfAware name, MethodDesc description, boolean ownerIsInterface) {
             super(opcode, owner.toString(), name.toString(), description.toString(), ownerIsInterface);
         }
 
-        public MethodInstruction(int opcode, IDeobfAwareClass owner, IDeobfAware name, MethodDesc description) {
+        public MethodInstruction(int opcode, IClassProxy owner, IDeobfAware name, MethodDesc description) {
             this(opcode, owner, name, description, false);
         }
 
-        public MethodInstruction(int opcode, IDeobfAwareClass owner, String name, MethodDesc description, boolean ownerIsInterface) {
+        public MethodInstruction(int opcode, IClassProxy owner, String name, MethodDesc description, boolean ownerIsInterface) {
             super(opcode, owner.toString(), name, description.toString(), ownerIsInterface);
         }
 
-        public MethodInstruction(int opcode, IDeobfAwareClass owner, String name, MethodDesc description) {
+        public MethodInstruction(int opcode, IClassProxy owner, String name, MethodDesc description) {
             this(opcode, owner, name, description, false);
         }
 
@@ -161,13 +161,13 @@ public class ObfuscationHelper {
         private final String owner;
         private final String name;
 
-        public UnqualifiedName(IDeobfAwareClass owner, String name) {
+        public UnqualifiedName(IClassProxy owner, String name) {
             super(owner + "." + name);
             this.owner = owner.toString();
             this.name = name;
         }
 
-        public UnqualifiedName(IDeobfAwareClass owner, IDeobfAware name) {
+        public UnqualifiedName(IClassProxy owner, IDeobfAware name) {
             this(owner, name.toString());
         }
 
@@ -177,24 +177,24 @@ public class ObfuscationHelper {
     }
 
     public static class MethodDesc extends DeobfAwareString {
-        private static String buildDesc(IDeobfAwareClass returnType, IDeobfAwareClass... paremeterTypes) {
+        private static String buildDesc(IClassProxy returnType, IClassProxy... paremeterTypes) {
             StringBuilder builder = new StringBuilder();
             builder.append('(');
-            for (IDeobfAwareClass parameterType : paremeterTypes) {
+            for (IClassProxy parameterType : paremeterTypes) {
                 builder.append(parameterType.asDescriptor());
             }
             builder.append(')').append(returnType.asDescriptor());
             return builder.toString();
         }
 
-        public MethodDesc(IDeobfAwareClass returnType, IDeobfAwareClass... paremeterTypes) {
+        public MethodDesc(IClassProxy returnType, IClassProxy... paremeterTypes) {
             super(buildDesc(returnType, paremeterTypes));
         }
     }
 
-    public static class ArrayClassName extends DeobfAwareString implements IDeobfAwareClass {
+    public static class ArrayClassName extends DeobfAwareString implements IClassProxy {
 
-        public ArrayClassName(IDeobfAwareClass componentClass) {
+        public ArrayClassName(IClassProxy componentClass) {
             super(componentClass.toString());
         }
 
@@ -204,13 +204,13 @@ public class ObfuscationHelper {
         }
     }
 
-    public static class PrimitiveClassName extends DeobfAwareString implements IDeobfAwareClass {
+    public static class PrimitiveClassName extends DeobfAwareString implements IClassProxy {
         public PrimitiveClassName(String name) {
             super(name);
         }
     }
 
-    public static class ObjectClassName extends DeobfAwareString implements IDeobfAwareClass {
+    public static class ObjectClassName extends DeobfAwareString implements IClassProxy {
         public ObjectClassName(String name) {
             super(name);
         }
@@ -250,18 +250,26 @@ public class ObfuscationHelper {
     public static class DeobfAwareString implements IDeobfAware {
 
         private final String value;
+        private final String deobf;
 
         public DeobfAwareString(String deobf, String obf) {
             this.value = ObfuscationHelper.IS_DEV_ENVIRONMENT ? Objects.requireNonNull(deobf) : Objects.requireNonNull(obf);
+            this.deobf = Objects.requireNonNull(deobf);
         }
 
         public DeobfAwareString(String name) {
             this.value = Objects.requireNonNull(name);
+            this.deobf = this.value;
         }
 
         @Override
         public String toString() {
             return this.value;
+        }
+
+//        @Override
+        public String getDeobf() {
+            return this.deobf;
         }
     }
 
@@ -278,7 +286,7 @@ public class ObfuscationHelper {
         }
     }
 
-    public interface IDeobfAwareClass extends IDeobfAware {
+    public interface IClassProxy {
         default String asDescriptor() {
             return this.toString();
         }
