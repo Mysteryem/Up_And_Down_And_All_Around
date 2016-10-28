@@ -338,7 +338,8 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
                 stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
             }
         }
-        return super.onItemRightClick(stack, worldIn, playerIn, hand);
+        return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+//        return super.onItemRightClick(stack, worldIn, playerIn, hand);
     }
 
     @SideOnly(Side.CLIENT)
