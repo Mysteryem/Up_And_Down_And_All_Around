@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
 import com.mojang.authlib.GameProfile;
-import gnu.trove.stack.array.TFloatArrayStack;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -12,20 +11,23 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.capabilities.IGravityDirectionCapability;
-import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
-import uk.co.mysterymayhem.gravitymod.util.Vec3dHelper;
+import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 import gnu.trove.stack.array.TDoubleArrayStack;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.PITCH;
-import static uk.co.mysterymayhem.gravitymod.util.Vec3dHelper.YAW;
+import static uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper.PITCH;
+import static uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper.YAW;
 
 /**
+ * Class inserted into EntityPlayerMP and AbstractClientPlayer's hierarchy in order to reduce the amount of ASM needed
  * Created by Mysteryem on 2016-09-04.
  */
 public abstract class EntityPlayerWithGravity extends EntityPlayer {
@@ -46,16 +48,6 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     private final TDoubleArrayStack motionZStore = new TDoubleArrayStack(TDoubleArrayStack.DEFAULT_CAPACITY, 0);
     private float rotationYawStore;
     private float rotationPitchStore;
-
-    public TDoubleArrayStack getXMotionStore() {
-        return motionXStore;
-    }
-    public TDoubleArrayStack getYMotionStore() {
-        return motionYStore;
-    }
-    public TDoubleArrayStack getZMotionStore() {
-        return motionZStore;
-    }
 
     public double undoMotionXChange() {
         double storedMotion = this.motionXStore.pop();
@@ -392,7 +384,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @Override
-    public void setEntityBoundingBox(AxisAlignedBB bb) {
+    public void setEntityBoundingBox(@Nonnull AxisAlignedBB bb) {
         bb = Hooks.replaceWithGravityAware(this, bb);
         super.setEntityBoundingBox(bb);
     }
@@ -417,7 +409,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 j = MathHelper.floor_double(this.posY - 0.20000000298023224D);
                 k = MathHelper.floor_double(this.posZ);
                 blockpos = new BlockPos(i, j, k);
-                FMLLog.warning("Player bounding box is not gravity aware. In [UpAndDownAndAllAround]:EntityPlayerWithGravity::updateFallState");
+                GravityMod.logWarning("Player bounding box is not gravity aware. In [UpAndDownAndAllAround]:EntityPlayerWithGravity::updateFallState");
             }
 
             IBlockState iblockstate = this.worldObj.getBlockState(blockpos);
@@ -441,8 +433,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                     case NORTH:
                         blockpos1 = blockpos.north();
                         break;
-//                    case EAST:
-                    default:
+                    default://case EAST:
                         blockpos1 = blockpos.east();
                         break;
                 }
@@ -509,10 +500,6 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         else {
             return super.isEntityInsideOpaqueBlock();
         }
-//        this.makePositionRelative();
-//        boolean entityInsideOpaqueBlock = super.isEntityInsideOpaqueBlock();
-//        this.makePositionAbsolute();
-//        return entityInsideOpaqueBlock;
     }
 
     @Override
@@ -597,12 +584,15 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         }
 
         if (f != this.width || f1 != this.height) {
-            AxisAlignedBB axisalignedbb = this.getEntityBoundingBox();
-            //axisalignedbb = new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ, axisalignedbb.minX + (double)f, axisalignedbb.minY + (double)f1, axisalignedbb.minZ + (double)f);
             //TODO: ASM
+            //begin
+            AxisAlignedBB axisalignedbb = this.getEntityBoundingBox();
+            //delete line
+            //axisalignedbb = new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ, axisalignedbb.minX + (double)f, axisalignedbb.minY + (double)f1, axisalignedbb.minZ + (double)f);
             double heightExpansion = (f1 - this.height)/2d;
             double widthExpansion = (f - this.width)/2d;
             axisalignedbb = axisalignedbb.expand(widthExpansion, heightExpansion, widthExpansion).offset(0, heightExpansion, 0);
+            //end ASM
 //            axisalignedbb = Hooks.getGravityAdjustedHitbox(this, f, f1);
 
             if (!this.worldObj.collidesWithAnyBlock(axisalignedbb)) {
@@ -615,6 +605,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     /**
      * Sets the width and height of the entity.
      */
+    @Override
     protected void setSize(float width, float height) {
         if (width != this.width || height != this.height) {
             float oldWidth = this.width;
@@ -710,7 +701,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     //TODO: Fix this, so players are pushed out of blocks in differing direction based on their gravity
-    public boolean pushOutOfBlocksDelegate(double x, double y, double z) {
+    boolean pushOutOfBlocksDelegate(double x, double y, double z) {
 //        this.makeMotionAbsolute();
         boolean result = this.pushOutOfBlocks(x, y, z);
 //        this.makeMotionRelative();
@@ -737,59 +728,61 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             boolean isOnLadder = net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
 
-            if (iblockstate != null) {
+            //iblockstate will never be null (will be air or will throw an exception if stuff isn't right)
+//            if (iblockstate != null) {
+            if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
+                if (iblockstate.getPropertyNames().contains(BlockHorizontal.FACING)) {
+                    EnumFacing facing = iblockstate.getValue(BlockHorizontal.FACING);
+                    EnumGravityDirection direction = gBB.getDirection();
+                    switch(direction) {
+                        case EAST:
+                        case WEST:
+                            if (facing == EnumFacing.EAST || facing == EnumFacing.WEST) {
+                                isOnLadder = false;
+                            }
+                            break;
+                        case NORTH:
+                        case SOUTH:
+                            if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH) {
+                                isOnLadder = false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+//            }
+            if (!isOnLadder) {
+                Vec3d topOfHead = gBB.offset(0, this.height, 0).getOrigin();
+                blockpos = new BlockPos(topOfHead);
+                iblockstate = this.worldObj.getBlockState(blockpos);
+                //As before, iblockstate will not be null
+//                if (iblockstate != null) {
                 if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
                     if (iblockstate.getPropertyNames().contains(BlockHorizontal.FACING)) {
                         EnumFacing facing = iblockstate.getValue(BlockHorizontal.FACING);
                         EnumGravityDirection direction = gBB.getDirection();
                         switch(direction) {
                             case EAST:
+                                isOnLadder = facing == EnumFacing.EAST && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
+                                break;
                             case WEST:
-                                if (facing == EnumFacing.EAST || facing == EnumFacing.WEST) {
-                                    isOnLadder = false;
-                                }
+                                isOnLadder = facing == EnumFacing.WEST && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
                                 break;
                             case NORTH:
+                                isOnLadder = facing == EnumFacing.NORTH && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
+                                break;
                             case SOUTH:
-                                if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH) {
-                                    isOnLadder = false;
-                                }
+                                isOnLadder = facing == EnumFacing.SOUTH && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
                                 break;
                             default:
                                 break;
                         }
+                        isMonkeyBars = true;
                     }
                 }
-            }
-            if (!isOnLadder) {
-                Vec3d topOfHead = gBB.offset(0, this.height, 0).getOrigin();
-                blockpos = new BlockPos(topOfHead);
-                iblockstate = this.worldObj.getBlockState(blockpos);
-                if (iblockstate != null) {
-                    if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
-                        if (iblockstate.getPropertyNames().contains(BlockHorizontal.FACING)) {
-                            EnumFacing facing = iblockstate.getValue(BlockHorizontal.FACING);
-                            EnumGravityDirection direction = gBB.getDirection();
-                            switch(direction) {
-                                case EAST:
-                                    isOnLadder = facing == EnumFacing.EAST && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                    break;
-                                case WEST:
-                                    isOnLadder = facing == EnumFacing.WEST && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                    break;
-                                case NORTH:
-                                    isOnLadder = facing == EnumFacing.NORTH && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                    break;
-                                case SOUTH:
-                                    isOnLadder = facing == EnumFacing.SOUTH && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            isMonkeyBars = true;
-                        }
-                    }
-                }
+//                }
             }
             if (isOnLadder && isMonkeyBars) {
                 if (this.distanceWalkedOnStepModified > (float)this.nextStepDistance) {
@@ -805,22 +798,30 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     //TODO: Replace with AT on the EntityPlayerSP method?
-    // Required so we can call this method from inside this package, this will end up calling EntityPlayerSP::func_189810_i instead
+    // Required so we can call this method from inside this package, this will end up calling EntityPlayerSP::updateAutoJump instead
     @SuppressWarnings("WeakerAccess")
     @SideOnly(Side.CLIENT)
-    protected void func_189810_i(float p_189810_1_, float p_189810_2_) {
+    protected void updateAutoJump(float xChange, float zChange) {
         FMLLog.warning("Erroneously tried to call func_189810_i(auto-jump method) from " + this);
 //        throw new RuntimeException("Unreachable code reached");
     }
 
 
-    //TODO: Will require relative motion
+    /**
+     * In vanilla code, knockBack is called with arguments usually calculated based off of the attacker's rotation
+     * (knockback enchantment) or the difference in position between the attacker and the target (most entity attacks).
+     * We try to work out which case has been called and adjust accordingly for this player's current gravity direction.
+     * @param attacker
+     * @param strength
+     * @param xRatio
+     * @param zRatio
+     */
     @Override
     public void knockBack(Entity attacker, float strength, double xRatio, double zRatio) {
 //        FMLLog.info("x:%s, z:%s", xRatio, zRatio);
         this.makeMotionRelative();
         if (attacker != null) {
-            // Standard mob attacks, also arrows, not sure about others
+            // Standard mob attacks, also arrows, not sure about others (checked first
             if (xRatio == attacker.posX - this.posX && zRatio == attacker.posZ - this.posZ) {
 //                FMLLog.info("Distance based attack");
                 EnumGravityDirection direction = API.getGravityDirection(this).getInverseAdjustmentFromDOWNDirection();

@@ -39,6 +39,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 /**
+ * Transformer class that uses ASM to patch vanilla Minecraft classes
  * Created by Mysteryem on 2016-08-16.
  */
 public class Transformer implements IClassTransformer {
@@ -101,8 +102,8 @@ public class Transformer implements IClassTransformer {
 
     /**
      * Option to used to compound multiple tests together
-     * @param shouldContinue
-     * @param dieMessage
+     * @param shouldContinue boolean to check, if false, Minecraft is forced to crash with the passed dieMessage
+     * @param dieMessage The message to use as the cause when making Minecraft crash
      * @return
      */
     private static void dieIfFalse(boolean shouldContinue, String dieMessage) {
@@ -112,7 +113,8 @@ public class Transformer implements IClassTransformer {
     }
 
     private static void dieIfFalse(boolean shouldContinue, ClassNode classNode) {
-        dieIfFalse(shouldContinue, "Failed to find the methods to patch in " + classNode.name + ". The Minecraft version you are using likely does not match what the mod requires.");
+        dieIfFalse(shouldContinue, "Failed to find the methods to patch in " + classNode.name +
+                ". The Minecraft version you are using likely does not match what the mod requires.");
     }
 
 
@@ -145,8 +147,8 @@ public class Transformer implements IClassTransformer {
 
     /**
      * Internal method to print a class (from bytes), to an OutputStream.
-     * @param bytes
-     * @param outputStream
+     * @param bytes bytes that make up a class
+     * @param outputStream stream to output the class's bytecode to
      */
     private static void printClassToStream(byte[] bytes, OutputStream outputStream) {
         ClassNode classNode2 = new ClassNode();
@@ -276,10 +278,10 @@ public class Transformer implements IClassTransformer {
     private static final ObjectClassName EnumFacing = new ObjectClassName("net/minecraft/util/EnumFacing");
     private static final ObjectClassName EnumHand = new ObjectClassName("net/minecraft/util/EnumHand");
     private static final ObjectClassName FoodStats = new ObjectClassName("net/minecraft/util/FoodStats");
-    private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/GravityAxisAlignedBB");
+    private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
     private static final ObjectClassName Item = new ObjectClassName("net/minecraft/item/Item");
     private static final ObjectClassName ItemStack = new ObjectClassName("net/minecraft/item/ItemStack");
-    private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/util/ItemStackAndBoolean");
+    private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
     private static final ObjectClassName List = new ObjectClassName("java/util/List");
     private static final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
     private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
@@ -312,8 +314,8 @@ public class Transformer implements IClassTransformer {
     private static final FieldInstruction EntityPlayerSP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posZ_name, DOUBLE);
     private static final FieldInstruction EntityPlayerSP$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$rotationYaw_name, FLOAT);
     private static final FieldInstruction NetHandlerPlayServer$lastGoodX_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodX_name, DOUBLE);
-    private static final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
-    private static final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
+//    private static final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
+//    private static final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
     private static final FieldInstruction NetHandlerPlayServer$playerEntity_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$playerEntity_name, EntityPlayerMP);
 
     /*
@@ -419,10 +421,10 @@ public class Transformer implements IClassTransformer {
 
     /**
      * Core transformer method. Recieves classes by name and their bytes and processes them if necessary.
-     * @param className
-     * @param transformedClassName
-     * @param bytes
-     * @return
+     * @param className class name prior to deobfuscation (I think)
+     * @param transformedClassName runtime deobfuscated class name
+     * @param bytes the bytes that make up the class sent to the transformer
+     * @return the bytes of the now processed class
      */
     @Override
     public byte[] transform(String className, String transformedClassName, byte[] bytes) {
@@ -445,8 +447,6 @@ public class Transformer implements IClassTransformer {
     /**
      * Inserts UpAndDown's EntityPlayerWithGravity class into EntityPlayerMP's and AbstractClientPlayer's hierarchy.
      * This is done to significantly lower the amount of ASM required and make it easier to code and debug the mod.
-     * @param bytes
-     * @return
      */
     private static byte[] patchEntityPlayerSubClass(byte[] bytes) {
         ClassNode classNode = new ClassNode();

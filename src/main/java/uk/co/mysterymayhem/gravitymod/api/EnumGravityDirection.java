@@ -5,7 +5,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
+import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 /**
  * Enum of the gravity direction objects
@@ -227,9 +228,8 @@ public enum EnumGravityDirection {
                 axisAlignedBB = secondTry;
             }
         }
-        else {
-            //DEBUG
-//            FMLLog.info("Player's new hitbox fit in the world without moving the player");
+        else if (GravityMod.GENERAL_DEBUG) {
+            GravityMod.logInfo("Player's new hitbox fit in the world without moving the player");
         }
         player.setEntityBoundingBox(axisAlignedBB);
         player.resetPositionToBB();

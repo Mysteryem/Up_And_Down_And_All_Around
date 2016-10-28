@@ -7,8 +7,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-import uk.co.mysterymayhem.gravitymod.items.ItemAntiGravityBoots;
-import uk.co.mysterymayhem.gravitymod.items.ItemPersonalGravityController;
+import uk.co.mysterymayhem.gravitymod.common.items.ItemAntiGravityBoots;
+import uk.co.mysterymayhem.gravitymod.common.items.ItemPersonalGravityController;
 
 /**
  * Created by Mysteryem on 2016-08-08.

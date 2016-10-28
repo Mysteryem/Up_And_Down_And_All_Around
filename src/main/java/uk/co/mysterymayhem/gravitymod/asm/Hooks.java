@@ -19,18 +19,16 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.SoundSystem;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.capabilities.GravityDirectionCapability;
-import uk.co.mysterymayhem.gravitymod.events.ItemStackRightClickEvent;
-import uk.co.mysterymayhem.gravitymod.events.ItemStackUseEvent;
-import uk.co.mysterymayhem.gravitymod.util.GravityAxisAlignedBB;
-import uk.co.mysterymayhem.gravitymod.util.ItemStackAndBoolean;
+import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
+import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.gravitymod.asm.util.ItemStackAndBoolean;
 
 /**
  * Hooks called through ASM-ed code in order to simplify changes to vanilla classes.
@@ -65,15 +63,7 @@ public class Hooks {
      */
     public static Vec3d adjustVec(Vec3d normal, Entity entity) {
         if (entity instanceof EntityPlayer) {
-//            double x = entity.posX;
-//            double y = entity.posY + entity.getEyeHeight();
-//            double z = entity.posZ;
-
-            Vec3d vec3d = API.getGravityDirection((EntityPlayer) entity).adjustLookVec(normal);
-
-//            entity.worldObj.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, normal.xCoord, normal.yCoord, normal.zCoord, 0, 0, 0);
-//            entity.worldObj.spawnParticle(EnumParticleTypes.END_ROD, vec3d.xCoord, vec3d.yCoord, vec3d.zCoord, 0, 0, 0);
-            return vec3d;
+            return API.getGravityDirection((EntityPlayer) entity).adjustLookVec(normal);
         }
         else {
             return normal;
@@ -288,8 +278,7 @@ public class Hooks {
                     return other.west();
                 case NORTH:
                     return other.north();
-//                case EAST:
-                default:
+                default://case EAST:
                     return other.east();
             }
         }
@@ -309,11 +298,7 @@ public class Hooks {
         if (!(entity instanceof EntityPlayerWithGravity)) {
             return entity.getLookVec();
         }
-        Vec3d vec3d = Hooks.inverseAdjustVec(entity.getLookVec(), entity);
-
-//        Vec3d lookpos = vec3d.addVector(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
-//        entity.worldObj.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, lookpos.xCoord, lookpos.yCoord, lookpos.zCoord, 0, 0, 0);
-        return vec3d;
+        return Hooks.inverseAdjustVec(entity.getLookVec(), entity);
     }
 
     /**
@@ -784,14 +769,11 @@ public class Hooks {
     }
 
     public static boolean isMotionRelative(Entity entity) {
-        return !Hooks.isMotionAbsolute(entity);
+        return entity instanceof EntityPlayerWithGravity && ((EntityPlayerWithGravity) entity).isMotionRelative();
     }
 
     public static boolean isMotionAbsolute(Entity entity) {
-        if (entity instanceof EntityPlayerWithGravity) {
-            return ((EntityPlayerWithGravity) entity).isMotionAbsolute();
-        }
-        return true;
+        return !isMotionRelative(entity);
     }
 
     public static void makeRotationAbsolute(Entity entity) {
@@ -875,7 +857,7 @@ public class Hooks {
     @SideOnly(Side.CLIENT)
     public static void runAutoJump(double oldRelativeX, double oldRelativeZ, EntityPlayerWithGravity player) {
         double[] doubles = Hooks.inverseAdjustXYZ(player, player.posX, player.posY, player.posZ);
-        player.func_189810_i((float)(doubles[0] - oldRelativeX), (float)(doubles[2] - oldRelativeZ));
+        player.updateAutoJump((float)(doubles[0] - oldRelativeX), (float)(doubles[2] - oldRelativeZ));
     }
 
     public static Vec3d inverseAdjustVec(Vec3d normal, Entity entity) {

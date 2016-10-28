@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
-import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
