@@ -7,17 +7,20 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import uk.co.mysterymayhem.gravitymod.common.ItemStackUseListener;
-import uk.co.mysterymayhem.gravitymod.util.prepostmodifier.CombinedPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.util.prepostmodifier.EnumPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.CommonProxy;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
+import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.EnumPrePostModifier;
 
 /**
  * Created by Mysteryem on 2016-08-04.
  */
+@SuppressWarnings("WeakerAccess")
 @Mod(modid = GravityMod.MOD_ID, version = GravityMod.VERSION, acceptedMinecraftVersions = GravityMod.MINECRAFT_VERSION)
 public class GravityMod {
     public static final String MOD_ID = "mysttmtgravitymod";
-    public static final String VERSION = "2.0";
+    public static final String VERSION = "2.1";
     public static final String MINECRAFT_VERSION = "1.10.2";
 
     public static final boolean GENERAL_DEBUG = false;
@@ -33,12 +36,13 @@ public class GravityMod {
     @Mod.Instance(GravityMod.MOD_ID)
     public static GravityMod INSTANCE;
 
-    @SidedProxy(clientSide = "uk.co.mysterymayhem.gravitymod.ClientProxy", serverSide = "uk.co.mysterymayhem.gravitymod.CommonProxy")
+    @SidedProxy(clientSide = "uk.co.mysterymayhem.gravitymod.client.ClientProxy", serverSide = "uk.co.mysterymayhem.gravitymod.common.CommonProxy")
     public static CommonProxy proxy;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         //TODO: config stuff instead of hardcoding for just the Botania rod (or just for the air sigil
+        ConfigHandler.loadConfig(event);
 //        File configFile = event.getSuggestedConfigurationFile();
 //        Configuration config = new Configuration(configFile);
 //        config.load();
@@ -64,15 +68,12 @@ public class GravityMod {
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        //TODO:'Un-hardcode' this and instead use a config file
-        // Hardcoded for the time being
-        ItemStackUseListener.addPrePostModifier("tconstruct:longsword", CombinedPrePostModifier.getModifierFor(EnumPrePostModifier.ALL_MOTION_RELATIVE, EnumPrePostModifier.ROTATION_RELATIVE), ItemStackUseListener.EnumItemStackUseCompat.STOPPED_USING);
-        ItemStackUseListener.addPrePostModifier("tconstruct:rapier", CombinedPrePostModifier.getModifierFor(EnumPrePostModifier.ALL_MOTION_RELATIVE, EnumPrePostModifier.ROTATION_RELATIVE), ItemStackUseListener.EnumItemStackUseCompat.GENERAL);
-//        ItemStackUseListener.addPrePostModifier("minecraft:stick", CombinedPrePostModifier.getModifierFor(EnumPrePostModifier.ROTATION_RELATIVE, EnumPrePostModifier.ABSOLUTE_Z), ItemStackUseListener.EnumItemStackUseCompat.GENERAL, 1, 52, 12, 18, 19);
-//        ItemStackUseListener.addPrePostModifier("minecraft:coal", EnumPrePostModifier.RELATIVE_Y, ItemStackUseListener.EnumItemStackUseCompat.BLOCK, 9, 8, 7, 6, 0);
+        ConfigHandler.processConfig();
         ItemStackUseListener.makeHash();
         ItemStackUseListener.buildPacketData();
-        FMLLog.info("HashCode: " + ItemStackUseListener.getHashCode());
+        if (GravityMod.GENERAL_DEBUG) {
+            GravityMod.logInfo("HashCode: " + ItemStackUseListener.getHashCode());
+        }
     }
 
 }
