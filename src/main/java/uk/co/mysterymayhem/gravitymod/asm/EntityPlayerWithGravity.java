@@ -331,8 +331,10 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
         // Any closer to -90 or 90 produce tiny values that the trig functions will effectively treat as zero
         // this causes an inability to rotate the camera when looking straight up or down
-        final double maxRelativeYaw = direction == EnumGravityDirection.UP || direction == EnumGravityDirection.DOWN ? 90d : 89.99d;
-        final double minRelativeYaw = direction == EnumGravityDirection.UP || direction == EnumGravityDirection.DOWN ? -90d : -89.99d;
+        // While, it's not a problem for UP and DOWN directions, it causes issues when going from UP/DOWN to a different
+        // direction, so I've capped UP and DOWN directions as well
+        final double maxRelativeYaw = /*direction == EnumGravityDirection.UP || direction == EnumGravityDirection.DOWN ? 90d :*/ 89.99d;
+        final double minRelativeYaw = /*direction == EnumGravityDirection.UP || direction == EnumGravityDirection.DOWN ? -90d :*/ -89.99d;
 
         if (changedRelativePitch > maxRelativeYaw) {
             clampedRelativePitch = maxRelativeYaw;

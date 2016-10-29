@@ -14,6 +14,8 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     private EnumGravityDirection pendingDirection;
     private int pendingPriority = GravityDirectionCapability.MIN_PRIORITY;
     private int timeoutTicks = 0;
+    private boolean hasTransitionAngle = false;
+    private double transitionRotationAmount = 0;
 
     public GravityDirectionCapabilityImpl() {
         this(GravityDirectionCapability.DEFAULT_GRAVITY);
@@ -53,6 +55,22 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     }
 
     @Override
+    public void setTransitionAngle(double angle) {
+        this.transitionRotationAmount = angle;
+        this.hasTransitionAngle = true;
+    }
+
+    @Override
+    public boolean hasTransitionAngle() {
+        return this.hasTransitionAngle;
+    }
+
+    @Override
+    public double getTransitionAngle() {
+        return this.transitionRotationAmount;
+    }
+
+    @Override
     public void setDirectionNoTimeout(EnumGravityDirection direction) {
         updateDirection(direction);
         this.timeoutTicks = 0;
@@ -61,6 +79,8 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     private void updateDirection(EnumGravityDirection direction) {
         this.prevDirection = this.direction;
         this.direction = direction;
+        this.transitionRotationAmount = 0;
+        this.hasTransitionAngle = false;
         //TODO: Safe to assume not null?
         //this.direction = Objects.requireNonNull(direction, "New gravity direction cannot be null");
     }

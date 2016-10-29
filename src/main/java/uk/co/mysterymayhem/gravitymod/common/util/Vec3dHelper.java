@@ -71,4 +71,8 @@ public class Vec3dHelper {
         int i = (int)Double.doubleToRawLongBits(d2);
         return negateResult ? -ASINE_TAB[i] : ASINE_TAB[i];
     }
+
+    public static Vec3d getFastUpwardsVector(float pitch, float yaw) {
+        return getFastVectorForRotation(pitch + 90f, yaw);
+    }
 }

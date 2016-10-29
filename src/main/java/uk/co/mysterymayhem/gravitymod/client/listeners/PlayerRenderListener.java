@@ -3,6 +3,9 @@ package uk.co.mysterymayhem.gravitymod.client.listeners;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -11,12 +14,17 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 
 /**
  * Created by Mysteryem on 2016-08-07.
  */
 @SideOnly(Side.CLIENT)
 public class PlayerRenderListener {
+
+    private static final double rotationSpeed = 2;
+    private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT/rotationSpeed;
+    private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
 
     private boolean needToPop = false;
 
@@ -48,7 +56,7 @@ public class PlayerRenderListener {
 //            return;
 //        }
 
-        EntityPlayer entityPlayer = event.getEntityPlayer();
+        EntityPlayer player = event.getEntityPlayer();
         // This is a way of detecting if the player being rendered is the one in the inventory, unfortunately, just returning
         // doesn't make things work, as the rendered player no longer looks at the mouse if under non-downwards gravity direction
 //        if (entityPlayer instanceof EntityPlayerSP
@@ -61,14 +69,105 @@ public class PlayerRenderListener {
 //            //if we could get the boolean argument (it's not passed to the event), we would check if it was false
 //            return;
 //        }
+        float partialTicks = event.getPartialRenderTick();
+//        double interpolatedPitch = (player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks);
+        double interpolatedYaw = (player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks);
+
+        IGravityDirectionCapability capability = GravityDirectionCapability.getGravityCapability(player);
+        EnumGravityDirection gravityDirection = capability.getDirection();
+        float transitionRollAmount = 0;
+        int timeoutTicks = capability.getTimeoutTicks();
+        double effectiveTimeoutTicks = timeoutTicks - (1 * event.getPartialRenderTick());
+
+        double multiplier = 0;
+        double rotationAngle = 0;
+
+        if (timeoutTicks != 0 && effectiveTimeoutTicks > rotationEnd) {
 
 
 
-            IGravityDirectionCapability capability = GravityDirectionCapability.getGravityCapability(entityPlayer);
-            EnumGravityDirection gravityDirection = capability.getDirection();
+            if (!capability.hasTransitionAngle()) {
+                double yaw = player.rotationYaw;
+                double pitch = player.rotationPitch;
+
+                // Get the absolute look vector
+                Vec3d absoluteLookVec = Vec3dHelper.getPreciseVectorForRotation(pitch, yaw);
+
+                // Get the relative look vector for the current gravity direction
+                Vec3d relativeCurrentLookVector = gravityDirection.getInverseAdjustmentFromDOWNDirection().adjustLookVec(absoluteLookVec);
+                // Get the pitch and yaw from the relative look vector
+                double[] pitchAndYawRelativeCurrentLook = Vec3dHelper.getPrecisePitchAndYawFromVector(relativeCurrentLookVector);
+                // Pitch - 90, -90 changes it from the forwards direction to the upwards direction
+                double relativeCurrentPitch = pitchAndYawRelativeCurrentLook[Vec3dHelper.PITCH] - 90;
+                // Yaw
+                double relativeCurrentYaw = pitchAndYawRelativeCurrentLook[Vec3dHelper.YAW];
+                // Get the relative upwards vector
+                Vec3d relativeCurrentUpVector = Vec3dHelper.getPreciseVectorForRotation(
+                        relativeCurrentPitch, relativeCurrentYaw);
+                // Get the absolute vector for the relative upwards vector
+                Vec3d absoluteCurrentUpVector = gravityDirection.adjustLookVec(relativeCurrentUpVector);
+
+                // Get the relative look vector for the previous gravity direction
+                Vec3d relativePrevLookVector = capability.getPrevDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(absoluteLookVec);
+                // Get the pitch and yaw from the relative look vector
+                double[] pitchAndYawRelativePrevLook = Vec3dHelper.getPrecisePitchAndYawFromVector(relativePrevLookVector);
+                // Pitch - 90, -90 changes it from the forwards direction to the upwards direction
+                double relativePrevPitch = pitchAndYawRelativePrevLook[Vec3dHelper.PITCH] - 90;
+                // Yaw
+                double relativePrevYaw = pitchAndYawRelativePrevLook[Vec3dHelper.YAW];
+                // Get the relative upwards vector
+                Vec3d relativePrevUpVector = Vec3dHelper.getPreciseVectorForRotation(
+                        relativePrevPitch, relativePrevYaw);
+                // Get the absolute vector for the relative upwards vector
+                Vec3d absolutePrevUpVector = capability.getPrevDirection().adjustLookVec(relativePrevUpVector);
+
+//                    FMLLog.info("\n" + absoluteCurrentUpVector + ", " + absolutePrevUpVector + "\n");
+//                    FMLLog.info("Angle between up vectors: " + (180d/Math.PI)*Math.acos(absoluteCurrentUpVector.dotProduct(absolutePrevUpVector)));
+                double radAngleBetweenUpVecs = Math.acos(MathHelper.clamp_double(absoluteCurrentUpVector.dotProduct(absolutePrevUpVector), -1d, 1d));
+                Vec3d crossProductOfAbsoluteUpVecs = absoluteCurrentUpVector.crossProduct(absolutePrevUpVector);
+                double signDecider = absoluteLookVec.dotProduct(crossProductOfAbsoluteUpVecs);
+                if (signDecider < 0) {
+                    if (radAngleBetweenUpVecs > 0) {
+                        radAngleBetweenUpVecs = -radAngleBetweenUpVecs;
+                    }
+                }
+                rotationAngle = radAngleBetweenUpVecs * (180d/Math.PI);
+
+                capability.setTransitionAngle(rotationAngle);
+            }
+            else {
+                rotationAngle = capability.getTransitionAngle();
+            }
+            // Get relative upwards vector
+            // Adjust for previous direction
+            // Adjust for current direction
+            // Calculate angle between them
+
+//                Vec3d fastUpwardsVector = Vec3dHelper.getFastUpwardsVector((float) interpolatedPitch, (float) interpolatedYaw);
+
+            double numerator = GravityDirectionCapability.DEFAULT_TIMEOUT - effectiveTimeoutTicks;
+            double denominator = rotationLength;
+//
+            multiplier = 1 - numerator/denominator;
+
+            transitionRollAmount = (float)(rotationAngle * multiplier);
+//                transitionRollAmount = (float)(-rotationAngle);
+
+//                FMLLog.info("Angle: " + (float)(rotationAngle));
+//                FMLLog.info("Current up Vec: " + currentDirectionUpVec);
+//                FMLLog.info("Prev up Vec: " + prevDirectionUpVec + ", " + capability.getPrevDirection().name());
+//                FMLLog.info("Current up Vec: " + currentDirectionUpVec + ", " + gravityDirection.name());
+//                FMLLog.info("Angle: " + transitionRollAmount);
+//                FMLLog.info("Multiplier: " + multiplier);
+//                transitionRollAmount = 0;
+        }
+
+
+
+
             GlStateManager.pushMatrix();
             GlStateManager.translate(event.getX(), event.getY(), event.getZ());
-            gravityDirection.applyOtherPlayerRenderTransformations(entityPlayer);
+            gravityDirection.applyOtherPlayerRenderTransformations(player);
 //            gravityDirection.runCameraTransformation();
 
 //            double interpolatedPitch = (player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * event.getRenderPartialTicks());
@@ -129,6 +228,20 @@ public class PlayerRenderListener {
 //            GlStateManager.rotate((float)-interpolatedYaw, 0, 1, 0);
 //            // 1: Undo the absolute pitch rotation of the player
 //            GlStateManager.rotate((float)-interpolatedPitch, 1, 0, 0);
+
+            //6. Redo yaw rotation
+            GlStateManager.rotate((float)interpolatedYaw, 0, 1, 0);
+            //5. Move back to (0, 0, 0)
+            GlStateManager.translate(0, player.height/2f, 0);
+
+            GlStateManager.rotate(transitionRollAmount, 0, 0, 1);
+
+
+            //3. So we rotate around the centre of the player instead of the bottom of the player
+            GlStateManager.translate(0, -player.height/2f, 0);
+            //2. Undo yaw rotation (this will make the player face +z (south)
+            GlStateManager.rotate((float)-interpolatedYaw, 0, 1, 0);
+
             GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
             this.needToPop = true;
 

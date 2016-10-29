@@ -12,6 +12,9 @@ public interface IGravityDirectionCapability {
     int getTimeoutTicks();
 
     void setDirection(EnumGravityDirection direction);
+    void setTransitionAngle(double angle);
+    double getTransitionAngle();
+    boolean hasTransitionAngle();
 
     /**
      * Used to set client gravity when logging into a server.
