@@ -8,16 +8,19 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 
 /**
  * Created by Mysteryem on 2016-08-08.
  */
 public class ItemAntiGravityBoots extends ItemArmor {
 
+    private static final String name = "antigravityboots";
+
     public ItemAntiGravityBoots() {
         super(ArmorMaterial.IRON, 2, EntityEquipmentSlot.FEET);
-        this.setUnlocalizedName("antigravityboots");
-        this.setRegistryName("antigravityboots");
+        this.setUnlocalizedName(name);
+        this.setRegistryName(GravityMod.MOD_ID , name);
         this.setCreativeTab(CreativeTabs.COMBAT);
         this.setMaxStackSize(1);
         GameRegistry.register(this);

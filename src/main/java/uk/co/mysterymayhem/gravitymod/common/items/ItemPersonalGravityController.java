@@ -15,6 +15,7 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
@@ -158,9 +159,11 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         return combinedMeta >>> 3;
     }
 
+    private static final String name = "personalgravitycontroller";
+
     public ItemPersonalGravityController() {
-        this.setUnlocalizedName("personalgravitycontroller");
-        this.setRegistryName("personalgravitycontroller");
+        this.setUnlocalizedName(name);
+        this.setRegistryName(GravityMod.MOD_ID, name);
         this.setCreativeTab(CreativeTabs.TOOLS);
         this.setMaxStackSize(1);
         this.setMaxDamage(0);

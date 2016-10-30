@@ -28,7 +28,11 @@ import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
 
 import java.util.*;
 
+//TODO: Build two separate hashcodes and sets of maps, one that's used in SSP and one that's used in SMP.
+//TODO: If a server's hashcode does not match the client's, it replaces the SMP set.
 /**
+ * Listens to use of item stacks and modifies motion/rotation as defined in the config so items from other mods can be
+ * made to work with different gravity directions
  * Created by Mysteryem on 2016-10-23.
  */
 public class ItemStackUseListener {
