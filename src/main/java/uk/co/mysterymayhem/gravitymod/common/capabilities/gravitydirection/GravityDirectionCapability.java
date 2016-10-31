@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
@@ -83,6 +84,8 @@ public class GravityDirectionCapability {
     }
 
     public static void setGravityDirection(EntityPlayer player, EnumGravityDirection newDirection, boolean noTimeout) {
+        final boolean clientSide = player.worldObj.isRemote;
+
         // Get the player's capability
         IGravityDirectionCapability capability = getGravityCapability(player);
         // Get the current direction
@@ -95,6 +98,15 @@ public class GravityDirectionCapability {
         setGravityDirection(capability, newDirection, noTimeout);
         // Apply any changes the new direction needs to make now that the direction has been changed
         newDirection.postModifyPlayerOnGravityChange(player, oldDirection, oldEyePos);
+
+        // This information is used in rendering, there's no reason to do it if we're a server
+        if (clientSide) {
+            Vec3d newEyePos = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
+
+            Vec3d eyesDiff = newEyePos.subtract(oldEyePos);
+
+            capability.setEyePosChangeVector(eyesDiff);
+        }
     }
 
     private static void setGravityDirection(IGravityDirectionCapability capability, EnumGravityDirection direction, boolean noTimeout) {

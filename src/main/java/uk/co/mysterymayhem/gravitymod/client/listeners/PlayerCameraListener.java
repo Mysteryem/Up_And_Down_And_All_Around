@@ -23,13 +23,14 @@ import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 public class PlayerCameraListener {
 
     //TODO: Un-hardcode (remember to force >=1)
-    private static final double rotationSpeed = 2;
+    private static final double rotationSpeed = 1;
     private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
     private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
 
     //TODO: Add the movement of the player's eyes to the interpolation between old and new gravity direction
     @SubscribeEvent
     public void onCameraSetup(CameraSetup event) {
+
         Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
         if (renderViewEntity instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer) renderViewEntity;
@@ -52,6 +53,10 @@ public class PlayerCameraListener {
 
             double relativeInterpolatedPitch = precisePitchAndYawFromVector[Vec3dHelper.PITCH];
             double relativeInterpolatedYaw = precisePitchAndYawFromVector[Vec3dHelper.YAW];
+
+            double xTranslation = 0;
+            double yTranslation = 0;
+            double zTranslation = 0;
 
             if (timeoutTicks != 0 && effectiveTimeoutTicks > rotationEnd) {
 
@@ -107,9 +112,14 @@ public class PlayerCameraListener {
                 double numerator = GravityDirectionCapability.DEFAULT_TIMEOUT - effectiveTimeoutTicks;
                 double denominator = rotationLength;
 
-                double multiplier = 1 - numerator / denominator;
+                double multiplierZeroToOne = numerator / denominator;
+                double multiplierOneToZero = 1 - multiplierZeroToOne;
 
-                transitionRollAmount = (float) (rotationAngle * multiplier);
+                transitionRollAmount = (float) (rotationAngle * multiplierOneToZero);
+                Vec3d eyePosChangeVector = capability.getEyePosChangeVector();
+                xTranslation = eyePosChangeVector.xCoord * multiplierOneToZero;
+                yTranslation = eyePosChangeVector.yCoord * multiplierOneToZero;
+                zTranslation = eyePosChangeVector.zCoord * multiplierOneToZero;
             }
 
             relativeInterpolatedPitch %= 360;
@@ -123,12 +133,24 @@ public class PlayerCameraListener {
 
             // 3: Now that our look direction is effectively 0 yaw and 0 pitch, perform the rotation specific for this gravity
             gravityDirection.runCameraTransformation();
+
             // 2: Undo the absolute yaw rotation of the player
             GlStateManager.rotate((float) -interpolatedYaw, 0, 1, 0);
             // 1: Undo the absolute pitch rotation of the player
             GlStateManager.rotate((float) -interpolatedPitch, 1, 0, 0);
-            event.setRoll(event.getRoll() + transitionRollAmount);
-        }
 
+            //If using the event's roll, the rotation calls that use event.getRoll() need to be un-commented
+//            event.setRoll(event.getRoll() + transitionRollAmount);
+            GlStateManager.rotate(transitionRollAmount, 0, 0, 1);
+
+//            GlStateManager.rotate(event.getRoll(), 0, 0, 1);
+            GlStateManager.rotate(event.getPitch(), 1, 0, 0);
+            GlStateManager.rotate(event.getYaw(), 0, 1, 0);
+            GlStateManager.translate(xTranslation, yTranslation, zTranslation);
+            GlStateManager.rotate(-event.getYaw(), 0, 1, 0);
+            GlStateManager.rotate(-event.getPitch(), 1, 0, 0);
+//            GlStateManager.rotate(-event.getRoll(), 0, 0, 1);
+
+        }
     }
 }

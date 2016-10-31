@@ -218,6 +218,10 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
         return this.gravityCapability.getDirection();
     }
 
+    public IGravityDirectionCapability getCapability() {
+        return this.gravityCapability;
+    }
+
     public AxisAlignedBB toVanilla() {
         return new AxisAlignedBB(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
     }

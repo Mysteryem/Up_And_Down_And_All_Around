@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection;
 
+import net.minecraft.util.math.Vec3d;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 
 /**
@@ -16,6 +17,7 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     private int timeoutTicks = 0;
     private boolean hasTransitionAngle = false;
     private double transitionRotationAmount = 0;
+    private Vec3d eyePosChangeVec = null;
 
     public GravityDirectionCapabilityImpl() {
         this(GravityDirectionCapability.DEFAULT_GRAVITY);
@@ -68,6 +70,16 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     @Override
     public double getTransitionAngle() {
         return this.transitionRotationAmount;
+    }
+
+    @Override
+    public Vec3d getEyePosChangeVector() {
+        return eyePosChangeVec;
+    }
+
+    @Override
+    public void setEyePosChangeVector(Vec3d vec3d) {
+        this.eyePosChangeVec = vec3d;
     }
 
     @Override
