@@ -2,28 +2,28 @@ package uk.co.mysterymayhem.gravitymod.common.items;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemArmor;
+import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
 
 /**
- * Created by Mysteryem on 2016-08-08.
+ * Created by Mysteryem on 2016-11-02.
  */
-public class ItemAntiGravityBoots extends ItemArmor {
+public class ItemCreativeTabIcon extends Item {
+    private static final String name = "creativetabicon";
 
-    private static final String name = "antigravityboots";
+    public ItemCreativeTabIcon() {
 
-    public ItemAntiGravityBoots() {
-        super(ArmorMaterial.IRON, 2, EntityEquipmentSlot.FEET);
+    }
+
+    public void init() {
         this.setUnlocalizedName(name);
-        this.setRegistryName(GravityMod.MOD_ID , name);
-        this.setCreativeTab(ModItems.UP_AND_DOWN_CREATIVE_TAB);
+        this.setRegistryName(GravityMod.MOD_ID, name);
         this.setMaxStackSize(1);
+        this.setMaxDamage(0);
         GameRegistry.register(this);
     }
 

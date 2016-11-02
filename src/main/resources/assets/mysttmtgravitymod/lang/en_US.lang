@@ -6,3 +6,4 @@ item.personalgravitycontroller.south.name=Personal Gravity Controller - South
 item.personalgravitycontroller.west.name=Personal Gravity Controller - West
 item.personalgravitycontroller.up.name=Personal Gravity Controller - Up
 item.personalgravitycontroller.down.name=Personal Gravity Controller - Down
+itemGroup.mysttmtgravitymod=Up And Down And All Around

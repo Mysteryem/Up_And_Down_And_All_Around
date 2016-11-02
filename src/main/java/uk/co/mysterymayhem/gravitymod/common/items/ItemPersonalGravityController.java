@@ -18,6 +18,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
 
 import java.util.ArrayList;
@@ -164,11 +165,19 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
     public ItemPersonalGravityController() {
         this.setUnlocalizedName(name);
         this.setRegistryName(GravityMod.MOD_ID, name);
-        this.setCreativeTab(CreativeTabs.TOOLS);
+        this.setCreativeTab(ModItems.UP_AND_DOWN_CREATIVE_TAB);
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
         GameRegistry.register(this);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add("Right click to enable/disable");
+        tooltip.add("Sneak+right click to select direction");
+        super.addInformation(stack, playerIn, tooltip, advanced);
     }
 
     @Override
