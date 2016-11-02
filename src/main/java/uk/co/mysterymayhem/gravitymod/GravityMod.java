@@ -10,8 +10,6 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import uk.co.mysterymayhem.gravitymod.common.CommonProxy;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.EnumPrePostModifier;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -68,7 +66,7 @@ public class GravityMod {
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        ConfigHandler.processConfig();
+        ConfigHandler.processModCompatConfig();
         ItemStackUseListener.makeHash();
         ItemStackUseListener.buildPacketData();
         if (GravityMod.GENERAL_DEBUG) {

@@ -12,6 +12,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 
 /**
@@ -23,7 +24,7 @@ import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 public class PlayerCameraListener {
 
     //TODO: Un-hardcode (remember to force >=1)
-    private static final double rotationSpeed = 1;
+    private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
     private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
     private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
 

@@ -1,7 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.common.config;
 
-import com.sun.org.apache.xml.internal.utils.StringToStringTable;
-import joptsimple.internal.Strings;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -13,6 +11,7 @@ import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifi
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * Main config file class
@@ -93,9 +92,14 @@ public class ConfigHandler {
                     "'tconstruct:longsword,relativeMotionAll:relativeRotation' - Adds a relative X, Y and Z motion modifier\n" +
                     "\tcombined with a relative rotation modifier to all damage values of Tinkers' Construct Longswords.";
 
-    private static Configuration modCompatibilityConfig;
     private static final String CONFIG_DIRECTORY_NAME = "UpAndDownAndAllAround";
     private static final String MOD_COMPATIBILITY_CONFIG_FILE_NAME = "modCompat.cfg";
+    private static final String GENERAL_CONFIG = "config.cfg";
+
+    private static Configuration modCompatibilityConfig;
+    private static Configuration generalConfig;
+
+    public static double animationRotationSpeed = 1;
 
     public static void loadConfig(FMLPreInitializationEvent event) {
         File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();
@@ -108,7 +112,8 @@ public class ConfigHandler {
             throw new RuntimeException(new IOException("Config folder already exists, but is a file and not a folder"));
         }
 
-        File modCompatConfigFile = modConfigurationDirectory.toPath().resolve(MOD_COMPATIBILITY_CONFIG_FILE_NAME).toFile();
+        Path configDirectoryPath = modConfigurationDirectory.toPath();
+        File modCompatConfigFile = configDirectoryPath.resolve(MOD_COMPATIBILITY_CONFIG_FILE_NAME).toFile();
         if (!modCompatConfigFile.exists()) {
             try {
                 if (!modCompatConfigFile.createNewFile()) {
@@ -119,9 +124,42 @@ public class ConfigHandler {
             }
         }
         ConfigHandler.modCompatibilityConfig = new Configuration(modCompatConfigFile);
+
+        File generalConfigFile = configDirectoryPath.resolve(GENERAL_CONFIG).toFile();
+        if (!generalConfigFile.exists()) {
+            try {
+                if (!generalConfigFile.createNewFile()) {
+                    throw new RuntimeException(new IOException("Unable to create general config file"));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        ConfigHandler.generalConfig = new Configuration(generalConfigFile);
+
+        processGeneralConfig();
     }
 
-    public static void processConfig() {
+    private static void processGeneralConfig() {
+        Configuration config = ConfigHandler.generalConfig;
+        config.load();
+
+        config.addCustomCategoryComment(Configuration.CATEGORY_CLIENT, "Client only config options");
+
+        ConfigHandler.animationRotationSpeed = config.get(
+                Configuration.CATEGORY_CLIENT,
+                "general.animationSpeed",
+                1.5d,
+                "Animation speed for gravity transition.\nAnimation takes 1 second divided by the config value.\nMin value 1.0",
+                1.0d,
+                1000d).getDouble();
+
+        if (config.hasChanged()) {
+            config.save();
+        }
+    }
+
+    public static void processModCompatConfig() {
         Configuration config = ConfigHandler.modCompatibilityConfig;
         config.load();
 
