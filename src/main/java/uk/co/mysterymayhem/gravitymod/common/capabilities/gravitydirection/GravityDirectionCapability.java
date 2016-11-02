@@ -1,8 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
@@ -13,11 +11,11 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashSet;
 
 /**
  * Created by Mysteryem on 2016-08-14.
@@ -74,14 +72,8 @@ public class GravityDirectionCapability {
         return new GravityAxisAlignedBB(gravityCapability, old);
     }
 
-    //TODO: Remove?
-    private static void setGravityDirection(String playerName, EnumGravityDirection direction, World world, boolean noTimeout) {
-        world.getPlayerEntityByName(playerName);
-        EntityPlayer playerByUsername = world.getPlayerEntityByName(playerName);
-        if (playerByUsername != null) {
-            setGravityDirection(playerByUsername, direction, noTimeout);
-        }
-    }
+    private static final float oppositeDirectionFallDistanceMultiplier = ConfigHandler.oppositeDirectionFallDistanceMultiplier;
+    private static final float otherDirectionsFallDistanceMultiplier = ConfigHandler.otherDirectionFallDistanceMultiplier;
 
     public static void setGravityDirection(EntityPlayer player, EnumGravityDirection newDirection, boolean noTimeout) {
         final boolean clientSide = player.worldObj.isRemote;
@@ -98,6 +90,19 @@ public class GravityDirectionCapability {
         setGravityDirection(capability, newDirection, noTimeout);
         // Apply any changes the new direction needs to make now that the direction has been changed
         newDirection.postModifyPlayerOnGravityChange(player, oldDirection, oldEyePos);
+
+        if (oldDirection != newDirection) {
+            if (oldDirection.getOpposite() == newDirection) {
+                player.fallDistance *= oppositeDirectionFallDistanceMultiplier;
+            }
+            else {
+                player.fallDistance *= otherDirectionsFallDistanceMultiplier;
+            }
+        }
+        else {
+            GravityMod.logInfo("Tried to set gravity direction of %s to %s, but it was already %s." +
+                    " This _probably_ shouldn't happen, but I'm not sure.", player.getName(), newDirection.name(), newDirection.name());
+        }
 
         // This information is used in rendering, there's no reason to do it if we're a server
         if (clientSide) {

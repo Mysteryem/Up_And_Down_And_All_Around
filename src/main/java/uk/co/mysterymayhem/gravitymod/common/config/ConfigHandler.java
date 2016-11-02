@@ -99,7 +99,9 @@ public class ConfigHandler {
     private static Configuration modCompatibilityConfig;
     private static Configuration generalConfig;
 
-    public static double animationRotationSpeed = 1;
+    public static double animationRotationSpeed = 1d;
+    public static float oppositeDirectionFallDistanceMultiplier = 0f;
+    public static float otherDirectionFallDistanceMultiplier = 0.5f;
 
     public static void loadConfig(FMLPreInitializationEvent event) {
         File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();
@@ -145,14 +147,27 @@ public class ConfigHandler {
         config.load();
 
         config.addCustomCategoryComment(Configuration.CATEGORY_CLIENT, "Client only config options");
+        config.addCustomCategoryComment(Configuration.CATEGORY_GENERAL, "Common config options");
 
         ConfigHandler.animationRotationSpeed = config.get(
                 Configuration.CATEGORY_CLIENT,
-                "general.animationSpeed",
+                "transition.animationSpeed",
                 1.5d,
                 "Animation speed for gravity transition.\nAnimation takes 1 second divided by the config value.\nMin value 1.0",
                 1.0d,
                 1000d).getDouble();
+
+
+        ConfigHandler.oppositeDirectionFallDistanceMultiplier = config.getFloat(
+                "transition.fallDistanceMultiplier.opposite", Configuration.CATEGORY_GENERAL, 0f, 0f, 1f,
+                "When a player's gravity direction changes to the opposite direction," +
+                        "\n\ttheir accrued fall distance will be multiplied by this value." +
+                        "\n\nFall damage is performed server side, so it won't matter much if the client's values don't match.");
+        ConfigHandler.otherDirectionFallDistanceMultiplier = config.getFloat(
+                "transition.fallDistanceMultiplier.other", Configuration.CATEGORY_GENERAL, 0.5f, 0f, 1f,
+                "When a player's gravity direction changes to a direction other than the opposite direction," +
+                        "\n\ttheir accrued fall distance will be multiplied by this value." +
+                        "\n\nFall damage is performed server side, so it won't matter much if the client's values don't match.");
 
         if (config.hasChanged()) {
             config.save();

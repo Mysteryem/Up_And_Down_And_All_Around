@@ -28,6 +28,7 @@ public enum EnumGravityDirection {
         @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posY -= player.height/2;}
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posY += player.height/2;}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
+        @Override public EnumGravityDirection getOpposite() {return DOWN;}
     },
     DOWN(new Vec3i(0, 0, 0)) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, y, z};}
@@ -43,6 +44,7 @@ public enum EnumGravityDirection {
         @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posY += player.height/2;}
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posY -= player.height/2;}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
+        @Override public EnumGravityDirection getOpposite() {return UP;}
     },
     NORTH(new Vec3i(90, 0, 0)) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, -z, y};}
@@ -59,6 +61,7 @@ public enum EnumGravityDirection {
         @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return SOUTH;}
+        @Override public EnumGravityDirection getOpposite() {return SOUTH;}
     },
     EAST(new Vec3i(0, 0, 90)) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-y, x, z};}
@@ -267,6 +270,14 @@ public enum EnumGravityDirection {
 
     public AxisAlignedBB getGravityAdjustedAABB(EntityPlayer player) {
         return this.getGravityAdjustedAABB(player, player.width, player.height);
+    }
+
+    /**
+     * Get the opposite gravity direction to this. For all but UP and DOWN, it is the same as this.getInverseAdjustmentFromDOWNDirection()
+     * @return The opposite direction to this.
+     */
+    public EnumGravityDirection getOpposite() {
+        return this.getInverseAdjustmentFromDOWNDirection();
     }
 
 }
