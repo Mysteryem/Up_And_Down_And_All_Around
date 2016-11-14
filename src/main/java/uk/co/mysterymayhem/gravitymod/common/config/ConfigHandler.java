@@ -4,7 +4,9 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
+import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.EnumPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifier;
@@ -102,6 +104,13 @@ public class ConfigHandler {
     public static double animationRotationSpeed = 1d;
     public static float oppositeDirectionFallDistanceMultiplier = 0f;
     public static float otherDirectionFallDistanceMultiplier = 0.5f;
+    public static float baseGravitonPearlStrength = 0.05f;
+    public static double gravitonPearlRange = 10;
+    public static float gravityDustDropChance = 1f/40f;
+    public static boolean gravityDustChanceOncePerBrokenBlock = false;
+    public static int numWeakGravityEnablersRequiredForWeakGravity = 1;
+    public static int numNormalGravityEnablersRequiredForNormalGravity = 4;
+    public static int numNormalEnablersWeakEnablersCountsAs = 4;
 
     public static void loadConfig(FMLPreInitializationEvent event) {
         File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();
@@ -168,6 +177,89 @@ public class ConfigHandler {
                 "When a player's gravity direction changes to a direction other than the opposite direction," +
                         "\n\ttheir accrued fall distance will be multiplied by this value." +
                         "\n\nFall damage is performed server side, so it won't matter much if the client's values don't match.");
+
+        ConfigHandler.gravitonPearlRange = config.get(Configuration.CATEGORY_GENERAL,
+                "gravitonpearl.range", 7.5d, "Range of the Graviton Pearl's push and pull effect", 0d, 20d).getDouble();
+        ConfigHandler.baseGravitonPearlStrength = config.getFloat("gravitonpearl.strength",
+                Configuration.CATEGORY_GENERAL, 0.05f, 0f, 1f,
+                "Set the strength of the Graviton Pearl's push and pull effect." +
+                        "\n\tPulled items and pushed projectiles are affected more than other entities");
+
+        ConfigHandler.gravityDustDropChance = config.getFloat(
+                "anti-mass.dropchance", Configuration.CATEGORY_GENERAL, 0.025f, 0f, 1f, "The chance that anti-mass will spawn");
+        ConfigHandler.gravityDustChanceOncePerBrokenBlock = config.getBoolean(
+                "anti-mass.dropChanceOncePerBlock", Configuration.CATEGORY_GENERAL, false,
+                "If true, only the first valid drop of a block will have a chance to spawn anti-mass" +
+                        "\nIf false, each valid drop will have a chance to spawn anti-mass");
+        ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity = config.getInt(
+                "weakgravity.enablersrequired", Configuration.CATEGORY_GENERAL, 1, 0, Integer.MAX_VALUE,
+                "Number of weak gravity enablers (armor) that must be worn for a player to be affected by weak gravity" +
+                        "\n\rNot used if Baubles mod is found");
+        ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity = config.getInt(
+                "normalgravity.enablersrequired", Configuration.CATEGORY_GENERAL, 4, 0, Integer.MAX_VALUE,
+                "Number of weak or normal gravity enablers (armor) that must be worn for a player to be affected by normal strength gravity" +
+                        "\n\rNot used if Baubles mod is found");
+        ConfigHandler.numNormalEnablersWeakEnablersCountsAs = config.getInt(
+                "normalgravity.numenablersweakenablerscountas", Configuration.CATEGORY_GENERAL, 4, Integer.MIN_VALUE, Integer.MAX_VALUE,
+                "Weak gravity enablers count as this many normal gravity enablers.\n" +
+                        "This makes more sense thematically to be greater than 1, but '1' or '0' will still work" +
+                        "\n\rNot used if Baubles mod is found");
+
+
+
+        if (config.hasChanged()) {
+            config.save();
+        }
+    }
+
+    public static void processLateConfig() {
+        Configuration config = ConfigHandler.generalConfig;
+        String[] antiMassBlockStrings = config.getStringList("anti-mass.blocks", Configuration.CATEGORY_GENERAL, new String[]{
+                        "ore:oreRedstone",
+                        "ore:oreDiamond",
+                        "ore:oreLapis",
+                        "ore:oreCoal",
+                        "ore:oreQuartz",
+                        "ore:oreEmerald",
+                },
+                "Blocks that, when broken, have a chance for some of their drops to become special 'anti-mass' items" +
+                        "\n\twhich float around and drop both the original item and the 'anti-mass' item added by this mod." +
+                        "\nThe normal item drops must be in the \"anti-mass.drops\" list for this to happen" +
+                        "\n\nUse format \"<modid>:<block name>[:<meta>]\"" +
+                        "\nOre registry names can be specified by using \"ore:<ore name>\"" +
+                        "\nEnsure you don't add any blocks that drop themselves when broken (like iron ore)," +
+                        "\n\tto both the blocks and drops lists, otherwise players can place the block back down" +
+                        "\n\tand mine it again for another chance at getting the special drop." +
+                        "\n\nRedstone ore has been hardcoded such that if a player breaks lit redstone ore, the mod acts" +
+                        "\n\tas if the player broke");
+        ItemGravityDust.BlockBreakListener.addBlocksFromConfig(antiMassBlockStrings);
+
+        //TODO: Try adding iron ore to blocks, iron ingot to drops and try tinkers/ender io autosmelting
+        String[] antiMassDropsStrings = config.getStringList("anti-mass.drops", Configuration.CATEGORY_GENERAL, new String[]{
+                        "ore:dustRedstone", "ore:gemDiamond", "ore:gemEmerald", "ore:gemQuartz", "ore:gemLapis", "minecraft:coal:0"
+                },
+                "Items that, when dropped from a broken block, have a chance to become a special 'anti-mass' item" +
+                        "\n\tthat floats around and drops both the original item and the 'anti-mass' item added by this mod." +
+                        "\nThe broken block must be in the \"anti-mass.blocks\" list for this to happen" +
+                        "\n\nUse format \"<modid>:<block/item name>[:<meta>]\"" +
+                        "\nOre registry names can be specified by using \"ore:<ore name>\"");
+        ItemGravityDust.BlockBreakListener.addDropsFromConfig(antiMassDropsStrings);
+
+        if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
+            ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity = config.getInt(
+                    "weakgravity.enablersrequired.baubles", Configuration.CATEGORY_GENERAL, 1, 0, Integer.MAX_VALUE,
+                    "Number of weak gravity enablers (armor/baubles) that must be worn for a player to be affected by weak gravity" +
+                            "\n\rUsed if Baubles mod is found");
+            ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity = config.getInt(
+                    "normalgravity.enablersrequired", Configuration.CATEGORY_GENERAL, 4, 0, Integer.MAX_VALUE,
+                    "Number of weak or normal gravity enablers (armor/baubles) that must be worn for a player to be affected by normal strength gravity" +
+                            "\n\rUsed if Baubles mod is found");
+            ConfigHandler.numNormalEnablersWeakEnablersCountsAs = config.getInt(
+                    "normalgravity.numenablersweakenablerscountas", Configuration.CATEGORY_GENERAL, 4, Integer.MIN_VALUE, Integer.MAX_VALUE,
+                    "Weak gravity enablers count as this many normal gravity enablers.\n" +
+                            "This makes more sense thematically to be greater than 1, but '1' or '0' will still work" +
+                            "\n\rUsed if Baubles mod is found");
+        }
 
         if (config.hasChanged()) {
             config.save();

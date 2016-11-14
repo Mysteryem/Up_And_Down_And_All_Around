@@ -799,7 +799,9 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         }
     }
 
-    //TODO: Replace with AT on the EntityPlayerSP method?
+    // This only works in a deobfuscated dev environment and is only used in the dev environment for debugging/coding purposes
+    // Outside the dev environment, this method won't be overridden, as the name of the method in this class will not be
+    // reobfuscated (probably)
     // Required so we can call this method from inside this package, this will end up calling EntityPlayerSP::updateAutoJump instead
     @SuppressWarnings("WeakerAccess")
     @SideOnly(Side.CLIENT)

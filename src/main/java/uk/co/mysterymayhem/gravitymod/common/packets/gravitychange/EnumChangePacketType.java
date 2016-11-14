@@ -20,7 +20,7 @@ public enum EnumChangePacketType implements IMessageHelper<GravityChangeMessage>
         @Override
         public void readFromBuff(GravityChangeMessage message, ByteBuf buf) {
             message.toSend = ByteBufUtils.readUTF8String(buf);
-            message.newGravityDirection = EnumGravityDirection.values()[buf.readInt()];
+            message.newGravityDirection = EnumGravityDirection.getSafeDirectionFromOrdinal(buf.readInt());
             message.noTimeout = buf.readBoolean();
         }
     },

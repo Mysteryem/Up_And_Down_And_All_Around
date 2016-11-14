@@ -1,8 +1,11 @@
-package uk.co.mysterymayhem.gravitymod.common.items;
+package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,13 +15,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.GravityMod;
+import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
 import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
 
 import java.util.ArrayList;
@@ -28,10 +32,10 @@ import java.util.Locale;
 /**
  * Created by Mysteryem on 2016-10-11.
  */
-public class ItemPersonalGravityController extends Item implements ITickOnMouseCursor {
+public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, IModItem, IConditionallyAffectsGravity {
 
     //7 values (0-6) -> first 3 bits
-    public enum EnumControllerActiveDirection {
+    private enum EnumControllerActiveDirection {
         DOWN(EnumGravityDirection.DOWN),
         UP(EnumGravityDirection.UP),
         NORTH(EnumGravityDirection.NORTH),
@@ -61,7 +65,7 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         }
 
         public static EnumControllerActiveDirection getFromCombinedMeta(int combinedMeta) {
-            return getFromMeta(ItemPersonalGravityController.getActiveDirectionMetaFromCombinedMeta(combinedMeta));
+            return getFromMeta(ItemAbstractGravityController.getActiveDirectionMetaFromCombinedMeta(combinedMeta));
         }
 
         public int addToCombinedMeta(int combinedMeta) {
@@ -72,7 +76,7 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
     }
 
     //12 values (0-11) -> next 4 bits
-    public enum EnumControllerVisibleState {
+    private enum EnumControllerVisibleState {
         DOWN_OFF("down", EnumControllerActiveDirection.DOWN, null),
         DOWN_ON("down_on", null, EnumControllerActiveDirection.DOWN),
         UP_OFF("up", EnumControllerActiveDirection.UP, null),
@@ -109,7 +113,7 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         }
 
         public static EnumControllerVisibleState getFromCombinedMeta(int combinedMeta) {
-            return getFromMeta(ItemPersonalGravityController.getVisibleStateMetaFromCombinedMeta(combinedMeta));
+            return getFromMeta(ItemAbstractGravityController.getVisibleStateMetaFromCombinedMeta(combinedMeta));
         }
 
         public int addToCombinedMeta(int combinedMeta) {
@@ -144,9 +148,31 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
 //        }
     }
 
-    private static final int GRAVITY_PRIORITY = Integer.MAX_VALUE;
+    static final int DEFAULT_META = getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF);
 
-    public static final int DEFAULT_META = getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF);
+    private static final int[] LEGAL_METADATA;
+    static {
+        ArrayList<Integer> legalMetaList = new ArrayList<>();
+        for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
+            if (visibleState.onlyLegalDirection != null) {
+                legalMetaList.add(getCombinedMetaFor(visibleState.onlyLegalDirection, visibleState));
+            }
+            else {
+                for (EnumControllerActiveDirection activeDirection : EnumControllerActiveDirection.values()) {
+                    if (visibleState.illegalDirection == activeDirection) {
+                        continue;
+                    }
+                    legalMetaList.add(getCombinedMetaFor(activeDirection, visibleState));
+                }
+            }
+        }
+
+        int listSize = legalMetaList.size();
+        LEGAL_METADATA = new int[listSize];
+        for (int i = 0; i < listSize; i++) {
+            LEGAL_METADATA[i] = legalMetaList.get(i);
+        }
+    }
 
     private static int getCombinedMetaFor(EnumControllerActiveDirection active, EnumControllerVisibleState visible) {
         return active.mask | visible.mask;
@@ -160,24 +186,32 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         return combinedMeta >>> 3;
     }
 
-    private static final String name = "personalgravitycontroller";
-
-    public ItemPersonalGravityController() {
-        this.setUnlocalizedName(name);
-        this.setRegistryName(GravityMod.MOD_ID, name);
-        this.setCreativeTab(ModItems.UP_AND_DOWN_CREATIVE_TAB);
+    @Override
+    public void preInit() {
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
-        GameRegistry.register(this);
+        IModItem.super.preInit();
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add("Right click to enable/disable");
-        tooltip.add("Sneak+right click to select direction");
-        super.addInformation(stack, playerIn, tooltip, advanced);
+        KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
+        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitycontroller.sneak.line1"));
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitycontroller.sneak.line2"));
+        }
+        else {
+            tooltip.add(keyBindSneak.getDisplayName() + I18n.format("mouseovertext.mysttmtgravitymod.presskeyfordetails"));
+        }
+        if (advanced) {
+            int meta = stack.getItemDamage();
+            EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
+            EnumControllerVisibleState visibleState = EnumControllerVisibleState.getFromCombinedMeta(meta);
+            tooltip.add("Visible direction: " + visibleState.name().toLowerCase(Locale.ENGLISH));
+            tooltip.add("Active direction: " + activeDirection.name().toLowerCase(Locale.ENGLISH));
+        }
     }
 
     @Override
@@ -185,7 +219,7 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         int meta = stack.getItemDamage();
         EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(meta);
 
-        return super.getUnlocalizedName(stack) + fromCombinedMeta.extraText;
+        return super.getUnlocalizedName() + fromCombinedMeta.extraText;
     }
 
     @Override
@@ -199,16 +233,31 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
     @SideOnly(Side.CLIENT)
     @Override
     public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
-        subItems.add(new ItemStack(this, 1, DEFAULT_META));
+        if (tab == ModItems.UP_AND_DOWN_CREATIVE_TAB) {
+            subItems.add(new ItemStack(this, 1, DEFAULT_META));
+        }
+        else if (tab == ModItems.FAKE_TAB_FOR_CONTROLLERS) {
+            for (int legalMeta : LEGAL_METADATA) {
+                subItems.add(new ItemStack(this, 1, legalMeta));
+            }
+        }
+    }
+
+    // Fake tab for JEI compat
+    @Override
+    public CreativeTabs[] getCreativeTabs() {
+        return new CreativeTabs[]{ModItems.FAKE_TAB_FOR_CONTROLLERS, ModItems.UP_AND_DOWN_CREATIVE_TAB};
     }
 
     @Override
     public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
         if (entityIn instanceof EntityPlayerMP) {
-            int meta = stack.getItemDamage();
-            EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
-            if (activeDirection != EnumControllerActiveDirection.NONE) {
-                API.setPlayerGravity(activeDirection.gravityDirection, (EntityPlayerMP)entityIn, GRAVITY_PRIORITY);
+            if (this.affectsPlayer((EntityPlayerMP)entityIn)) {
+                int meta = stack.getItemDamage();
+                EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
+                if (activeDirection != EnumControllerActiveDirection.NONE) {
+                    API.setPlayerGravity(activeDirection.gravityDirection, (EntityPlayerMP) entityIn, this.getPriority(entityIn));
+                }
             }
         }
     }
@@ -219,6 +268,7 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
         return true;
     }
 
+    // We could alternatively return a new EntityItem instance
     @Override
     public Entity createEntity(World world, Entity location, ItemStack itemstack) {
         int meta = itemstack.getItemDamage();
@@ -355,11 +405,11 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
     }
 
     @SideOnly(Side.CLIENT)
-    static class MeshDefinitions implements ItemMeshDefinition {
+    private class MeshDefinitions implements ItemMeshDefinition {
 
         final ArrayList<ModelResourceLocation> list;
 
-        public MeshDefinitions(ItemPersonalGravityController item) {
+        MeshDefinitions(ItemAbstractGravityController item) {
             list = new ArrayList<>();
             for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
                 list.add(new ModelResourceLocation(item.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
@@ -375,7 +425,7 @@ public class ItemPersonalGravityController extends Item implements ITickOnMouseC
     }
 
     @SideOnly(Side.CLIENT)
-    public void initModel() {
+    public void preInitModel() {
         MeshDefinitions meshDefinitions = new MeshDefinitions(this);
         ModelBakery.registerItemVariants(this, meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]));
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);

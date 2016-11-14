@@ -1,11 +1,15 @@
 package uk.co.mysterymayhem.gravitymod.common.listeners;
 
+import baubles.api.BaublesApi;
+import baubles.api.cap.IBaublesItemHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,16 +19,22 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.events.GravityTransitionEvent;
+import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemArmourPaste;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.packets.config.ModCompatConfigCheckMessage;
 import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChangeMessage;
 import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+
+import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -49,6 +59,86 @@ public class GravityManagerCommon {
 //            }
 //        }
 //    }
+
+    public static boolean playerIsAffectedByWeakGravity(EntityPlayerMP player) {
+        if (!(player instanceof FakePlayer)) {
+            ItemStack[] armorInventory = player.inventory.armorInventory;
+            int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
+            int numWeakGravityEnablers = 0;
+            for (ItemStack stack : armorInventory) {
+                if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                    if (++numWeakGravityEnablers == numRequired) {
+                        return true;
+                    }
+                }
+            }
+            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
+                IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(player);
+                int slots = baublesHandler.getSlots();
+                for (int i = 0; i < slots; i++) {
+                    ItemStack stack = baublesHandler.getStackInSlot(i);
+                    if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                        if (++numWeakGravityEnablers == numRequired) {
+                            return true;
+                        }
+                    }
+                }
+
+            }
+        }
+        return false;
+    }
+
+    public static boolean playerIsAffectedByNormalGravity(EntityPlayerMP player) {
+        if (!(player instanceof FakePlayer)) {
+            ItemStack[] armorInventory = player.inventory.armorInventory;
+            int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
+            int numNormalGravityEnablers = 0;
+            for (ItemStack stack : armorInventory) {
+                if (stack != null) {
+                    if (stack.getItem() instanceof IWeakGravityEnabler) {
+                        numNormalGravityEnablers += ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
+                        if (numNormalGravityEnablers >= numRequired) {
+                            return true;
+                        }
+                    }
+                    // IWeakGravityEnablers cannot have paste applied to them, they're partially made of the paste
+                    else if (ItemArmourPaste.hasPasteTag(stack)) {
+                        if (++numNormalGravityEnablers >= numRequired) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
+                IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(player);
+                int slots = baublesHandler.getSlots();
+                for (int i = 0; i < slots; i++) {
+                    ItemStack stack = baublesHandler.getStackInSlot(i);
+                    if (stack != null) {
+                        if (stack.getItem() instanceof IWeakGravityEnabler) {
+                            numNormalGravityEnablers += ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
+                            if (numNormalGravityEnablers >= numRequired) {
+                                return true;
+                            }
+                        }
+                        // IWeakGravityEnablers cannot have paste applied to them, they're partially made of the paste
+                        else if (ItemArmourPaste.hasPasteTag(stack)) {
+                            if (++numNormalGravityEnablers >= numRequired) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+        return false;
+    }
+
+    public static boolean playerIsAffectedByStrongGravity(EntityPlayerMP playerMP) {
+        return !(playerMP instanceof FakePlayer);
+    }
 
     public void doGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player, boolean noTimeout) {
         EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);

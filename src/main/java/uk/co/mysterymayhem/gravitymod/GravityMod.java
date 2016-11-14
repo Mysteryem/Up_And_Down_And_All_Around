@@ -10,16 +10,24 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import uk.co.mysterymayhem.gravitymod.common.CommonProxy;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 /**
  * Created by Mysteryem on 2016-08-04.
  */
 @SuppressWarnings("WeakerAccess")
-@Mod(modid = GravityMod.MOD_ID, version = GravityMod.VERSION, acceptedMinecraftVersions = GravityMod.MINECRAFT_VERSION)
+@Mod(
+        modid = GravityMod.MOD_ID,
+        version = GravityMod.VERSION,
+        acceptedMinecraftVersions = GravityMod.MINECRAFT_VERSION,
+        dependencies = GravityMod.DEPENDENCIES_LIST,
+        name = GravityMod.USER_FRIENDLY_NAME)
 public class GravityMod {
     public static final String MOD_ID = "mysttmtgravitymod";
     public static final String VERSION = "2.1";
     public static final String MINECRAFT_VERSION = "1.10.2";
+    public static final String DEPENDENCIES_LIST = "after:" + ModSupport.BAUBLES_MOD_ID;
+    public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
 
     public static final boolean GENERAL_DEBUG = false;
 
@@ -29,6 +37,12 @@ public class GravityMod {
 
     public static void logWarning(String formattableString, Object... objects) {
         FMLLog.warning("[UpAndDownAndAllAround] " + formattableString, objects);
+    }
+
+    private static int currentEntityID = 0;
+
+    public static int getNextEntityID() {
+        return currentEntityID++;
     }
 
     @Mod.Instance(GravityMod.MOD_ID)
@@ -66,12 +80,14 @@ public class GravityMod {
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
+        ConfigHandler.processLateConfig();
         ConfigHandler.processModCompatConfig();
         ItemStackUseListener.makeHash();
         ItemStackUseListener.buildPacketData();
         if (GravityMod.GENERAL_DEBUG) {
             GravityMod.logInfo("HashCode: " + ItemStackUseListener.getHashCode());
         }
+        proxy.postInit();
     }
 
 }

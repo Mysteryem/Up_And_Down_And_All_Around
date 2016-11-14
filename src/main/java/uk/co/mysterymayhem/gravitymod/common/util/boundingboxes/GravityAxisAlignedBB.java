@@ -69,9 +69,8 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
     @Override
     public GravityAxisAlignedBB expand(double x, double y, double z) {
         // Sign of the arguments is important, we only want to get the new directions the values correspond to
-        double[] signs = this.gravityCapability.getDirection().adjustXYZValues(1, 1, 1);
-        double[] d = this.gravityCapability.getDirection().adjustXYZValues(x, y, z);
-        return new GravityAxisAlignedBB(this, super.expand(d[0] * signs[0], d[1] * signs[1], d[2] * signs[2]));
+        double[] d = this.getDirection().adjustXYZValuesMaintainSigns(x, y, z);
+        return new GravityAxisAlignedBB(this, super.expand(d[0], d[1], d[2]));
     }
 
     @Override

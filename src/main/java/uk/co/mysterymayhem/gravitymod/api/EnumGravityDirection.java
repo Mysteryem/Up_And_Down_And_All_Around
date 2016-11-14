@@ -2,6 +2,8 @@ package uk.co.mysterymayhem.gravitymod.api;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
@@ -12,8 +14,8 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
  * Enum of the gravity direction objects
  * Created by Mysteryem on 2016-08-14.
  */
-public enum EnumGravityDirection {
-    UP(new Vec3i(0, 0, 180)) {
+public enum EnumGravityDirection implements IStringSerializable {
+    UP(new Vec3i(0, 0, 180), "up") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-x, -y, z};}
         //TODO: Why is doing nothing correct?
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {/*do nothing*/}
@@ -30,7 +32,7 @@ public enum EnumGravityDirection {
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
         @Override public EnumGravityDirection getOpposite() {return DOWN;}
     },
-    DOWN(new Vec3i(0, 0, 0)) {
+    DOWN(new Vec3i(0, 0, 0), "down") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, y, z};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {/*do nothing*/}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -46,7 +48,7 @@ public enum EnumGravityDirection {
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
         @Override public EnumGravityDirection getOpposite() {return UP;}
     },
-    NORTH(new Vec3i(90, 0, 0)) {
+    NORTH(new Vec3i(90, 0, 0), "north") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, -z, y};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(0, 0, -API.getStandardEyeHeight(player));}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -63,7 +65,7 @@ public enum EnumGravityDirection {
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return SOUTH;}
         @Override public EnumGravityDirection getOpposite() {return SOUTH;}
     },
-    EAST(new Vec3i(0, 0, 90)) {
+    EAST(new Vec3i(0, 0, 90), "east") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-y, x, z};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(API.getStandardEyeHeight(player), 0, 0);}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -79,7 +81,7 @@ public enum EnumGravityDirection {
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return WEST;}
     },
-    SOUTH(new Vec3i(-90, 0, 0)) {
+    SOUTH(new Vec3i(-90, 0, 0), "south") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, z, -y};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(0, 0, API.getStandardEyeHeight(player));}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -95,7 +97,7 @@ public enum EnumGravityDirection {
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return NORTH;}
     },
-    WEST(new Vec3i(0, 0, -90)) {
+    WEST(new Vec3i(0, 0, -90), "west") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{y, -x, z};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(-API.getStandardEyeHeight(player), 0, 0);}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -120,9 +122,11 @@ public enum EnumGravityDirection {
     public abstract EnumGravityDirection getInverseAdjustmentFromDOWNDirection();
 
     private final Vec3i cameraTransformVars;
+    private final String name;
 
-    EnumGravityDirection(Vec3i cameraTransformVars) {
+    EnumGravityDirection(Vec3i cameraTransformVars, String name) {
         this.cameraTransformVars = cameraTransformVars;
+        this.name = name;
     }
 
     public Vec3i getCameraTransformVars() {
@@ -137,6 +141,12 @@ public enum EnumGravityDirection {
     public Vec3d adjustLookVec(Vec3d input) {
         double[] d = this.adjustXYZValues(input.xCoord, input.yCoord, input.zCoord);
         return new Vec3d(d[0], d[1], d[2]);
+    }
+
+    public double[] adjustXYZValuesMaintainSigns(double x, double y, double z) {
+        double[] values = this.adjustXYZValues(x, y, z);
+        double[] signs = this.adjustXYZValues(1, 1, 1);
+        return new double[]{values[0] * signs[0], values[1] * signs[1], values[2] * signs[2]};
     }
 
     private void setBoundingBoxAndPositionOnGravityChange(EntityPlayer player, EnumGravityDirection oldDirection, Vec3d oldEyePos) {
@@ -280,4 +290,39 @@ public enum EnumGravityDirection {
         return this.getInverseAdjustmentFromDOWNDirection();
     }
 
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Will return DOWN if the int argument is out of bounds
+     * @param ordinal
+     * @return
+     */
+    public static EnumGravityDirection getSafeDirectionFromOrdinal(int ordinal) {
+        if (ordinal >= 0 && ordinal < EnumGravityDirection.values().length) {
+            return EnumGravityDirection.values()[ordinal];
+        }
+        else {
+            return EnumGravityDirection.DOWN;
+        }
+    }
+
+    public static EnumGravityDirection fromEnumFacing(EnumFacing enumFacing) {
+        switch (enumFacing) {
+            case DOWN:
+                return DOWN;
+            case UP:
+                return UP;
+            case NORTH:
+                return NORTH;
+            case SOUTH:
+                return SOUTH;
+            case WEST:
+                return WEST;
+            default://case EAST:
+                return EAST;
+        }
+    }
 }

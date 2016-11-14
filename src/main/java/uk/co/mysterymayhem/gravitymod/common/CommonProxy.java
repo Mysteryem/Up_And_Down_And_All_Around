@@ -1,14 +1,20 @@
 package uk.co.mysterymayhem.gravitymod.common;
 
+import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.EntityRegistry;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
+import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
+import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
+import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 
 /**
@@ -22,8 +28,9 @@ public class CommonProxy {
         GravityDirectionCapability.registerCapability();
         this.registerGravityManager();
         PacketHandler.registerMessages();
-        ModItems.initItems();
-        ModItems.initRecipes();
+        ModItems.preInitItems();
+        EntityRegistry.registerModEntity(EntityGravityItem.class, EntityGravityItem.NAME, GravityMod.getNextEntityID(), GravityMod.INSTANCE, 32, 10, true);
+        EntityRegistry.registerModEntity(EntityFloatingItem.class, EntityFloatingItem.NAME, GravityMod.getNextEntityID(), GravityMod.INSTANCE, 32, 10, true);
     }
 
     public void init() {
@@ -31,7 +38,7 @@ public class CommonProxy {
     }
 
     public void postInit() {
-
+        ModItems.postInitRecipes();
     }
 
     public void registerGravityManager() {
@@ -42,6 +49,7 @@ public class CommonProxy {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(this.getGravityManager());
         MinecraftForge.EVENT_BUS.register(new ItemStackUseListener());
+        MinecraftForge.EVENT_BUS.register(new ItemGravityDust.BlockBreakListener());
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
 //        MinecraftForge.EVENT_BUS.register(new MovementInterceptionListener());
     }
@@ -72,5 +80,10 @@ public class CommonProxy {
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public void onRightClickItemLowest(PlayerInteractEvent.RightClickItem event) {
         Hooks.popMotionStack(event.getEntityPlayer());
+    }
+
+    public <T extends Item & IModItem> T preInitItem(T item) {
+        item.preInit();
+        return item;
     }
 }
