@@ -1,0 +1,14 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "mysttmtgravitymod:items/creativetabicon"
+  },
+  "overrides": [
+    {"predicate": {"facing": 0}, "model": "mysttmtgravitymod:item/gravityanchor_forwards"},
+    {"predicate": {"facing": 1}, "model": "mysttmtgravitymod:item/gravityanchor_backwards"},
+    {"predicate": {"facing": 2}, "model": "mysttmtgravitymod:item/gravityanchor_up"},
+    {"predicate": {"facing": 3}, "model": "mysttmtgravitymod:item/gravityanchor_down"},
+    {"predicate": {"facing": 4}, "model": "mysttmtgravitymod:item/gravityanchor_left"},
+    {"predicate": {"facing": 5}, "model": "mysttmtgravitymod:item/gravityanchor_right"}
+  ]
+}

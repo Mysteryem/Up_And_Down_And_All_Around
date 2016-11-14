@@ -1,0 +1,10 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "mysttmtgravitymod:items/gravitypearlanimationbulge"
+  },
+  "overrides": [
+    {"predicate": {"use": 1}, "model": "mysttmtgravitymod:item/gravitypearl_pull"},
+    {"predicate": {"use": 2}, "model": "mysttmtgravitymod:item/gravitypearl_push"}
+  ]
+}
