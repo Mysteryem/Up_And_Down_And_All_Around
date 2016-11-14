@@ -61,6 +61,7 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
         classNameToMethodMap.put("net.minecraft.item.ItemStack", Transformer::patchItemStack);
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
+        classNameToMethodMap.put("net.minecraft.entity.item.EntityItem", Transformer::patchEntityItem);
     }
 
     /**
@@ -190,6 +191,8 @@ public class Transformer implements IClassTransformer {
     private static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
     private static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
 
+    private static final MethodName EntityItem$combineItems_name = new MethodName("combineItems", "func_70289_a");
+
     private static final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
     private static final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
     private static final MethodName EntityLivingBase$onLivingUpdate_name = new MethodName("onLivingUpdate", "func_70636_d");
@@ -273,22 +276,25 @@ public class Transformer implements IClassTransformer {
     private static final ObjectClassName EntityPlayer = new ObjectClassName("net/minecraft/entity/player/EntityPlayer");
     private static final ObjectClassName EntityPlayerMP = new ObjectClassName("net/minecraft/entity/player/EntityPlayerMP");
     private static final ObjectClassName EntityPlayerSP = new ObjectClassName("net/minecraft/client/entity/EntityPlayerSP");
-    private static final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
     private static final ObjectClassName EnumActionResult = new ObjectClassName("net/minecraft/util/EnumActionResult");
     private static final ObjectClassName EnumFacing = new ObjectClassName("net/minecraft/util/EnumFacing");
     private static final ObjectClassName EnumHand = new ObjectClassName("net/minecraft/util/EnumHand");
     private static final ObjectClassName FoodStats = new ObjectClassName("net/minecraft/util/FoodStats");
-    private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
     private static final ObjectClassName Item = new ObjectClassName("net/minecraft/item/Item");
     private static final ObjectClassName ItemStack = new ObjectClassName("net/minecraft/item/ItemStack");
-    private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
-    private static final ObjectClassName List = new ObjectClassName("java/util/List");
     private static final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
-    private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
-    private static final ObjectClassName SoundSystem = new ObjectClassName("paulscode/sound/SoundSystem");
     private static final ObjectClassName Vec3d = new ObjectClassName("net/minecraft/util/math/Vec3d");
     private static final ObjectClassName World = new ObjectClassName("net/minecraft/world/World");
     private static final ObjectClassName WorldClient = new ObjectClassName("net/minecraft/client/multiplayer/WorldClient");
+
+    // Non-minecraft classes
+    private static final ObjectClassName EntityFloatingItem = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/entities/EntityFloatingItem");
+    private static final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
+    private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
+    private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
+    private static final ObjectClassName List = new ObjectClassName("java/util/List");
+    private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
+    private static final ObjectClassName SoundSystem = new ObjectClassName("paulscode/sound/SoundSystem");
 
     /*
         Mojang field instructions
@@ -610,6 +616,51 @@ public class Transformer implements IClassTransformer {
         dieIfFalse(methodPatches == 1, classNode);
 
         ClassWriter classWriter = new ClassWriter(0);
+        classNode.accept(classWriter);
+        return classWriter.toByteArray();
+    }
+
+    private static byte[] patchEntityItem(byte[] bytes) {
+        int methodPatches = 0;
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept(classNode, 0);
+
+        for (MethodNode methodNode : classNode.methods) {
+            // I don't want item entities to combine with my class that extends EntityItem
+            // So I return false in the combineItems method if 'this' or 'other' is an instance of EntityFloatingItem
+            if (Transformer.EntityItem$combineItems_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityItem$combineItems_name);
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof LabelNode) {
+                        LabelNode firstLabelNode = (LabelNode)next;
+                        LabelNode secondCheck = new LabelNode();
+                        iterator.previous();
+                        iterator.add(new LabelNode()); // not sure if the method has to start with a lablenode, I'll add it just in case
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // other // EntityItem parameter
+                        iterator.add(new TypeInsnNode(Opcodes.INSTANCEOF, Transformer.EntityFloatingItem.toString()));
+                        iterator.add(new JumpInsnNode(Opcodes.IFEQ, secondCheck));
+                        iterator.add(new InsnNode(Opcodes.ICONST_0));
+                        iterator.add(new InsnNode(Opcodes.IRETURN));
+                        iterator.add(secondCheck); // not sure if the method has to start with a lablenode, I'll add it just in case
+                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                        iterator.add(new TypeInsnNode(Opcodes.INSTANCEOF, Transformer.EntityFloatingItem.toString()));
+                        iterator.add(new JumpInsnNode(Opcodes.IFEQ, firstLabelNode));
+                        iterator.add(new InsnNode(Opcodes.ICONST_0));
+                        iterator.add(new InsnNode(Opcodes.IRETURN));
+
+                        logPatchComplete(Transformer.EntityItem$combineItems_name);
+                        methodPatches++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        dieIfFalse(methodPatches == 1, classNode);
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
     }
