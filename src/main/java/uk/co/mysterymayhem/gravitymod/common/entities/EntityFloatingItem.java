@@ -26,6 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.client.renderers.RenderGravityEntityItem;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 
 /**
  * Created by Mysteryem on 2016-11-09.
@@ -54,9 +55,9 @@ public class EntityFloatingItem extends EntityItem {
     public void setDead() {
         // Only spawn the new item if setDead wasn't called due to the entity despawning
 
-        if (!this.worldObj.isRemote && this.getAge() < this.lifespan && this.health > 0 && this.getEntityItem() != null /*&& stack.stackSize <= 0*/) {
+        if (!this.worldObj.isRemote && this.age < this.lifespan && this.health > 0 && this.getEntityItem() != null /*&& stack.stackSize <= 0*/) {
             World world;
-            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(ModItems.gravityDust));
+            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(ModItems.gravityDust, ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
 //            newItem.lifespan = 20 * 10;
             newItem.motionX *= 0.1;

@@ -50,12 +50,23 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
                 'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
                 'P', ModItems.gravityPearl,
                 'S', ModItems.spacetimeAnomaly
-                ).setMirrored(true));
+                ));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
-                "PGP",
-                "ISI",
                 "PIP",
+                "ISG",
+                "PIP",
+
+                'I', ModItems.gravityIngot,
+                'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
+                'P', ModItems.gravityPearl,
+                'S', ModItems.spacetimeAnomaly
+        ));
+        GameRegistry.addRecipe(new ShapedOreRecipe(
+                new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
+                "PIP",
+                "ISI",
+                "PGP",
 
                 'I', ModItems.gravityIngot,
                 'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),

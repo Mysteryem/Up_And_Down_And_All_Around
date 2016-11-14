@@ -92,7 +92,7 @@ public class GravityManagerCommon {
     public static boolean playerIsAffectedByNormalGravity(EntityPlayerMP player) {
         if (!(player instanceof FakePlayer)) {
             ItemStack[] armorInventory = player.inventory.armorInventory;
-            int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
+            int numRequired = ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity;
             int numNormalGravityEnablers = 0;
             for (ItemStack stack : armorInventory) {
                 if (stack != null) {

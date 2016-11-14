@@ -111,7 +111,7 @@ public class ItemTooltipListener {
         boolean enoughEquipped = numWeakEnablersWorn >= numRequired;
         toolTips.add(I18n.format(
                 "mouseovertext.mysttmtgravitymod.weaktooltip",
-                enoughEquipped ? "§f" : "§c",
+                enoughEquipped ? "f" : "c",
                 numWeakEnablersWorn,
                 numRequired));
 //        toolTips.add((enoughEquipped ? "§f" : "§c") + numWeakEnablersWorn + "§7/" + numRequired + " for §fweak§7 gravity");
@@ -135,7 +135,7 @@ public class ItemTooltipListener {
             boolean enoughEquipped = combinedNormalEnablersWorn >= numRequired;
             toolTips.add(I18n.format(
                     "mouseovertext.mysttmtgravitymod.normaltooltip",
-                    enoughEquipped ? "§5" : "§c",
+                    enoughEquipped ? "5" : "c",
                     combinedNormalEnablersWorn,
                     numRequired,
                     weakEnablersDontCount ? "" : "(" + keyBindSneak.getDisplayName() + ")"));

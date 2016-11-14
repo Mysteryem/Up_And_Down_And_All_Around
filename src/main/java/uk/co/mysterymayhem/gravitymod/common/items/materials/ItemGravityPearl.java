@@ -140,6 +140,11 @@ public class ItemGravityPearl extends Item implements IModItem {
         }
     }
 
+    // getCentre instance method of AxisAlignedBB is client only
+    private static Vec3d getCentreOfAABB(AxisAlignedBB bb) {
+        return new Vec3d(bb.minX + (bb.maxX - bb.minX) * 0.5D, bb.minY + (bb.maxY - bb.minY) * 0.5D, bb.minZ + (bb.maxZ - bb.minZ) * 0.5D);
+    }
+
     private static void pushPullNearbyEntities(EntityPlayer playerIn) {
         World world = playerIn.worldObj;
 
@@ -150,7 +155,7 @@ public class ItemGravityPearl extends Item implements IModItem {
         double playerY = playerIn.posY + playerIn.getEyeHeight();
         double playerZ = playerIn.posZ;
 
-        Vec3d playerCentre = playerIn.getEntityBoundingBox().getCenter();
+        Vec3d playerCentre = getCentreOfAABB(playerIn.getEntityBoundingBox());
 
         List<Entity> nearbyEntities = world.getEntitiesInAABBexcluding(
                 playerIn,
@@ -164,7 +169,7 @@ public class ItemGravityPearl extends Item implements IModItem {
                 if (nearbyEntity instanceof EntityItem){
                     strength *= 5;
                 }
-                Vec3d entityCentre = nearbyEntity.getEntityBoundingBox().getCenter();
+                Vec3d entityCentre = getCentreOfAABB(nearbyEntity.getEntityBoundingBox());
                 Vec3d movementVector = playerCentre.subtract(entityCentre);
                 if (movementVector.lengthSquared() > 1) {
                     movementVector = movementVector.normalize();
@@ -206,7 +211,7 @@ public class ItemGravityPearl extends Item implements IModItem {
                 if (nearbyEntity instanceof IProjectile){
                     strength *= 10;
                 }
-                Vec3d entityCentre = nearbyEntity.getEntityBoundingBox().getCenter();
+                Vec3d entityCentre = getCentreOfAABB(nearbyEntity.getEntityBoundingBox());
                 Vec3d movementVector = playerCentre.subtract(entityCentre);
                 if (movementVector.lengthSquared() > 1) {
                     movementVector = movementVector.normalize();
@@ -271,7 +276,7 @@ public class ItemGravityPearl extends Item implements IModItem {
 
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
-        int age = entityItem.getAge();
+        int age = entityItem.age;
         if (entityItem.worldObj.isRemote) {
             // For some reason this fixes some client/server desync. Is there perhaps a bigger vanilla issue at play here?
             age++;

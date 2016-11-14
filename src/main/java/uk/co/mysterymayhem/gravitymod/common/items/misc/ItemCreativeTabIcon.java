@@ -109,9 +109,9 @@ public class ItemCreativeTabIcon extends Item implements IModItem {
 
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
-        if (entityItem.ticksExisted != entityItem.getAge() + 1) {
-            entityItem.lifespan = entityItem.getAge() + ENTITY_LIFETIME_TICKS;
-            entityItem.ticksExisted = entityItem.getAge() + 1;
+        if (entityItem.ticksExisted != entityItem.age + 1) {
+            entityItem.lifespan = entityItem.age + ENTITY_LIFETIME_TICKS;
+            entityItem.ticksExisted = entityItem.age + 1;
         }
         boolean remote;
         if ((remote = entityItem.worldObj.isRemote) && currentClientEntity == entityItem) {

@@ -35,6 +35,7 @@ import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 
 import java.util.*;
 
@@ -45,34 +46,34 @@ public class ItemGravityDust extends Item implements IModItem {
 
     public static class FallDamageListener {
 
-        @SubscribeEvent(priority = EventPriority.LOWEST)
-        public void onLivingFall(LivingFallEvent event) {
-            if (event.getDistance() <= 3) {
-                return;
-            }
-            EntityLivingBase entityLiving = event.getEntityLiving();
-            if (entityLiving instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) entityLiving;
-//                player.inventory
-                List<ItemStack> stacks = player.inventoryContainer.inventoryItemStacks;
-                int amountOfDust = 0;
-                for (ItemStack stack : stacks) {
-                    if (stack == null) {
-                        continue;
-                    }
-                    Item item = stack.getItem();
-                    if (item == ModItems.gravityDust) {
-                        amountOfDust += stack.stackSize;
-                    }
-                }
-                double upwardsMotionFromStacks = UPWARDS_MOTION_CHANGE_PER_ITEM * amountOfDust;
-                double multiplier = 1 - (upwardsMotionFromStacks / VANILLA_DOWNWARDS_MOTION);
-                if (multiplier < 0) {
-                    multiplier = 0;
-                }
-                event.setDistance((float) (event.getDistance() * multiplier));
-            }
-        }
+//        @SubscribeEvent(priority = EventPriority.LOWEST)
+//        public void onLivingFall(LivingFallEvent event) {
+//            if (event.getDistance() <= 3) {
+//                return;
+//            }
+//            EntityLivingBase entityLiving = event.getEntityLiving();
+//            if (entityLiving instanceof EntityPlayer) {
+//                EntityPlayer player = (EntityPlayer) entityLiving;
+////                player.inventory
+//                List<ItemStack> stacks = player.inventoryContainer.inventoryItemStacks;
+//                int amountOfDust = 0;
+//                for (ItemStack stack : stacks) {
+//                    if (stack == null) {
+//                        continue;
+//                    }
+//                    Item item = stack.getItem();
+//                    if (item == ModItems.gravityDust) {
+//                        amountOfDust += stack.stackSize;
+//                    }
+//                }
+//                double upwardsMotionFromStacks = UPWARDS_MOTION_CHANGE_PER_ITEM * amountOfDust;
+//                double multiplier = 1 - (upwardsMotionFromStacks / VANILLA_DOWNWARDS_MOTION);
+//                if (multiplier < 0) {
+//                    multiplier = 0;
+//                }
+//                event.setDistance((float) (event.getDistance() * multiplier));
+//            }
+//        }
     }
 
     public static class BlockBreakListener {
@@ -339,13 +340,13 @@ public class ItemGravityDust extends Item implements IModItem {
         }
     }
 
-    private static final double VANILLA_DOWNWARDS_MOTION = 0.03999999910593033D;
-    private static final int VANILLA_INVENTORY_SLOTS = 36;
-    private static final int STACK_SIZE = 64;
-    private static final int MAX_ITEMS_IN_INVENTORY = VANILLA_INVENTORY_SLOTS * STACK_SIZE;
-    private static final double MAXUPWARDS_MOTION = VANILLA_DOWNWARDS_MOTION - 0.002;
-//    private static final double MAXUPWARDS_MOTION_PER_ITEM = MAXUPWARDS_MOTION / (double)(VANILLA_INVENTORY_SLOTS);
-    private static final double UPWARDS_MOTION_CHANGE_PER_ITEM = MAXUPWARDS_MOTION / (double)(MAX_ITEMS_IN_INVENTORY);
+//    private static final double VANILLA_DOWNWARDS_MOTION = 0.03999999910593033D;
+//    private static final int VANILLA_INVENTORY_SLOTS = 36;
+//    private static final int STACK_SIZE = 64;
+//    private static final int MAX_ITEMS_IN_INVENTORY = VANILLA_INVENTORY_SLOTS * STACK_SIZE;
+//    private static final double MAXUPWARDS_MOTION = VANILLA_DOWNWARDS_MOTION - 0.002;
+////    private static final double MAXUPWARDS_MOTION_PER_ITEM = MAXUPWARDS_MOTION / (double)(VANILLA_INVENTORY_SLOTS);
+//    private static final double UPWARDS_MOTION_CHANGE_PER_ITEM = (VANILLA_DOWNWARDS_MOTION - 0.002)/(2*64);
 
     @Override
     public void preInit() {
@@ -358,15 +359,18 @@ public class ItemGravityDust extends Item implements IModItem {
         return "gravitydust";
     }
 
-    @Override
-    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        Hooks.makeMotionRelative(entityIn);
-        double upwardsMotion = UPWARDS_MOTION_CHANGE_PER_ITEM * stack.stackSize;
-        if (entityIn.motionY + upwardsMotion < 0) {
-            entityIn.motionY += upwardsMotion;
-        }
-        Hooks.popMotionStack(entityIn);
-    }
+//    @Override
+//    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
+//        Hooks.makeMotionRelative(entityIn);
+//        double upwardsMotion = UPWARDS_MOTION_CHANGE_PER_ITEM * stack.stackSize;
+//        if (entityIn.motionY + upwardsMotion < -0.01) {
+//            entityIn.motionY += upwardsMotion;
+//        }
+//        else {
+//            entityIn.motionY = Math.max(entityIn.motionY, -0.01);
+//        }
+//        Hooks.popMotionStack(entityIn);
+//    }
 
     @SideOnly(Side.CLIENT)
     @Override
