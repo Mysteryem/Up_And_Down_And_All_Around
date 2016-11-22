@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
@@ -15,7 +16,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
-import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemAbstractGravityController;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 import java.util.ArrayList;
@@ -28,7 +28,6 @@ import java.util.Locale;
 @Optional.Interface(iface = ModSupport.INTERFACE_IBAUBLE, modid = ModSupport.BAUBLES_MOD_ID)
 public class ItemGravityBauble extends Item implements IBauble, IModItem, IWeakGravityEnabler {
     private static final ArrayList<String> DAMAGE_TO_NAME_MAP = new ArrayList<>();
-
 
     /*
     0: AMULET(0),
@@ -112,10 +111,12 @@ public class ItemGravityBauble extends Item implements IBauble, IModItem, IWeakG
         }
     }
 
+    @Override
     @SideOnly(Side.CLIENT)
     public void preInitModel() {
         MeshDefinitions meshDefinitions = new MeshDefinitions(this);
-        ModelBakery.registerItemVariants(this, meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]));
+        ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
+        ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
     }
 }

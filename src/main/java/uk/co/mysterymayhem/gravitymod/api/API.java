@@ -18,10 +18,6 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class API {
 
-    public static final int X = 0;
-    public static final int Y = 1;
-    public static final int Z = 2;
-
     /**
      * Call this every tick that a player should have the gravity direction you specify.
      * At the beginning of the player's next tick, the highest priority 'prepared gravity transition' will be chosen.

@@ -1,35 +1,16 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
+import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassReader;
-import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
-
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceClassVisitor;
-
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.MethodInstruction;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.HooksMethodInstruction;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.ObjectClassName;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.MethodName;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FieldName;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.MethodDesc;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FieldInstruction;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.INIT;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.VOID;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.DOUBLE;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.INT;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.BOOLEAN;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FLOAT;
+import org.objectweb.asm.util.TraceMethodVisitor;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -37,6 +18,11 @@ import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+
+import static org.objectweb.asm.Opcodes.*;
+import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.*;
+import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.DOUBLE;
+import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FLOAT;
 
 /**
  * Transformer class that uses ASM to patch vanilla Minecraft classes
@@ -157,6 +143,18 @@ public class Transformer implements IClassTransformer {
         PrintWriter writer = new PrintWriter(outputStream);
         TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
         classReader2.accept(traceClassVisitor, 0);
+    }
+
+    private static void printMethodToStdOut(MethodNode methodNode) {
+        printMethodToStream(methodNode, System.out);
+    }
+
+    private static void printMethodToStream(MethodNode methodNode, OutputStream outputStream) {
+        PrintWriter writer = new PrintWriter(outputStream);
+        Textifier textifier = new Textifier();
+        TraceMethodVisitor traceMethodVisitor = new TraceMethodVisitor(textifier);
+        methodNode.accept(traceMethodVisitor);
+        textifier.print(writer);
     }
 
     private static int addLocalVar(MethodNode methodNode, ObjectClassName objectClassName) {

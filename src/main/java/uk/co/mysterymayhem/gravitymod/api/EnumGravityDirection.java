@@ -11,7 +11,7 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 /**
- * Enum of the gravity direction objects
+ * Enum of the gravity direction objects.
  * Created by Mysteryem on 2016-08-14.
  */
 public enum EnumGravityDirection implements IStringSerializable {

@@ -19,14 +19,13 @@ public class GravityChangePacketHandler implements IMessageHandler<GravityChange
     @Override
     public IMessage onMessage(GravityChangeMessage message, MessageContext ctx) {
         if (message.getPacketType() == EnumChangePacketType.CLIENT_REQUEST_GRAVITY_OF_PLAYER) {
-            //DEBUG
-            //FMLLog.info("Received gravity data request for %s, from %s", message.toSend, ctx.getServerHandler().playerEntity);
+            if (GravityMod.GENERAL_DEBUG) {
+                GravityMod.logInfo("Received gravity data request for %s, from %s", message.toSend, ctx.getServerHandler().playerEntity);
+            }
             EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(message.getStringData(), ctx.getServerHandler().playerEntity.getEntityWorld());
-//                if (gravityDirection == null) {
-//                    gravityDirection = EnumGravityDirection.DOWN;
-//                }
-            //DEBUG
-            //FMLLog.info("Responding with gravity data for %s to %s", message.toSend, ctx.getServerHandler().playerEntity);
+            if (GravityMod.GENERAL_DEBUG) {
+                GravityMod.logInfo("Responding with gravity data for %s to %s", message.toSend, ctx.getServerHandler().playerEntity);
+            }
             return new GravityChangeMessage(message.getStringData(), gravityDirection, true);
         }
         FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> GravityMod.proxy.getGravityManager().handlePacket(message, ctx));

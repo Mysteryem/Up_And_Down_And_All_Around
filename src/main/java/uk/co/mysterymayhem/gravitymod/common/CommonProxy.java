@@ -51,7 +51,6 @@ public class CommonProxy {
         MinecraftForge.EVENT_BUS.register(new ItemStackUseListener());
         MinecraftForge.EVENT_BUS.register(new ItemGravityDust.BlockBreakListener());
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
-//        MinecraftForge.EVENT_BUS.register(new MovementInterceptionListener());
     }
 
     public GravityManagerCommon getGravityManager() {

@@ -6,7 +6,6 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
-import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.EnumPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifier;
@@ -251,7 +250,7 @@ public class ConfigHandler {
                         "\n\tto both the blocks and drops lists, otherwise players can place the block back down" +
                         "\n\tand mine it again for another chance at getting the special drop." +
                         "\n\nRedstone ore has been hardcoded such that if a player breaks lit redstone ore, the mod acts" +
-                        "\n\tas if the player broke" +
+                        "\n\tas if the player broke non-lit redstone ore" +
                         "\n\n");
         ItemGravityDust.BlockBreakListener.addBlocksFromConfig(antiMassBlockStrings);
 

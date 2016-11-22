@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -11,7 +10,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
@@ -24,26 +22,21 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.client.settings.KeyBindingMap;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import org.lwjgl.input.Keyboard;
-import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.client.renderers.RenderGravityEntityItem;
 import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
 import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
-import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
+import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -55,7 +48,8 @@ import java.util.Locale;
  */
 public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModItem {
 
-    public enum ItemFacing {
+    // If these are changed, the item jsons will need to be changed too!
+    private enum ItemFacing {
         FORWARDS,
         BACKWARDS,
         UP,
@@ -278,13 +272,11 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
 
         @Override
         public ModelResourceLocation getModelLocation(ItemStack stack) {
-//            int metadata = stack.getMetadata();
-//            EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(metadata);
-//            return list.get(direction.ordinal());
             return generalResource;
         }
     }
 
+    @Override
     @SuppressWarnings("ConfusingArgumentToVarargsMethod")
     @SideOnly(Side.CLIENT)
     public void preInitModel() {
@@ -307,8 +299,6 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 else {
                     entityGravityDirection = EnumGravityDirection.DOWN;
                 }
-//                        entityGravityDirection =
-//                        EnumFacing entityFacingDirection;
 
                 final double entityPitch = entityIn.rotationPitch;
                 final double entityYaw;
@@ -322,35 +312,10 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 double[] relativeYawAndPitch = Hooks.getRelativeYawAndPitch(entityYaw, entityPitch, entityIn);
                 final double relativeYaw = relativeYawAndPitch[Hooks.YAW];
                 final double relativePitch = relativeYawAndPitch[Hooks.PITCH];
-//
-//
-//                        if (entityIn.rotationPitch >= 45) {
-//                            entityFacingDirection = EnumFacing.DOWN;
-//                        }
-//                        else if (entityIn.rotationPitch <= 45) {
-//                            entityFacingDirection = EnumFacing.UP;
-//                        }
-//                        else {
-//                            entityFacingDirection = entityIn.getHorizontalFacing();
-//                        }
+
                 EnumGravityDirection itemDirection = EnumGravityDirection.getSafeDirectionFromOrdinal(stack.getItemDamage());
 
-//                        EnumGravityDirection facingDirection = EnumGravityDirection.fromEnumFacing(facing);
-                if (entityIn instanceof EntityZombie) {
-                    FMLLog.info("z " + entityYaw);
-                }
-
                 ItemFacing itemFacing = null;
-
-//                        if (facingDirection == direction) {
-//                            itemFacing = ItemFacing.FORWARDS;
-//                        }
-//                        else if (facingDirection == direction.getOpposite()) {
-//                            itemFacing = ItemFacing.BACKWARDS;
-//                        }
-//                        else {
-//                            return -1;
-//                        }
 
                 if (itemDirection == entityGravityDirection) {
                     if (relativePitch >= 45) {
@@ -613,91 +578,16 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                                 break;
                         }
                         if (itemFacing == null) {
+                            //???
+                            // Will display the creative tab icon I think
                             return -1;
-//                                    return stack.getItemDamage();
                         }
-                        //relative yaw
-                        //Umm
-//                                return -1;
-//                                itemFacing = ItemFacing.LEFT;
                     }
                 }
-
-//                        switch(entityGravityDirection) {
-//                            case UP:
-//                                switch (itemDirection) {
-//                                    case UP:
-//                                        if (entityPitch > 0) {
-//                                            itemFacing =
-//                                        }
-//                                        break;
-//                                    case DOWN:
-//                                        switch (entityFacingDirection) {
-//                                            case DOWN:
-//                                                itemFacing = ItemFacing.FORWARDS;
-//                                                break;
-//                                            case UP:
-//                                                itemFacing = ItemFacing.BACKWARDS;
-//                                                break;
-//                                            default:
-//                                                itemFacing = ItemFacing.UP;
-//                                                break;
-//                                        }
-//                                        break;
-//                                    case NORTH:
-//                                        switch (entityFacingDirection) {
-//                                            case DOWN:
-//                                                break;
-//                                            case UP:
-//                                                break;
-//                                            case NORTH:
-//                                                break;
-//                                            case SOUTH:
-//                                                break;
-//                                            case WEST:
-//                                                break;
-//                                            case EAST:
-//                                                break;
-//                                        }
-//                                        break;
-//                                    case EAST:
-//                                        break;
-//                                    case SOUTH:
-//                                        break;
-//                                    case WEST:
-//                                        break;
-//                                }
-//                                break;
-//                            case DOWN:
-//                                switch (entityFacingDirection) {
-//                                    case DOWN:
-//                                        itemFacing = ItemFacing.FORWARDS;
-//                                        break;
-//                                    case UP:
-//                                        itemFacing = ItemFacing.BACKWARDS;
-//                                        break;
-//                                    default:
-//                                        break;
-//                                }
-//                                break;
-//                            case NORTH:
-//                                break;
-//                            case EAST:
-//                                break;
-//                            case SOUTH:
-//                                break;
-//                            case WEST:
-//                                break;
-//                        }
                 return itemFacing.ordinal();
             }
             // Item frames and other things
             return ItemFacing.DOWN.ordinal();
         }
     }
-
-//
-//    public void onModelBake(ModelBakeEvent event) {
-//        event.getModelRegistry().getObject(null).getOverrides().getOverrides()
-//    }
 }

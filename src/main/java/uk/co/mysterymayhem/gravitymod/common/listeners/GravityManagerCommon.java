@@ -5,7 +5,6 @@ import baubles.api.cap.IBaublesItemHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -18,47 +17,27 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
-import uk.co.mysterymayhem.gravitymod.common.events.GravityTransitionEvent;
+import uk.co.mysterymayhem.gravitymod.api.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemArmourPaste;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.packets.config.ModCompatConfigCheckMessage;
-import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
+import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChangeMessage;
 import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-
-import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-08-04.
  */
 public class GravityManagerCommon {
-//    protected final HashSet<String> playersUpsideDown = new HashSet<>();
-
-//    @SubscribeEvent(priority = EventPriority.LOWEST)
-//    public void onGravityTransition(GravityTransitionEvent event) {
-//        //FMLLog.info("Received gravityTransitionEvent");
-//        if (event.side == Side.SERVER) {
-//            FMLLog.info("GravityTransitionEvent is server side");
-////            final GravityCapability.IGravityCapability capability = GravityCapability.getGravityCapability(event.player);
-//            final EnumGravityDirection currentDirection = GravityCapability.getGravityDirection(event.player);
-//            boolean stateChanged = currentDirection != event.newGravityDirection;
-//
-//            if(stateChanged) {
-//                FMLLog.info("Gravity has changed to " + event.newGravityDirection + " from " + currentDirection);
-//                GravityCapability.setGravityDirection(event.player, event.newGravityDirection);
-////                capability.setDirection(event.newGravityDirection);
-//                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection);
-//            }
-//        }
-//    }
 
     public static boolean playerIsAffectedByWeakGravity(EntityPlayerMP player) {
         if (!(player instanceof FakePlayer)) {
@@ -167,10 +146,14 @@ public class GravityManagerCommon {
     @SubscribeEvent
     public void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
-            PacketHandler.INSTANCE.sendTo(
-                    new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player), true),
-                    (EntityPlayerMP) event.player
-            );
+            EnumGravityDirection gravityDirection = API.getGravityDirection(event.player);
+            // Default gravity is down when players are created server/client side
+            if (gravityDirection != EnumGravityDirection.DOWN) {
+                PacketHandler.INSTANCE.sendTo(
+                        new GravityChangeMessage(event.player.getName(), gravityDirection, true),
+                        (EntityPlayerMP) event.player
+                );
+            }
             PacketHandler.INSTANCE.sendTo(new ModCompatConfigCheckMessage(ItemStackUseListener.getHashCode()), (EntityPlayerMP) event.player);
         }
     }
@@ -185,10 +168,6 @@ public class GravityManagerCommon {
         }
     }
 
-    //TODO: Test if players get updated correctly on their own client upon respawning,
-    //and test if other clients see them correctly after dying and respawning in view of the other client
-
-    // Fixes player controls not changing upon death to match the new gravity direction
     @SubscribeEvent
     public void onPlayerClone(Clone event) {
         EntityPlayer clone = event.getEntityPlayer();
@@ -207,9 +186,9 @@ public class GravityManagerCommon {
                 EnumGravityDirection originalDirection = GravityDirectionCapability.getGravityDirection(original);
 
                 // When a player entity enters the world, they are given a GravityCapability which defaults to DOWN
-                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Clone.Pre(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
+                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Clone.Pre(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
                 GravityDirectionCapability.setGravityDirection(clone, originalDirection, false);
-                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Clone.Post(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
+                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Clone.Post(originalDirection, EnumGravityDirection.DOWN, cloneMP, originalMP, event));
             }
         }
 
@@ -225,6 +204,7 @@ public class GravityManagerCommon {
             EntityPlayer player = (EntityPlayer)entity;
             EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(player);
             if (gravityDirection != EnumGravityDirection.DOWN) {
+                //TODO: Try removing this now that players don't get kicked for falling
                 player.capabilities.allowFlying = true;
             }
         }
@@ -259,7 +239,7 @@ public class GravityManagerCommon {
             //If done at start of tick, when putting an item onto the mouse cursor, when it's put back into the player's
             //inventory, there's a single tick where the item won't be ticked. Issue does not occur when done at the end of
             //the player tick.
-            //VANILLA_BUG:
+            //VANILLA BUG/FEATURE:
             //  The item on the mouse cursor is always null if the player is in creative and in their own inventory
             if (event.side == Side.SERVER) {
                 EntityPlayer player = event.player;

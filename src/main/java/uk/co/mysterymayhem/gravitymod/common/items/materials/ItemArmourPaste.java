@@ -3,14 +3,12 @@ package uk.co.mysterymayhem.gravitymod.common.items.materials;
 import baubles.api.IBauble;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
@@ -18,6 +16,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.RecipeSorter;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
@@ -26,7 +25,6 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -144,12 +142,12 @@ public class ItemArmourPaste extends Item implements IModItem {
 
     @Override
     public void postInitRecipes() {
-        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.gravityDust, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
+        //TODO: Replace with ore dictionary entry for slime ball
+        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), ModItems.gravityDust, "slimeball", "dustGlowstone"));
+//        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.gravityDust, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
 
         GameRegistry.addRecipe(new ArmourPasteRecipe());
-
-//        GameRegistry.addRecipe(new ArmourPasteRecipe());
-//        RecipeSorter.register(GravityMod.MOD_ID + ":armourpaste", ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "");
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + this.getName(), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "");
     }
 
     @SideOnly(Side.CLIENT)

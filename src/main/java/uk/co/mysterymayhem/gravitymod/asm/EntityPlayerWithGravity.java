@@ -1,12 +1,18 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
 import com.mojang.authlib.GameProfile;
+import gnu.trove.stack.array.TDoubleArrayStack;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.*;
-import net.minecraft.util.math.*;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
@@ -15,9 +21,9 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
-import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.gravitymod.common.util.BlockStateHelper;
 import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
-import gnu.trove.stack.array.TDoubleArrayStack;
+import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
@@ -733,8 +739,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             //iblockstate will never be null (will be air or will throw an exception if stuff isn't right)
 //            if (iblockstate != null) {
             if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
-                if (iblockstate.getPropertyNames().contains(BlockHorizontal.FACING)) {
-                    EnumFacing facing = iblockstate.getValue(BlockHorizontal.FACING);
+                EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
+                if (facing != null) {
                     EnumGravityDirection direction = gBB.getDirection();
                     switch(direction) {
                         case EAST:
@@ -749,7 +755,10 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                                 isOnLadder = false;
                             }
                             break;
-                        default:
+                        default://case UP:case DOWN:
+                            if (facing == EnumFacing.UP || facing == EnumFacing.DOWN) {
+                                isOnLadder = false;
+                            }
                             break;
                     }
                 }
@@ -762,8 +771,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 //As before, iblockstate will not be null
 //                if (iblockstate != null) {
                 if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
-                    if (iblockstate.getPropertyNames().contains(BlockHorizontal.FACING)) {
-                        EnumFacing facing = iblockstate.getValue(BlockHorizontal.FACING);
+                    EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
+                    if (facing != null) {
                         EnumGravityDirection direction = gBB.getDirection();
                         switch(direction) {
                             case EAST:
@@ -796,6 +805,28 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         }
         else {
             return super.isOnLadder();
+        }
+    }
+
+    @Override
+    protected void playStepSound(BlockPos pos, Block blockIn) {
+        AxisAlignedBB entityBoundingBox = this.getEntityBoundingBox();
+        if (entityBoundingBox instanceof GravityAxisAlignedBB) {
+            EnumGravityDirection direction = ((GravityAxisAlignedBB) entityBoundingBox).getDirection();
+            if (direction == EnumGravityDirection.UP) {
+                super.playStepSound(pos, blockIn);
+            }
+            else {
+                // Bypass check for pos.up().getBlock() == Blocks.SNOW_LAYER
+                SoundType soundtype = blockIn.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
+
+                if (!blockIn.getDefaultState().getMaterial().isLiquid()) {
+                    this.playSound(soundtype.getStepSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
+                }
+            }
+        }
+        else {
+            super.playStepSound(pos, blockIn);
         }
     }
 

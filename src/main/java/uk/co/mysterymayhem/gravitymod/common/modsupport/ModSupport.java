@@ -4,11 +4,7 @@ import gnu.trove.impl.Constants;
 import gnu.trove.map.hash.TObjectByteHashMap;
 import net.minecraftforge.fml.common.Loader;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
 /**
- * This class should be referenced and thus &lt;clinit&gt; during post initialisation
  * Created by Mysteryem on 2016-11-05.
  */
 public class ModSupport {
@@ -16,7 +12,7 @@ public class ModSupport {
     private static final byte FALSE = 0;
     private static final byte NOVALUE = 2;
 
-    private static final HashMap<String, Boolean> LOADED_MODS_CACHE = new HashMap<>();
+//    private static final HashMap<String, Boolean> LOADED_MODS_CACHE = new HashMap<>();
     private static final TObjectByteHashMap<String> LOADED_MODS_LOOKUP = new TObjectByteHashMap<>(Constants.DEFAULT_CAPACITY, Constants.DEFAULT_LOAD_FACTOR, NOVALUE);
 
     public static boolean isModLoaded(String modID) {

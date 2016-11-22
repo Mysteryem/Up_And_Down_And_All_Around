@@ -101,7 +101,7 @@ public class GravityDirectionCapability {
         }
         else {
             GravityMod.logInfo("Tried to set gravity direction of %s to %s, but it was already %s." +
-                    " This _probably_ shouldn't happen, but I'm not sure.", player.getName(), newDirection.name(), newDirection.name());
+                    " This _probably_ shouldn't happen, but I'm not sure.", player.getName(), oldDirection.name(), newDirection.name());
         }
 
         // This information is used in rendering, there's no reason to do it if we're a server

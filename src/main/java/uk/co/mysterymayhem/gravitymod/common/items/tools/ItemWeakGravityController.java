@@ -1,7 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
-import baubles.api.BaublesApi;
-import baubles.api.cap.IBaublesItemHandler;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,13 +11,10 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
 import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
-import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 import java.util.List;
 

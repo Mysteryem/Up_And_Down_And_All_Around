@@ -2,20 +2,21 @@ package uk.co.mysterymayhem.gravitymod.common;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
+import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityBoots;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityChestplate;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityHelmet;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityLeggings;
-import uk.co.mysterymayhem.gravitymod.common.items.materials.*;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
-import uk.co.mysterymayhem.gravitymod.common.items.tools.*;
-import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityBoots;
-import uk.co.mysterymayhem.gravitymod.common.items.misc.ItemCreativeTabIcon;
 import uk.co.mysterymayhem.gravitymod.common.items.baubles.ItemGravityBauble;
+import uk.co.mysterymayhem.gravitymod.common.items.materials.*;
+import uk.co.mysterymayhem.gravitymod.common.items.misc.ItemCreativeTabIcon;
+import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemGravityAnchor;
+import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemPersonalGravityController;
+import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemUltimateGravityController;
+import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemWeakGravityController;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-08-08.

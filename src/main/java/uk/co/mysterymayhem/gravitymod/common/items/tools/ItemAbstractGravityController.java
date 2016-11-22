@@ -15,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
@@ -23,7 +24,7 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
-import uk.co.mysterymayhem.gravitymod.common.util.item.ITickOnMouseCursor;
+import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -184,6 +185,13 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
     private static int getVisibleStateMetaFromCombinedMeta(int combinedMeta) {
         return combinedMeta >>> 3;
+    }
+
+    abstract boolean affectsPlayer(EntityPlayerMP player);
+
+    @Override
+    public boolean affectsEntity(Entity entity) {
+        return entity instanceof EntityPlayerMP && !(entity instanceof FakePlayer) && this.affectsPlayer((EntityPlayerMP) entity);
     }
 
     @Override
@@ -401,7 +409,6 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
             }
         }
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
-//        return super.onItemRightClick(stack, worldIn, playerIn, hand);
     }
 
     @SideOnly(Side.CLIENT)
@@ -424,10 +431,12 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         }
     }
 
+    @Override
     @SideOnly(Side.CLIENT)
     public void preInitModel() {
         MeshDefinitions meshDefinitions = new MeshDefinitions(this);
-        ModelBakery.registerItemVariants(this, meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]));
+        ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
+        ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
     }
 

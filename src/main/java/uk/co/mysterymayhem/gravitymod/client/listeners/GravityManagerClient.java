@@ -5,7 +5,6 @@ import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -15,9 +14,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.api.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
-import uk.co.mysterymayhem.gravitymod.common.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChangeMessage;
 
@@ -95,10 +94,8 @@ public class GravityManagerClient extends GravityManagerCommon {
         else if (playerEntityByName != null) {
             GravityMod.logWarning("Retrieved a non-client player from the client world, what is going on?");
         }
-        else {
-            if (GravityMod.GENERAL_DEBUG) {
-                GravityMod.logInfo("Server has told us to set the gravity direction of a player we're currently not tracking. Ignoring the request.");
-            }
+        else if (GravityMod.GENERAL_DEBUG) {
+            GravityMod.logInfo("Server has told us to set the gravity direction of a player we're currently not tracking. Ignoring the request.");
         }
     }
 }

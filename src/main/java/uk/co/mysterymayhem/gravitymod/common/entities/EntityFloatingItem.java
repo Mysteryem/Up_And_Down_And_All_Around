@@ -1,13 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.common.entities;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.RenderEntityItem;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumParticleTypes;
@@ -15,16 +9,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
-import net.minecraftforge.fml.common.registry.EntityRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.GravityMod;
-import uk.co.mysterymayhem.gravitymod.client.renderers.RenderGravityEntityItem;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 
@@ -32,23 +16,6 @@ import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
  * Created by Mysteryem on 2016-11-09.
  */
 public class EntityFloatingItem extends EntityItem {
-
-//    public static class PickupListener{
-//        @SubscribeEvent(priority = EventPriority.LOWEST)
-//        public void onPlayerPickUpItem(PlayerEvent.ItemPickupEvent event) {
-//            EntityPlayer player = event.player;
-//            if (player == null || player instanceof FakePlayer) {
-//                return;
-//            }
-//            EntityItem entityItem = event.pickedUp;
-//            if (entityItem instanceof EntityFloatingItem) {
-//                World world;
-//                EntityItem newItem = new EntityItem(world = player.worldObj, player.posX, player.posY, player.posZ, new ItemStack(ModItems.gravityDust));
-////                newItem.setNoPickupDelay();
-//                world.spawnEntityInWorld(newItem);
-//            }
-//        }
-//    }
 
     // Using setDead to spawn the item instead of an item pickup listener so that machines and more can cause the dust item to spawn
     @Override
@@ -124,13 +91,9 @@ public class EntityFloatingItem extends EntityItem {
                 }
             }
         }
-//        if (this.ticksExisted != this.getAge() + 1) {
-//            this.lifespan = this.getAge() + ENTITY_LIFETIME_TICKS;
-//            this.ticksExisted = this.getAge() + 1;
-//        }
+
         boolean remote = this.worldObj.isRemote;
 
-////        this.setGlowing(true);
         if (this.onGround) {
 //            this.isCollidedVertically = false;
 //            this.isAirBorne = true;
@@ -139,15 +102,6 @@ public class EntityFloatingItem extends EntityItem {
         else if (this.motionY > -0.1) {
             this.motionY -= 0.00075;
         }
-//        this.isAirBorne = true;
-//        this.onGround = false;
-//        if (this.isCollidedHorizontally) {
-//            this.motionX *= -1;
-//            this.motionZ *= -1;
-//        }
-//        if (this.isCollidedVertically) {
-//            this.motionY *= -1;
-//        }
 
         double xBefore = this.posX;
         double yBefore = this.posY;
@@ -167,9 +121,6 @@ public class EntityFloatingItem extends EntityItem {
         this.motionY += yToAdd;
         this.motionZ += zToAdd;
 
-        // I don't know why I've got to add this slightly less than twice
-//        this.motionY += 0.03999999910593033D;
-//        this.motionY += 0.0380D;
         this.motionX /= 0.9810000190734863D;
         this.motionY /= 0.9810000190734863D;
         this.motionZ /= 0.9810000190734863D;
@@ -224,7 +175,6 @@ public class EntityFloatingItem extends EntityItem {
             double zDiff = this.posZ - (zPosBefore + z);
 
             BlockPos current = new BlockPos(this);
-
 
             if (xDiff > 0) {
                 current = current.west();

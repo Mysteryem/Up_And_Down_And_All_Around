@@ -1,43 +1,35 @@
 package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.set.hash.TIntHashSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
-import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
-import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Created by Mysteryem on 2016-11-10.
@@ -46,34 +38,6 @@ public class ItemGravityDust extends Item implements IModItem {
 
     public static class FallDamageListener {
 
-//        @SubscribeEvent(priority = EventPriority.LOWEST)
-//        public void onLivingFall(LivingFallEvent event) {
-//            if (event.getDistance() <= 3) {
-//                return;
-//            }
-//            EntityLivingBase entityLiving = event.getEntityLiving();
-//            if (entityLiving instanceof EntityPlayer) {
-//                EntityPlayer player = (EntityPlayer) entityLiving;
-////                player.inventory
-//                List<ItemStack> stacks = player.inventoryContainer.inventoryItemStacks;
-//                int amountOfDust = 0;
-//                for (ItemStack stack : stacks) {
-//                    if (stack == null) {
-//                        continue;
-//                    }
-//                    Item item = stack.getItem();
-//                    if (item == ModItems.gravityDust) {
-//                        amountOfDust += stack.stackSize;
-//                    }
-//                }
-//                double upwardsMotionFromStacks = UPWARDS_MOTION_CHANGE_PER_ITEM * amountOfDust;
-//                double multiplier = 1 - (upwardsMotionFromStacks / VANILLA_DOWNWARDS_MOTION);
-//                if (multiplier < 0) {
-//                    multiplier = 0;
-//                }
-//                event.setDistance((float) (event.getDistance() * multiplier));
-//            }
-//        }
     }
 
     public static class BlockBreakListener {
@@ -271,7 +235,7 @@ public class ItemGravityDust extends Item implements IModItem {
         }
 
         static boolean addBlock(String modID, String blockName) {
-            Block block = Block.REGISTRY.getObject(new ResourceLocation(modID, blockName));
+            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modID, blockName));
             // Default value is air, as opposed to null
             if (block == Blocks.AIR) {
                 return false;
@@ -281,7 +245,7 @@ public class ItemGravityDust extends Item implements IModItem {
         }
 
         static boolean addBlockWithMeta(String modID, String blockName, int meta) {
-            Block block = Block.REGISTRY.getObject(new ResourceLocation(modID, blockName));
+            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modID, blockName));
             if (block == Blocks.AIR) {
                 return false;
             }
@@ -294,13 +258,13 @@ public class ItemGravityDust extends Item implements IModItem {
         }
 
         static boolean addItemDrop(String modID, String itemName) {
-            Item item = Item.REGISTRY.getObject(new ResourceLocation(modID, itemName));
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modID, itemName));
             // No default value/default value is null
             return item != null && addItemDrop(item);
         }
 
         static boolean addItemDropWithMeta(String modID, String itemName, int meta) {
-            Item item = Item.REGISTRY.getObject(new ResourceLocation(modID, itemName));
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modID, itemName));
             // No default value/default value is null
             if (item == null) {
                 return false;
@@ -324,11 +288,6 @@ public class ItemGravityDust extends Item implements IModItem {
         static void spawnAsSpecialEntity(World worldIn, BlockPos pos, ItemStack stack) {
             if (!worldIn.isRemote && worldIn.getGameRules().getBoolean("doTileDrops") && !worldIn.restoringBlockSnapshots) // do not drop items while restoring blockstates, prevents item dupe
             {
-                //            if (captureDrops.get())
-                //            {
-                //                capturedDrops.get().add(stack);
-                //                return;
-                //            }
                 float f = 0.5F;
                 double d0 = (double) (worldIn.rand.nextFloat() * f) + 0.25D;
                 double d1 = (double) (worldIn.rand.nextFloat() * f) + 0.25D;
@@ -339,14 +298,6 @@ public class ItemGravityDust extends Item implements IModItem {
             }
         }
     }
-
-//    private static final double VANILLA_DOWNWARDS_MOTION = 0.03999999910593033D;
-//    private static final int VANILLA_INVENTORY_SLOTS = 36;
-//    private static final int STACK_SIZE = 64;
-//    private static final int MAX_ITEMS_IN_INVENTORY = VANILLA_INVENTORY_SLOTS * STACK_SIZE;
-//    private static final double MAXUPWARDS_MOTION = VANILLA_DOWNWARDS_MOTION - 0.002;
-////    private static final double MAXUPWARDS_MOTION_PER_ITEM = MAXUPWARDS_MOTION / (double)(VANILLA_INVENTORY_SLOTS);
-//    private static final double UPWARDS_MOTION_CHANGE_PER_ITEM = (VANILLA_DOWNWARDS_MOTION - 0.002)/(2*64);
 
     @Override
     public void preInit() {
@@ -359,61 +310,20 @@ public class ItemGravityDust extends Item implements IModItem {
         return "gravitydust";
     }
 
-//    @Override
-//    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-//        Hooks.makeMotionRelative(entityIn);
-//        double upwardsMotion = UPWARDS_MOTION_CHANGE_PER_ITEM * stack.stackSize;
-//        if (entityIn.motionY + upwardsMotion < -0.01) {
-//            entityIn.motionY += upwardsMotion;
-//        }
-//        else {
-//            entityIn.motionY = Math.max(entityIn.motionY, -0.01);
-//        }
-//        Hooks.popMotionStack(entityIn);
-//    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
         tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydust.line1"));
     }
 
-    @Override
-    public boolean onEntityItemUpdate(EntityItem entityItem) {
-//        entityItem.motionX *= 0.95;
-        entityItem.motionY += 0.000005 * entityItem.getEntityItem().stackSize;
-//        entityItem.motionZ *= 0.95;
-        boolean toReturn = super.onEntityItemUpdate(entityItem);
-//        if (entityItem.getAge() >= entityItem.lifespan - 1) {
-//            entityItem.setDead();
-//            if (entityItem.worldObj.isRemote) {
-//                BlockPos blockPosIn = new BlockPos(entityItem);
-//                World world = entityItem.worldObj;
-////                entityItem.worldObj.playEvent(2003, new BlockPos(entityItem), 0);
-//                double d0 = (double)blockPosIn.getX() + 0.5D;
-//                double d1 = (double)blockPosIn.getY();
-//                double d2 = (double)blockPosIn.getZ() + 0.5D;
-//
-//                for (int j = 0; j < 8; ++j)
-//                {
-//                    world.spawnParticle(EnumParticleTypes.ITEM_CRACK, d0, d1, d2, world.rand.nextGaussian() * 0.15D, world.rand.nextDouble() * 0.2D, world.rand.nextGaussian() * 0.15D, new int[] {Item.getIdFromItem(ModItems.gravityDust)});
-//                }
-//
-//                for (double d11 = 0.0D; d11 < (Math.PI * 2D); d11 += 0.15707963267948966D)
-//                {
-//                    world.spawnParticle(EnumParticleTypes.PORTAL, d0 + Math.cos(d11) * 5.0D, d1 - 0.4D, d2 + Math.sin(d11) * 5.0D, Math.cos(d11) * -5.0D, 0.0D, Math.sin(d11) * -5.0D, new int[0]);
-//                    world.spawnParticle(EnumParticleTypes.PORTAL, d0 + Math.cos(d11) * 5.0D, d1 - 0.4D, d2 + Math.sin(d11) * 5.0D, Math.cos(d11) * -7.0D, 0.0D, Math.sin(d11) * -7.0D, new int[0]);
-//                }
-//            }
-//        }
-        return toReturn;
-    }
-
+    // True so we can access the normally created EntityItem and disable its gravity
     @Override
     public boolean hasCustomEntity(ItemStack stack) {
         return true;
     }
 
+    // Returning null uses 'location', returning 'location' would cause the game to kill 'location' and add it to the
+    // world a second time, which would probably cause some issues
     @Override
     public Entity createEntity(World world, Entity location, ItemStack itemstack) {
         if (location instanceof EntityItem) {

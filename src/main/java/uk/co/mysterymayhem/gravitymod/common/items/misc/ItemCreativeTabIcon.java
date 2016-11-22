@@ -1,24 +1,18 @@
 package uk.co.mysterymayhem.gravitymod.common.items.misc;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.client.particle.ParticleFirework;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -29,6 +23,7 @@ import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import java.util.List;
 
 /**
+ * Shhh, nothing to see here
  * Created by Mysteryem on 2016-11-02.
  */
 public class ItemCreativeTabIcon extends Item implements IModItem {
@@ -58,7 +53,7 @@ public class ItemCreativeTabIcon extends Item implements IModItem {
         return NAME;
     }
 
-    //Don't set the creative tab
+    //Don't set the creative tab, but do everything else normally
     @Override
     public void preInit() {
         this.setUnlocalizedName(GravityMod.MOD_ID + "." + this.getName());
@@ -93,7 +88,6 @@ public class ItemCreativeTabIcon extends Item implements IModItem {
     public Entity createEntity(World world, Entity location, ItemStack itemstack) {
         if (location instanceof EntityItem) {
             EntityItem entityItem = (EntityItem)location;
-            // 30 seconds lifetime
             entityItem.lifespan = ENTITY_LIFETIME_TICKS;
             entityItem.setNoGravity(true);
             // Why Mojang? Why when you want an item to only live for a minute do you increase it's age rather than
@@ -128,21 +122,9 @@ public class ItemCreativeTabIcon extends Item implements IModItem {
             currentServerEntity = entityItem;
         }
 
-////        entityItem.setGlowing(true);
         if (entityItem.onGround) {
-//            entityItem.isCollidedVertically = false;
-//            entityItem.isAirBorne = true;
             entityItem.motionY += 0.1;
         }
-//        entityItem.isAirBorne = true;
-//        entityItem.onGround = false;
-//        if (entityItem.isCollidedHorizontally) {
-//            entityItem.motionX *= -1;
-//            entityItem.motionZ *= -1;
-//        }
-//        if (entityItem.isCollidedVertically) {
-//            entityItem.motionY *= -1;
-//        }
 
         double xBefore = entityItem.posX;
         double yBefore = entityItem.posY;
@@ -159,7 +141,7 @@ public class ItemCreativeTabIcon extends Item implements IModItem {
         double zToAdd = (entityItem.posZ - zBefore) - zMotionBefore;
 
 
-        if (remote && entityItem.isCollided/*(Math.abs(xToAdd) > 0.001 || Math.abs(yToAdd + 0.03999999910593033D) > 0.001 || Math.abs(zToAdd) > 0.001)*/) {
+        if (remote && entityItem.isCollided) {
             // Spawn a firework when the item entity hits a block
             entityItem.worldObj.makeFireworks(entityItem.posX, entityItem.posY, entityItem.posZ, entityItem.motionX, entityItem.motionY, entityItem.motionZ, fireworkTag);
         }
@@ -168,9 +150,6 @@ public class ItemCreativeTabIcon extends Item implements IModItem {
         entityItem.motionY += yToAdd;
         entityItem.motionZ += zToAdd;
 
-        // I don't know why I've got to add this slightly less than twice
-//        entityItem.motionY += 0.03999999910593033D;
-//        entityItem.motionY += 0.0390D;
         entityItem.motionX /= 0.9810000190734863D;
         entityItem.motionY /= 0.9810000190734863D;
         entityItem.motionZ /= 0.9810000190734863D;

@@ -1,25 +1,18 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
-import baubles.api.BaublesApi;
-import baubles.api.cap.IBaublesItemHandler;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
-import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 import java.util.List;
 
@@ -27,6 +20,8 @@ import java.util.List;
  * Created by Mysteryem on 2016-11-12.
  */
 public class ItemUltimateGravityController extends ItemAbstractGravityController {
+    private static final String NAME = "ultimategravitycontroller";
+
     @Override
     public void postInitRecipes() {
         GameRegistry.addRecipe(new ShapedOreRecipe(
@@ -77,9 +72,10 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
 
     @Override
     public String getName() {
-        return "ultimategravitycontroller";
+        return NAME;
     }
 
+    // Enchantment glow
     @SideOnly(Side.CLIENT)
     @Override
     public boolean hasEffect(ItemStack stack) {

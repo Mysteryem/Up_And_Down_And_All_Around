@@ -17,10 +17,10 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler.EnumItemStackUseCompat;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifier;
@@ -241,7 +241,7 @@ public class ItemStackUseListener {
             throw new IllegalArgumentException(String.format("[UpAndDownAndAllAround] Failed to register PrePostModifier for %s. ListenersSet cannot be empty", prePostModifier));
         }
 
-        Item item = Item.REGISTRY.getObject(Objects.requireNonNull(itemRegistryName, "itemRegistryName cannot be null"));
+        Item item = ForgeRegistries.ITEMS.getValue(Objects.requireNonNull(itemRegistryName, "itemRegistryName cannot be null"));
         if (item == null) {
             FMLLog.warning("[UpAndDownAndAllAround] Failed to register PrePostModifier for %s. The item could not be found", itemRegistryName);
             return;

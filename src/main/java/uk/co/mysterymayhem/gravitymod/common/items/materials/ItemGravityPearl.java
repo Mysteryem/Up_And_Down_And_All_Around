@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
-import com.google.common.base.Predicate;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
@@ -8,16 +7,16 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IProjectile;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.*;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
@@ -31,7 +30,6 @@ import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Created by Mysteryem on 2016-11-09.
@@ -59,7 +57,6 @@ public class ItemGravityPearl extends Item implements IModItem {
             {
                 if (entityIn != null) {
                     ItemStack activeStack = entityIn.getActiveItemStack();
-//                    if ((activeStack = entityIn.getActiveItemStack()) != null) {
                         if (activeStack == stack && stack.getItem() == ItemGravityPearl.this) {
                             if (entityIn.isSneaking()) {
                                 //pull
@@ -195,13 +192,6 @@ public class ItemGravityPearl extends Item implements IModItem {
                         || (zMotionToAdd < 0 && entMotionZ > zMotionToAdd)) {
                     nearbyEntity.motionZ += zMotionToAdd;
                 }
-//                double xDiff = playerX - nearbyEntity.posX;
-//                double yDiff = playerY - nearbyEntity.posY;
-//                double zDiff = playerZ - nearbyEntity.posZ;
-//
-//                nearbyEntity.motionX += xDiff > 0 ? MOTION_PULL_PUSH : -MOTION_PULL_PUSH;
-//                nearbyEntity.motionY += yDiff > 0 ? MOTION_PULL_PUSH + (nearbyEntity.onGround ? MOTION_PULL_PUSH : 0) : -MOTION_PULL_PUSH;
-//                nearbyEntity.motionZ += zDiff > 0 ? MOTION_PULL_PUSH : -MOTION_PULL_PUSH;
             }
         }
         else {
@@ -224,8 +214,7 @@ public class ItemGravityPearl extends Item implements IModItem {
                 double entMotionX = nearbyEntity.motionX;
                 double entMotionY = nearbyEntity.motionY;
                 double entMotionZ = nearbyEntity.motionZ;
-//
-//                if (entMotionX > 0 && xMotionToAdd > 0 && entMotionX <)
+
                 if ((xMotionToAdd > 0 && entMotionX < xMotionToAdd)
                         || (xMotionToAdd < 0 && entMotionX > xMotionToAdd)) {
                     nearbyEntity.motionX -= xMotionToAdd;
@@ -238,11 +227,6 @@ public class ItemGravityPearl extends Item implements IModItem {
                         || (zMotionToAdd < 0 && entMotionZ > zMotionToAdd)) {
                     nearbyEntity.motionZ -= zMotionToAdd;
                 }
-
-
-//                nearbyEntity.motionX = -xMotionToAdd;
-//                nearbyEntity.motionY = -yMotionToAdd;
-//                nearbyEntity.motionZ = -zMotionToAdd;
             }
         }
     }
