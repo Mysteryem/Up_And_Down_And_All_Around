@@ -813,7 +813,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         AxisAlignedBB entityBoundingBox = this.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
             EnumGravityDirection direction = ((GravityAxisAlignedBB) entityBoundingBox).getDirection();
-            if (direction == EnumGravityDirection.UP) {
+            if (direction == EnumGravityDirection.DOWN) {
                 super.playStepSound(pos, blockIn);
             }
             else {
