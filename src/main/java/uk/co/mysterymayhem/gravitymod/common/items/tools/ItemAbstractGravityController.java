@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
@@ -12,7 +13,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.*;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.util.FakePlayer;
@@ -21,10 +25,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
-import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -415,19 +419,41 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
     private class MeshDefinitions implements ItemMeshDefinition {
 
         final ArrayList<ModelResourceLocation> list;
+        final TIntObjectHashMap<ModelResourceLocation> modelLookup = new TIntObjectHashMap<>();
 
         MeshDefinitions(ItemAbstractGravityController item) {
             list = new ArrayList<>();
             for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
                 list.add(new ModelResourceLocation(item.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
             }
+
+            for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
+                for (EnumControllerActiveDirection activeDirection : EnumControllerActiveDirection.values()) {
+                    if (visibleState.illegalDirection == activeDirection) {
+                        continue;
+                    }
+                    if (visibleState.onlyLegalDirection != null){
+                        if (visibleState.onlyLegalDirection == activeDirection) {
+                            // If the visible direction is the same as the active direction, we don't need to display the extra overlay
+                            // that shows the currently active direction
+                            String variant = "active=" + EnumControllerActiveDirection.NONE.name().toLowerCase(Locale.ENGLISH) + ",visible=" + visibleState.getUnlocalizedName();
+                            modelLookup.put(getCombinedMetaFor(activeDirection, visibleState), new ModelResourceLocation(item.getRegistryName(), variant));
+                        }
+                    }
+                    else {
+                        String variant = "active=" + activeDirection.name().toLowerCase(Locale.ENGLISH) + ",visible=" + visibleState.getUnlocalizedName();
+                        modelLookup.put(getCombinedMetaFor(activeDirection, visibleState), new ModelResourceLocation(item.getRegistryName(), variant));
+                    }
+                }
+            }
         }
 
         @Override
         public ModelResourceLocation getModelLocation(ItemStack stack) {
             int metadata = stack.getMetadata();
-            int ordinal = EnumControllerVisibleState.getFromCombinedMeta(metadata).ordinal();
-            return list.get(ordinal);
+            return modelLookup.get(metadata);
+//            int ordinal = EnumControllerVisibleState.getFromCombinedMeta(metadata).ordinal();
+//            return list.get(ordinal);
         }
     }
 
@@ -435,7 +461,9 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
     @SideOnly(Side.CLIENT)
     public void preInitModel() {
         MeshDefinitions meshDefinitions = new MeshDefinitions(this);
-        ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
+//        ModelResourceLocation[] itemModelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
+//        ModelBakery.registerItemVariants(this, (ResourceLocation[]) itemModelResourceLocations);
+        ModelResourceLocation[] modelResourceLocations = meshDefinitions.modelLookup.valueCollection().toArray(new ModelResourceLocation[meshDefinitions.modelLookup.valueCollection().size()]);
         ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
     }
