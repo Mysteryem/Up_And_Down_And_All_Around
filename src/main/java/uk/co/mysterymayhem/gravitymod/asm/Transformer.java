@@ -32,21 +32,56 @@ public class Transformer implements IClassTransformer {
 
     // Maps classes to their patch methods
     private static final HashMap<String, Function<byte[], byte[]>> classNameToMethodMap = new HashMap<>();
+
+    // Superclass replacement details:
+    // Effectively patches:
+    //  Cleanly calls super method:
+    //      moveEntity, jump, handleWaterMovement, setEntityBoundingBox, updateFallState, pushOutOfBlocks (NYI), knockback
+    //  Calls super, but discards some changes:
+    //      setAngles (may be able to update this so super is cleanly called)
+    //  Should always call super:
+    //      getEntityBoundingBox (in the case it doesn't call super, the mod probably isn't going to work anyway)
+    //  Sometimes calls super:
+    //      getEyeHeight (super call is used elsewhere to simulate the effects of calling super)
+    //  Only calls super for downwards gravity:
+    //      resetPositionToBB, (method is basically completely replaced outside of downwards gravity, ASM probably not worth it)
+    //      playStepSound (done in order to bypass some vanilla code)
+    //  Shouldn't ever call super:
+    //      isEntityInsideOpaqueBlock, (replacing with ASM looks like a good idea)
+    //      createRunningParticles, (replacing with ASM looks like a good idea)
+    //      isOnLadder (method pretty much entirely replaced)
+    //  Never calls super!:
+    //      updateSize, (replacing with ASM looks like a good idea)
+    //      setSize, (probably can be replaced with ASM?)
+    //      setPosition (method pretty much entirely replaced)
     private static final String classToReplace = "net/minecraft/entity/player/EntityPlayer";
     private static final String classReplacement = "uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity";
 
     static {
+        // Superclass replaced with EntityPlayerWithGravity
         classNameToMethodMap.put("net.minecraft.client.entity.AbstractClientPlayer", Transformer::patchEntityPlayerSubClass);
+        // Superclass replaced with EntityPlayerWithGravity
         classNameToMethodMap.put("net.minecraft.entity.player.EntityPlayerMP", Transformer::patchEntityPlayerSubClass);
+        // Patches setListener
         classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", Transformer::patchSoundManager);
+        // Patches onUpdateWalkingPlayer, onLivingUpdate, isHeadspaceFree, updateAutoJump, moveEntity
         classNameToMethodMap.put("net.minecraft.client.entity.EntityPlayerSP", Transformer::patchEntityPlayerSP);
+        // Patches handlePlayerPosLook
         classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", Transformer::patchNetHandlerPlayClient);
+        // Patches getMouseOver
         classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
+        // Patches doRender
         classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
+        // Patches moveEntity, moveRelative
         classNameToMethodMap.put("net.minecraft.entity.Entity", Transformer::patchEntity);
+        // Patches moveEntityWithHeading, updateDistance, onUpdate, jump
         classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", Transformer::patchEntityLivingBase);
+        // Patches onItemUse, useItemRightClick, onPlayerStoppedUsing
+        //      (all three are used to add compatibility with other mods, they are not otherwise used by this mod)
         classNameToMethodMap.put("net.minecraft.item.ItemStack", Transformer::patchItemStack);
+        // Patches processPlayer, processPlayerDigging
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
+        // Patches combineItems (may be removed in the future if/when I come up with a better way of handling my custom item entity)
         classNameToMethodMap.put("net.minecraft.entity.item.EntityItem", Transformer::patchEntityItem);
     }
 

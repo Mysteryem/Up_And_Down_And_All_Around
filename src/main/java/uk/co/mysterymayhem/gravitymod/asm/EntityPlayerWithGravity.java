@@ -308,6 +308,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         return toReturn;
     }
 
+    // TODO: use the new pitch and yaw that I calculate to create arguments to pass to the super method (so I don't set any rotation values myself)
     @Override
     public void setAngles(float yaw, float pitch) {
         final float absolutePitch = this.rotationPitch;
@@ -315,7 +316,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         final float f2 = this.prevRotationPitch;
         final float f3 = this.prevRotationYaw;
 
-        // Call super to update
+        // Call super to update ridden entity
         super.setAngles(yaw, pitch);
 
         final EnumGravityDirection direction = API.getGravityDirection(this);
@@ -542,6 +543,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         return super.getEyeHeight();
     }
 
+    // TODO: ASM
     @Override
     protected void createRunningParticles()
     {
@@ -572,6 +574,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         }
     }
 
+    // TODO: ASM
     @Override
     protected void updateSize() {
         float f;
