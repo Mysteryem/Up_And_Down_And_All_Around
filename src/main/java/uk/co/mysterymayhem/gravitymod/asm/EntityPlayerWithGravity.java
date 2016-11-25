@@ -425,27 +425,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             if (iblockstate.getBlock().isAir(iblockstate, this.worldObj, blockpos))
             {
-                BlockPos blockpos1;
-                switch(API.getGravityDirection(this)) {
-                    case UP:
-                        blockpos1 = blockpos.up();
-                        break;
-                    case DOWN:
-                        blockpos1 = blockpos.down();
-                        break;
-                    case SOUTH:
-                        blockpos1 = blockpos.south();
-                        break;
-                    case WEST:
-                        blockpos1 = blockpos.west();
-                        break;
-                    case NORTH:
-                        blockpos1 = blockpos.north();
-                        break;
-                    default://case EAST:
-                        blockpos1 = blockpos.east();
-                        break;
-                }
+                BlockPos blockpos1 = API.getGravityDirection(this).getRelativeDownBlockPos(blockpos);
 
                 IBlockState iblockstate1 = this.worldObj.getBlockState(blockpos1);
                 Block block = iblockstate1.getBlock();
@@ -525,18 +505,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     @Override
     public float getEyeHeight() {
-        switch (API.getGravityDirection(this)) {
-            case UP:
-                return -API.getStandardEyeHeight(this);
-            case DOWN:
-                return API.getStandardEyeHeight(this);
-//            case NORTH:
-//            case EAST:
-//            case SOUTH:
-//            case WEST:
-            default:
-                return 0f;
-        }
+        return API.getGravityDirection(this).getEntityEyeHeight(this);
     }
 
     public float super_getEyeHeight() {
@@ -642,42 +611,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     public void resetPositionToBB() {
         // Oh no you don't vanilla MC
         // I need my weird asymmetrical hitboxes so player.posY + player.getEyeHeight() still get's the player's eye position
-        AxisAlignedBB axisalignedbb = this.getEntityBoundingBox();
-        this.posX = (axisalignedbb.minX + axisalignedbb.maxX) / 2.0D;
-        this.posY = axisalignedbb.minY;
-        this.posZ = (axisalignedbb.minZ + axisalignedbb.maxZ) / 2.0D;
-
-        switch (API.getGravityDirection(this)) {
-            case DOWN:
-                super.resetPositionToBB();
-                break;
-            case UP:
-                this.posX = (axisalignedbb.minX + axisalignedbb.maxX) / 2.0D;
-                this.posY = axisalignedbb.maxY;
-                this.posZ = (axisalignedbb.minZ + axisalignedbb.maxZ) / 2.0D;
-                break;
-            case SOUTH:
-                this.posX = (axisalignedbb.minX + axisalignedbb.maxX) / 2.0D;
-                this.posY = (axisalignedbb.minY + axisalignedbb.maxY) / 2.0D;
-                this.posZ = axisalignedbb.maxZ - API.getStandardEyeHeight(this);
-                break;
-            case WEST:
-                this.posX = axisalignedbb.minX + API.getStandardEyeHeight(this);
-                this.posY = (axisalignedbb.minY + axisalignedbb.maxY) / 2.0D;
-                this.posZ = (axisalignedbb.minZ + axisalignedbb.maxZ) / 2.0D;
-                break;
-            case NORTH:
-                this.posX = (axisalignedbb.minX + axisalignedbb.maxX) / 2.0D;
-                this.posY = (axisalignedbb.minY + axisalignedbb.maxY) / 2.0D;
-                this.posZ = axisalignedbb.minZ + API.getStandardEyeHeight(this);
-                break;
-            case EAST:
-                this.posX = axisalignedbb.maxX - API.getStandardEyeHeight(this);
-                this.posY = (axisalignedbb.minY + axisalignedbb.maxY) / 2.0D;
-                this.posZ = (axisalignedbb.minZ + axisalignedbb.maxZ) / 2.0D;
-                break;
-
-        }
+        API.getGravityDirection(this).resetPositionToBB(this);
     }
 
     //TODO: Could ASM or call super.setPosition() and then my own code?

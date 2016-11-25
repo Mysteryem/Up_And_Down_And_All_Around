@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.api;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -83,17 +84,17 @@ public class API {
      * Get the eye height the player would have if their gravity direction was currently DOWN.
      * This mod overrides getEyeHeight() so a ton of vanilla stuff works/mostly works. You can use this method to get
      * what getEyeHeight() would normally return if it hadn't been overwritten.
-     * @param player Player whose 'standard' eye height you want
+     * @param entityLivingBase Player whose 'standard' eye height you want
      * @return The player's eye height as if their current gravity direction is DOWN.
      */
-    public static float getStandardEyeHeight(@Nonnull EntityPlayer player) {
+    public static float getStandardEyeHeight(@Nonnull EntityLivingBase entityLivingBase) {
         // Should pretty much always be the case
-        if (player instanceof EntityPlayerWithGravity) {
-            return ((EntityPlayerWithGravity)player).super_getEyeHeight();
+        if (entityLivingBase instanceof EntityPlayerWithGravity) {
+            return ((EntityPlayerWithGravity)entityLivingBase).super_getEyeHeight();
         }
         else {
             // This probably shouldn't ever happen
-            return player.getEyeHeight();
+            return entityLivingBase.getEyeHeight();
         }
     }
 }
