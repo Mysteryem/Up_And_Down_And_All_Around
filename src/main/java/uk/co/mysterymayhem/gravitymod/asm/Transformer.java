@@ -81,8 +81,6 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.item.ItemStack", Transformer::patchItemStack);
         // Patches processPlayer, processPlayerDigging
         classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", Transformer::patchNetHandlerPlayServer);
-        // Patches combineItems (may be removed in the future if/when I come up with a better way of handling my custom item entity)
-        classNameToMethodMap.put("net.minecraft.entity.item.EntityItem", Transformer::patchEntityItem);
     }
 
     /**
@@ -649,51 +647,6 @@ public class Transformer implements IClassTransformer {
         dieIfFalse(methodPatches == 1, classNode);
 
         ClassWriter classWriter = new ClassWriter(0);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    private static byte[] patchEntityItem(byte[] bytes) {
-        int methodPatches = 0;
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-
-        for (MethodNode methodNode : classNode.methods) {
-            // I don't want item entities to combine with my class that extends EntityItem
-            // So I return false in the combineItems method if 'this' or 'other' is an instance of EntityFloatingItem
-            if (Transformer.EntityItem$combineItems_name.is(methodNode)) {
-                logPatchStarting(Transformer.EntityItem$combineItems_name);
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (next instanceof LabelNode) {
-                        LabelNode firstLabelNode = (LabelNode)next;
-                        LabelNode secondCheck = new LabelNode();
-                        iterator.previous();
-                        iterator.add(new LabelNode()); // not sure if the method has to start with a lablenode, I'll add it just in case
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // other // EntityItem parameter
-                        iterator.add(new TypeInsnNode(Opcodes.INSTANCEOF, Transformer.EntityFloatingItem.toString()));
-                        iterator.add(new JumpInsnNode(Opcodes.IFEQ, secondCheck));
-                        iterator.add(new InsnNode(Opcodes.ICONST_0));
-                        iterator.add(new InsnNode(Opcodes.IRETURN));
-                        iterator.add(secondCheck); // not sure if the method has to start with a lablenode, I'll add it just in case
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new TypeInsnNode(Opcodes.INSTANCEOF, Transformer.EntityFloatingItem.toString()));
-                        iterator.add(new JumpInsnNode(Opcodes.IFEQ, firstLabelNode));
-                        iterator.add(new InsnNode(Opcodes.ICONST_0));
-                        iterator.add(new InsnNode(Opcodes.IRETURN));
-
-                        logPatchComplete(Transformer.EntityItem$combineItems_name);
-                        methodPatches++;
-                        break;
-                    }
-                }
-            }
-        }
-
-        dieIfFalse(methodPatches == 1, classNode);
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
     }

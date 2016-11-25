@@ -1,9 +1,11 @@
 package uk.co.mysterymayhem.gravitymod.common.entities;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.SoundType;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -39,34 +41,63 @@ public class EntityFloatingItem extends EntityItem {
 
     public static final String NAME = "itemfloating";
 
+    // The EntityItem pickup delay is set to infinite so that this entity will not combine with other <? extends EntityItem>s
+    private int actualPickupDelay;
+
 
     public EntityFloatingItem(World worldIn, double x, double y, double z) {
         super(worldIn, x, y, z);
         this.setNoGravity(true);
+        super.setInfinitePickupDelay();
     }
 
     public EntityFloatingItem(World worldIn, double x, double y, double z, ItemStack stack) {
         super(worldIn, x, y, z, stack);
         this.motionY = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D));
         this.setNoGravity(true);
+        super.setInfinitePickupDelay();
     }
 
     public EntityFloatingItem(World worldIn) {
         super(worldIn);
         this.setNoGravity(true);
+        super.setInfinitePickupDelay();
     }
 
-    private static final NBTTagCompound fireworkTag = new NBTTagCompound();
-    static {
-        NBTTagList nbtTagList = new NBTTagList();
-        NBTTagCompound explosionTag = new NBTTagCompound();
-        explosionTag.setBoolean("Flicker", true);
-        explosionTag.setBoolean("Trail", true);
-        explosionTag.setByte("Type", (byte)0);
-        explosionTag.setIntArray("Colors", new int[]{3145970,16713728,6215936});
-        explosionTag.setIntArray("FadeColors", new int[]{857279,16734553,7012185});
-        nbtTagList.appendTag(explosionTag);
-        fireworkTag.setTag("Explosions", nbtTagList);
+    @Override
+    public void setDefaultPickupDelay() {
+        this.actualPickupDelay = 10;
+    }
+
+    @Override
+    public void setNoPickupDelay() {
+        this.actualPickupDelay = 0;
+    }
+
+    @Override
+    public void setInfinitePickupDelay() {
+        this.actualPickupDelay = 32767;
+    }
+
+    @Override
+    public void setPickupDelay(int ticks) {
+        this.actualPickupDelay = ticks;
+    }
+
+    @Override
+    public boolean cannotPickup() {
+        return this.actualPickupDelay > 0;
+    }
+
+    @Override
+    public void onCollideWithPlayer(EntityPlayer entityIn) {
+        if (!this.worldObj.isRemote) {
+            if (!this.cannotPickup()) {
+                super.setNoPickupDelay();
+                super.onCollideWithPlayer(entityIn);
+                super.setInfinitePickupDelay();
+            }
+        }
     }
 
     @Override
@@ -112,6 +143,11 @@ public class EntityFloatingItem extends EntityItem {
         double zMotionBefore = this.motionZ;
 
         super.onUpdate();
+
+        if (this.actualPickupDelay > 0 && this.actualPickupDelay != 32767)
+        {
+            --this.actualPickupDelay;
+        }
 
         double xToAdd = (this.posX - xBefore) - xMotionBefore;
         double yToAdd = (this.posY - yBefore) - yMotionBefore;
@@ -178,31 +214,52 @@ public class EntityFloatingItem extends EntityItem {
 
             if (xDiff > 0) {
                 current = current.west();
-                this.playStepSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
             }
             else if (xDiff < 0) {
                 current = current.east();
-                this.playStepSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
             }
             else if (yDiff > 0) {
                 current = current.down();
-                this.playStepSound(current, this.worldObj.getBlockState(current).getBlock());
+                // super call so snow layer sounds play
+                this.playBounceSoundSnowCheck(current, this.worldObj.getBlockState(current).getBlock());
             }
             else if (yDiff < 0) {
                 current = current.up();
-                this.playStepSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
             }
             else if (zDiff > 0) {
                 current = current.north();
-                this.playStepSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
             }
             else if (zDiff < 0) {
                 current = current.south();
-                this.playStepSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
             }
+        }
+    }
 
-//            this.worldObj.makeFireworks(this.posX, this.posY, this.posZ, this.motionX, this.motionY, this.motionZ, fireworkTag);
-//            this.playSound(SoundEvents.BLOCK_NOTE_HARP, 0.05F, 0.3F + this.rand.nextFloat() * 0.4F);
+    // Similar to this.playStepSound
+    private void playBounceSound(BlockPos pos, Block blockIn) {
+        SoundType soundtype = blockIn.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
+
+        if (!blockIn.getDefaultState().getMaterial().isLiquid())
+        {
+            this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
+        }
+    }
+
+    //Similar to this.playStepSound
+    private void playBounceSoundSnowCheck(BlockPos pos, Block blockIn) {
+
+        if (this.worldObj.getBlockState(pos.up()).getBlock() == Blocks.SNOW_LAYER)
+        {
+            SoundType soundtype = Blocks.SNOW_LAYER.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
+            this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
+        }
+        else {
+            this.playBounceSound(pos, blockIn);
         }
     }
 }
