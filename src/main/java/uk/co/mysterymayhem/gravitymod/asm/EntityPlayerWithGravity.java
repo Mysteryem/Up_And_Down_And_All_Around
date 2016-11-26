@@ -679,25 +679,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
                 if (facing != null) {
                     EnumGravityDirection direction = gBB.getDirection();
-                    switch(direction) {
-                        case EAST:
-                        case WEST:
-                            if (facing == EnumFacing.EAST || facing == EnumFacing.WEST) {
-                                isOnLadder = false;
-                            }
-                            break;
-                        case NORTH:
-                        case SOUTH:
-                            if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH) {
-                                isOnLadder = false;
-                            }
-                            break;
-                        default://case UP:case DOWN:
-                            if (facing == EnumFacing.UP || facing == EnumFacing.DOWN) {
-                                isOnLadder = false;
-                            }
-                            break;
-                    }
+                    isOnLadder = direction.isValidLadderDirection(facing);
                 }
             }
 //            }
@@ -711,22 +693,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                     EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
                     if (facing != null) {
                         EnumGravityDirection direction = gBB.getDirection();
-                        switch(direction) {
-                            case EAST:
-                                isOnLadder = facing == EnumFacing.EAST && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                break;
-                            case WEST:
-                                isOnLadder = facing == EnumFacing.WEST && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                break;
-                            case NORTH:
-                                isOnLadder = facing == EnumFacing.NORTH && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                break;
-                            case SOUTH:
-                                isOnLadder = facing == EnumFacing.SOUTH && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
-                                break;
-                            default:
-                                break;
-                        }
+                        isOnLadder = facing == direction.getFacingEquivalent() && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
                         isMonkeyBars = true;
                     }
                 }

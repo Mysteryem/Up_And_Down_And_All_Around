@@ -17,7 +17,7 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
  * Created by Mysteryem on 2016-08-14.
  */
 public enum EnumGravityDirection implements IStringSerializable {
-    UP(new Vec3i(0, 0, 180), "up") {
+    UP(new Vec3i(0, 0, 180), "up", EnumFacing.UP) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-x, -y, z};}
         // Doing nothing is correct because the rotation of the player occurs about their position, which lines up with
         // how the UP gravity hitboxes are set up
@@ -64,7 +64,7 @@ public enum EnumGravityDirection implements IStringSerializable {
             };
         }
     },
-    DOWN(new Vec3i(0, 0, 0), "down") {
+    DOWN(new Vec3i(0, 0, 0), "down", EnumFacing.DOWN) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, y, z};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {/*do nothing*/}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -87,7 +87,7 @@ public enum EnumGravityDirection implements IStringSerializable {
         }
         @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {return blockPos;}
     },
-    NORTH(new Vec3i(90, 0, 0), "north") {
+    NORTH(new Vec3i(90, 0, 0), "north", EnumFacing.NORTH) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, -z, y};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(0, 0, -API.getStandardEyeHeight(player));}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -132,7 +132,7 @@ public enum EnumGravityDirection implements IStringSerializable {
             };
         }
     },
-    EAST(new Vec3i(0, 0, 90), "east") {
+    EAST(new Vec3i(0, 0, 90), "east", EnumFacing.EAST) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-y, x, z};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(API.getStandardEyeHeight(player), 0, 0);}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -176,7 +176,7 @@ public enum EnumGravityDirection implements IStringSerializable {
             };
         }
     },
-    SOUTH(new Vec3i(-90, 0, 0), "south") {
+    SOUTH(new Vec3i(-90, 0, 0), "south", EnumFacing.SOUTH) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, z, -y};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(0, 0, API.getStandardEyeHeight(player));}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -220,7 +220,7 @@ public enum EnumGravityDirection implements IStringSerializable {
             };
         }
     },
-    WEST(new Vec3i(0, 0, -90), "west") {
+    WEST(new Vec3i(0, 0, -90), "west", EnumFacing.WEST) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{y, -x, z};}
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {GlStateManager.translate(-API.getStandardEyeHeight(player), 0, 0);}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
@@ -276,21 +276,32 @@ public enum EnumGravityDirection implements IStringSerializable {
 
     private final Vec3i cameraTransformVars;
     private final String name;
+    private final EnumFacing facingEquivalent;
 
-    EnumGravityDirection(Vec3i cameraTransformVars, String name) {
+    EnumGravityDirection(Vec3i cameraTransformVars, String name, EnumFacing facingEquivalent) {
         this.cameraTransformVars = cameraTransformVars;
         this.name = name;
+        this.facingEquivalent = facingEquivalent;
+    }
+
+    public EnumFacing getFacingEquivalent() {
+        return this.facingEquivalent;
+    }
+
+    public boolean isValidLadderDirection(EnumFacing ladderFacing) {
+        return ladderFacing != this.facingEquivalent && ladderFacing.getOpposite() != this.facingEquivalent;
     }
 
     public Vec3i getCameraTransformVars() {
-        return cameraTransformVars;
+        return this.cameraTransformVars;
     }
 
+    // Overridden in UP and DOWN
     public float getEntityEyeHeight(EntityLivingBase entityLivingBase) {
         return 0f;
     }
 
-    // I'm lazy, so
+    // I'm lazy and don't want to put unnecessary code in the overridden methods of the enum constants
     public void resetPositionToBB(EntityLivingBase entityLivingBase) {
         this.resetPositionToBB(entityLivingBase, entityLivingBase.getEntityBoundingBox());
     }
