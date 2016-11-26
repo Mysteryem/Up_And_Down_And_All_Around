@@ -267,20 +267,7 @@ public class Hooks {
     public static BlockPos getRelativeDownBlockPos(BlockPos other, Entity entity) {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            switch (((GravityAxisAlignedBB)entityBoundingBox).getDirection()) {
-                case UP:
-                    return other.up();
-                case DOWN:
-                    return other.down();
-                case SOUTH:
-                    return other.south();
-                case WEST:
-                    return other.west();
-                case NORTH:
-                    return other.north();
-                default://case EAST:
-                    return other.east();
-            }
+            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other).down();
         }
         else {
             return other.down();
@@ -1219,21 +1206,7 @@ public class Hooks {
     public static BlockPos getRelativeUpBlockPos(BlockPos other, Entity entity) {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            switch (((GravityAxisAlignedBB)entityBoundingBox).getDirection()) {
-                case UP:
-                    return other.down();
-                case DOWN:
-                    return other.up();
-                case SOUTH:
-                    return other.north();
-                case WEST:
-                    return other.east();
-                case NORTH:
-                    return other.south();
-//                case EAST:
-                default:
-                    return other.west();
-            }
+            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other).up();
         }
         else {
             return other.up();
@@ -1279,24 +1252,10 @@ public class Hooks {
     public static BlockPos getRelativeUpBlockPos(BlockPos other, int count, Entity entity) {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            switch (((GravityAxisAlignedBB)entityBoundingBox).getDirection()) {
-                case UP:
-                    return other.down(count);
-                case DOWN:
-                    return other.up(count);
-                case SOUTH:
-                    return other.north(count);
-                case WEST:
-                    return other.east(count);
-                case NORTH:
-                    return other.south(count);
-//                case EAST:
-                default:
-                    return other.west(count);
-            }
+            return((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other).up(count);
         }
         else {
-            return other.up();
+            return other.up(count);
         }
     }
 

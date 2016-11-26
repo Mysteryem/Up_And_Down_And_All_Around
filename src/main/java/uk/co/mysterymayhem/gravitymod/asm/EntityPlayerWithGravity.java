@@ -425,7 +425,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             if (iblockstate.getBlock().isAir(iblockstate, this.worldObj, blockpos))
             {
-                BlockPos blockpos1 = API.getGravityDirection(this).getRelativeDownBlockPos(blockpos);
+                BlockPos blockpos1 = API.getGravityDirection(this).makeRelativeBlockPos(blockpos).down();
 
                 IBlockState iblockstate1 = this.worldObj.getBlockState(blockpos1);
                 Block block = iblockstate1.getBlock();

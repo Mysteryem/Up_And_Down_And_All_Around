@@ -19,7 +19,8 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
 public enum EnumGravityDirection implements IStringSerializable {
     UP(new Vec3i(0, 0, 180), "up") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-x, -y, z};}
-        //TODO: Why is doing nothing correct?
+        // Doing nothing is correct because the rotation of the player occurs about their position, which lines up with
+        // how the UP gravity hitboxes are set up
         @Override public void applyOtherPlayerRenderTransformations(EntityPlayer player) {/*do nothing*/}
         @Override public GravityAxisAlignedBB getGravityAdjustedAABB(EntityPlayer player, float width, float height) {
             double widthOver2 = width/2f;
@@ -34,11 +35,33 @@ public enum EnumGravityDirection implements IStringSerializable {
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
         @Override public EnumGravityDirection getOpposite() {return DOWN;}
         @Override public float getEntityEyeHeight(EntityLivingBase entityLivingBase) {return -API.getStandardEyeHeight(entityLivingBase);}
-        @Override public BlockPos getRelativeDownBlockPos(BlockPos blockPos) {return blockPos.up();}
         @Override public void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb) {
             entityLivingBase.posX = (bb.minX + bb.maxX) / 2.0D;
             entityLivingBase.posY = bb.maxY;
             entityLivingBase.posZ = (bb.minZ + bb.maxZ) / 2.0D;
+        }
+        @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
+            return new BlockPos(blockPos) {
+                @Override
+                public BlockPos down(int n) {
+                    return super.up(n);
+                }
+
+                @Override
+                public BlockPos up(int n) {
+                    return super.down(n);
+                }
+
+                @Override
+                public BlockPos east(int n) {
+                    return super.west(n);
+                }
+
+                @Override
+                public BlockPos west(int n) {
+                    return super.east(n);
+                }
+            };
         }
     },
     DOWN(new Vec3i(0, 0, 0), "down") {
@@ -57,12 +80,12 @@ public enum EnumGravityDirection implements IStringSerializable {
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return this;}
         @Override public EnumGravityDirection getOpposite() {return UP;}
         @Override public float getEntityEyeHeight(EntityLivingBase entityLivingBase) {return API.getStandardEyeHeight(entityLivingBase);}
-        @Override public BlockPos getRelativeDownBlockPos(BlockPos blockPos) {return blockPos.down();}
         @Override public void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb) {
             entityLivingBase.posX = (bb.minX + bb.maxX) / 2.0D;
             entityLivingBase.posY = bb.minY;
             entityLivingBase.posZ = (bb.minZ + bb.maxZ) / 2.0D;
         }
+        @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {return blockPos;}
     },
     NORTH(new Vec3i(90, 0, 0), "north") {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, -z, y};}
@@ -80,11 +103,33 @@ public enum EnumGravityDirection implements IStringSerializable {
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return SOUTH;}
         @Override public EnumGravityDirection getOpposite() {return SOUTH;}
-        @Override public BlockPos getRelativeDownBlockPos(BlockPos blockPos) {return blockPos.north();}
         @Override public void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb) {
             entityLivingBase.posX = (bb.minX + bb.maxX) / 2.0D;
             entityLivingBase.posY = (bb.minY + bb.maxY) / 2.0D;
             entityLivingBase.posZ = bb.minZ + API.getStandardEyeHeight(entityLivingBase);
+        }
+        @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
+            return new BlockPos(blockPos) {
+                @Override
+                public BlockPos down(int n) {
+                    return super.north(n);
+                }
+
+                @Override
+                public BlockPos up(int n) {
+                    return super.south(n);
+                }
+
+                @Override
+                public BlockPos north(int n) {
+                    return super.up(n);
+                }
+
+                @Override
+                public BlockPos south(int n) {
+                    return super.down(n);
+                }
+            };
         }
     },
     EAST(new Vec3i(0, 0, 90), "east") {
@@ -102,11 +147,33 @@ public enum EnumGravityDirection implements IStringSerializable {
         @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return WEST;}
-        @Override public BlockPos getRelativeDownBlockPos(BlockPos blockPos) {return blockPos.east();}
         @Override public void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb) {
             entityLivingBase.posX = bb.maxX - API.getStandardEyeHeight(entityLivingBase);
             entityLivingBase.posY = (bb.minY + bb.maxY) / 2.0D;
             entityLivingBase.posZ = (bb.minZ + bb.maxZ) / 2.0D;
+        }
+        @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
+            return new BlockPos(blockPos) {
+                @Override
+                public BlockPos down(int n) {
+                    return super.east(n);
+                }
+
+                @Override
+                public BlockPos up(int n) {
+                    return super.west(n);
+                }
+
+                @Override
+                public BlockPos west(int n) {
+                    return super.down(n);
+                }
+
+                @Override
+                public BlockPos east(int n) {
+                    return super.up(n);
+                }
+            };
         }
     },
     SOUTH(new Vec3i(-90, 0, 0), "south") {
@@ -124,11 +191,33 @@ public enum EnumGravityDirection implements IStringSerializable {
         @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posZ += (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posZ -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return NORTH;}
-        @Override public BlockPos getRelativeDownBlockPos(BlockPos blockPos) {return blockPos.south();}
         @Override public void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb) {
             entityLivingBase.posX = (bb.minX + bb.maxX) / 2.0D;
             entityLivingBase.posY = (bb.minY + bb.maxY) / 2.0D;
             entityLivingBase.posZ = bb.maxZ - API.getStandardEyeHeight(entityLivingBase);
+        }
+        @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
+            return new BlockPos(blockPos) {
+                @Override
+                public BlockPos down(int n) {
+                    return super.south(n);
+                }
+
+                @Override
+                public BlockPos up(int n) {
+                    return super.north(n);
+                }
+
+                @Override
+                public BlockPos north(int n) {
+                    return super.down(n);
+                }
+
+                @Override
+                public BlockPos south(int n) {
+                    return super.up(n);
+                }
+            };
         }
     },
     WEST(new Vec3i(0, 0, -90), "west") {
@@ -146,11 +235,33 @@ public enum EnumGravityDirection implements IStringSerializable {
         @Override public void returnCentreOfGravityToPlayerPos(EntityPlayer player) {player.posX -= (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public void offsetCentreOfGravityFromPlayerPos(EntityPlayer player) {player.posX += (API.getStandardEyeHeight(player) - (player.height / 2d));}
         @Override public EnumGravityDirection getInverseAdjustmentFromDOWNDirection() {return EAST;}
-        @Override public BlockPos getRelativeDownBlockPos(BlockPos blockPos) {return blockPos.west();}
         @Override public void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb) {
             entityLivingBase.posX = bb.minX + API.getStandardEyeHeight(entityLivingBase);
             entityLivingBase.posY = (bb.minY + bb.maxY) / 2.0D;
             entityLivingBase.posZ = (bb.minZ + bb.maxZ) / 2.0D;
+        }
+        @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
+            return new BlockPos(blockPos) {
+                @Override
+                public BlockPos down(int n) {
+                    return super.west(n);
+                }
+
+                @Override
+                public BlockPos up(int n) {
+                    return super.east(n);
+                }
+
+                @Override
+                public BlockPos east(int n) {
+                    return super.down(n);
+                }
+
+                @Override
+                public BlockPos west(int n) {
+                    return super.up(n);
+                }
+            };
         }
     };
 
@@ -160,7 +271,7 @@ public enum EnumGravityDirection implements IStringSerializable {
     public abstract void returnCentreOfGravityToPlayerPos(EntityPlayer player);
     public abstract void offsetCentreOfGravityFromPlayerPos(EntityPlayer player);
     public abstract EnumGravityDirection getInverseAdjustmentFromDOWNDirection();
-    public abstract BlockPos getRelativeDownBlockPos(BlockPos blockPos);
+    public abstract BlockPos makeRelativeBlockPos(BlockPos blockPos);
     public abstract void resetPositionToBB(EntityLivingBase entityLivingBase, AxisAlignedBB bb);
 
     private final Vec3i cameraTransformVars;
