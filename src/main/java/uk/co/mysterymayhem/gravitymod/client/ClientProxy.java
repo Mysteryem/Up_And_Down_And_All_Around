@@ -10,7 +10,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.client.listeners.GravityManagerClient;
 import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
 import uk.co.mysterymayhem.gravitymod.client.listeners.PlayerCameraListener;
-import uk.co.mysterymayhem.gravitymod.client.listeners.PlayerRenderListener;
+import uk.co.mysterymayhem.gravitymod.client.listeners.EntityRenderListener;
 import uk.co.mysterymayhem.gravitymod.client.renderers.RenderGravityEntityItem;
 import uk.co.mysterymayhem.gravitymod.common.CommonProxy;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
@@ -37,7 +37,7 @@ public class ClientProxy extends CommonProxy {
     public void registerListeners() {
         super.registerListeners();
         MinecraftForge.EVENT_BUS.register(new PlayerCameraListener());
-        MinecraftForge.EVENT_BUS.register(new PlayerRenderListener());
+        MinecraftForge.EVENT_BUS.register(new EntityRenderListener());
         MinecraftForge.EVENT_BUS.register(new ItemTooltipListener());
     }
 

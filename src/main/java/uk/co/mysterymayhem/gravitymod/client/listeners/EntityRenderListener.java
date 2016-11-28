@@ -24,7 +24,7 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
  * Created by Mysteryem on 2016-08-07.
  */
 @SideOnly(Side.CLIENT)
-public class PlayerRenderListener {
+public class EntityRenderListener {
 
     //TODO: Un-hardcode and force >=1
     private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
