@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.entities;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -11,6 +12,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import uk.co.mysterymayhem.gravitymod.common.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 
@@ -18,6 +22,31 @@ import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
  * Created by Mysteryem on 2016-11-09.
  */
 public class EntityFloatingItem extends EntityItem {
+
+    // Provides Veinminer compatibility before their code gets fixed
+    // I think it's safe to spawn the extra item.
+    //  If drops are disabled, the original item won't be added to the drops and we won't create an EntityFloatingItem?
+    //  Also, if this event gets cancelled for some reason other than veinminer, the event for the extra item that is
+    //      dropped normally would also likely get cancelled
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    public static void onEntityJoinWorld(EntityJoinWorldEvent event) {
+        Entity entity;
+        World world;
+        // Event cancelled, entity is EntityFloatingItem, event is server side
+        if (event.isCanceled()
+                && (entity = event.getEntity()) != null
+                && entity instanceof EntityFloatingItem
+                && (world = entity.worldObj) != null
+                && !world.isRemote) {
+            // Spawn the extra item that would be dropped normally
+            EntityItem newItem = new EntityItem(world, entity.posX, entity.posY, entity.posZ, new ItemStack(ModItems.gravityDust, ConfigHandler.gravityDustAmountDropped));
+            newItem.motionX *= 0.1;
+            newItem.motionY *= 0.1;
+            newItem.motionZ *= 0.1;
+            newItem.setEntityInvulnerable(true);
+            world.spawnEntityInWorld(newItem);
+        }
+    }
 
     // Using setDead to spawn the item instead of an item pickup listener so that machines and more can cause the dust item to spawn
     @Override
