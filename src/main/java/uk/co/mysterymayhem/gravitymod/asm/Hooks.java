@@ -2,7 +2,9 @@ package uk.co.mysterymayhem.gravitymod.asm;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,10 +27,10 @@ import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.SoundSystem;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.asm.util.ItemStackAndBoolean;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
-import uk.co.mysterymayhem.gravitymod.asm.util.ItemStackAndBoolean;
 
 /**
  * Hooks called through ASM-ed code in order to simplify changes to vanilla classes.
@@ -419,6 +421,93 @@ public class Hooks {
 
 
     /////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Corrects the rotation of nameplates to match the player's rotated camera.
+     *
+     * Called in EntityRenderer.drawNameplate immediately before GlStateManager::disableLighting is called
+     *
+     * Don't ask for specifics, this was mostly done with trial and error.
+     * (undo vanilla rotations and then try relative rotations until they're correct)
+     */
+    @SideOnly(Side.CLIENT)
+    public static void runNameplateCorrection(boolean isThirdPersonFrontal) {
+        Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+        if (renderViewEntity instanceof EntityPlayer) {
+            if (!isThirdPersonFrontal) {
+                // First person or over the shoulder thirdperson
+                switch (API.getGravityDirection((EntityPlayer) renderViewEntity)) {
+                    case UP:
+                        GlStateManager.rotate(180, 0, 0, 1);
+                        break;
+                    case DOWN:
+                        break;
+                    case NORTH:
+                        GlStateManager.rotate(renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(-Hooks.getRelativeYaw(renderViewEntity), 0, 0, 1);
+                        GlStateManager.rotate(-Hooks.getRelativePitch(renderViewEntity) - 90, 1, 0, 0);
+                        break;
+                    case EAST:
+                        GlStateManager.rotate(renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(-Hooks.getRelativeYaw(renderViewEntity), 1, 0, 0);
+                        GlStateManager.rotate(-Hooks.getRelativePitch(renderViewEntity), 0, 1, 0);
+                        GlStateManager.rotate(90, 0, 0, 1);
+                        break;
+                    case SOUTH:
+                        GlStateManager.rotate(renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(Hooks.getRelativeYaw(renderViewEntity), 0, 0, 1);
+                        GlStateManager.rotate(-Hooks.getRelativePitch(renderViewEntity) + 90, 1, 0, 0);
+                        break;
+                    case WEST:
+                        GlStateManager.rotate(renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(Hooks.getRelativeYaw(renderViewEntity), 1, 0, 0);
+                        GlStateManager.rotate(Hooks.getRelativePitch(renderViewEntity), 0, 1, 0);
+                        GlStateManager.rotate(-90, 0, 0, 1);
+                        break;
+                }
+            }
+            else {
+                // Frontal thirdperson camera
+                switch (API.getGravityDirection((EntityPlayer) renderViewEntity)) {
+                    case UP:
+                        GlStateManager.rotate(180, 0, 0, 1);
+                        break;
+                    case DOWN:
+                        break;
+                    case NORTH:
+                        GlStateManager.rotate(-renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(Hooks.getRelativeYaw(renderViewEntity), 0, 0, 1);
+                        GlStateManager.rotate(Hooks.getRelativePitch(renderViewEntity) + 90, 1, 0, 0);
+                        break;
+                    case EAST:
+                        GlStateManager.rotate(-renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(Hooks.getRelativeYaw(renderViewEntity), 1, 0, 0);
+                        GlStateManager.rotate(-Hooks.getRelativePitch(renderViewEntity), 0, 1, 0);
+                        GlStateManager.rotate(-90, 0, 0, 1);
+                        break;
+                    case SOUTH:
+                        GlStateManager.rotate(-renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(-Hooks.getRelativeYaw(renderViewEntity), 0, 0, 1);
+                        GlStateManager.rotate(Hooks.getRelativePitch(renderViewEntity) - 90, 1, 0, 0);
+                        break;
+                    case WEST:
+                        GlStateManager.rotate(-renderViewEntity.rotationPitch, 1, 0, 0);
+                        GlStateManager.rotate(-renderViewEntity.rotationYaw, 0, 1, 0);
+                        GlStateManager.rotate(-Hooks.getRelativeYaw(renderViewEntity), 1, 0, 0);
+                        GlStateManager.rotate(Hooks.getRelativePitch(renderViewEntity), 0, 1, 0);
+                        GlStateManager.rotate(90, 0, 0, 1);
+                        break;
+                }
+            }
+        }
+    }
 
     /*
 

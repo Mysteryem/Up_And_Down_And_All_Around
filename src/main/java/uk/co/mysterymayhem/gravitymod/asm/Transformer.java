@@ -68,7 +68,7 @@ public class Transformer implements IClassTransformer {
         classNameToMethodMap.put("net.minecraft.client.entity.EntityPlayerSP", Transformer::patchEntityPlayerSP);
         // Patches handlePlayerPosLook
         classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", Transformer::patchNetHandlerPlayClient);
-        // Patches getMouseOver
+        // Patches getMouseOver, drawNameplate
         classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", Transformer::patchEntityRenderer);
         // Patches doRender
         classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", Transformer::patchRenderLivingBase);
@@ -190,14 +190,20 @@ public class Transformer implements IClassTransformer {
         textifier.print(writer);
     }
 
+    /**
+     * Use to add a local variable to a method.
+     * @param methodNode Method to add the localvariable to
+     * @param objectClassName The variable's class
+     * @return The index of the new local variable
+     */
     private static int addLocalVar(MethodNode methodNode, ObjectClassName objectClassName) {
         LocalVariablesSorter localVariablesSorter = new LocalVariablesSorter(methodNode.access, methodNode.desc, methodNode);
         return localVariablesSorter.newLocal(Type.getObjectType(objectClassName.toString()));
     }
 
     /*
-            Mojang method names
-         */
+        Mojang method names
+    */
     private static final MethodName AxisAlignedBB$calculateXOffset_name = new MethodName("calculateXOffset", "func_72316_a");
     private static final MethodName AxisAlignedBB$calculateYOffset_name = new MethodName("calculateYOffset", "func_72323_b");
     private static final MethodName AxisAlignedBB$calculateZOffset_name = new MethodName("calculateZOffset", "func_72322_c");
@@ -238,7 +244,10 @@ public class Transformer implements IClassTransformer {
     private static final MethodName EntityPlayerSP$onUpdateWalkingPlayer_name = new MethodName("onUpdateWalkingPlayer", "func_175161_p");
     private static final MethodName EntityPlayerSP$updateAutoJump_name = new MethodName("updateAutoJump", "func_189810_i");
 
+    private static final MethodName EntityRenderer$drawNameplate_name = new MethodName("drawNameplate", "func_189692_a");
     private static final MethodName EntityRenderer$getMouseOver_name = new MethodName("getMouseOver", "func_78473_a");
+
+    private static final MethodName GlStateManager$disableLighting_name = new MethodName("disableLighting", "func_179140_f");
 
     private static final MethodName INetHandlerPlayClient$handlePlayerPosLook_name = new MethodName("handlePlayerPosLook", "func_184330_a");
 
@@ -287,8 +296,8 @@ public class Transformer implements IClassTransformer {
     private static final FieldName EntityLivingBase$prevRotationYawHead_name = new FieldName("prevRotationYawHead", "field_70758_at");
     private static final FieldName EntityLivingBase$rotationYawHead_name = new FieldName("rotationYawHead", "field_70759_as");
     private static final FieldName NetHandlerPlayServer$lastGoodX_name = new FieldName("lastGoodX", "field_184352_o");
-    private static final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
-    private static final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
+//    private static final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
+//    private static final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
     private static final FieldName NetHandlerPlayServer$playerEntity_name = new FieldName("playerEntity", "field_147369_b");
 
     /*
@@ -319,7 +328,7 @@ public class Transformer implements IClassTransformer {
     private static final ObjectClassName WorldClient = new ObjectClassName("net/minecraft/client/multiplayer/WorldClient");
 
     // Non-minecraft classes
-    private static final ObjectClassName EntityFloatingItem = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/entities/EntityFloatingItem");
+//    private static final ObjectClassName EntityFloatingItem = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/entities/EntityFloatingItem");
     private static final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
     private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
     private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
@@ -446,6 +455,7 @@ public class Transformer implements IClassTransformer {
     private static final HooksMethodInstruction Hooks$reverseXOffset = new HooksMethodInstruction("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
     private static final HooksMethodInstruction Hooks$reverseYOffset = new HooksMethodInstruction("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
     private static final HooksMethodInstruction Hooks$reverseZOffset = new HooksMethodInstruction("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksMethodInstruction Hooks$runNameplateCorrection = new HooksMethodInstruction("runNameplateCorrection", new MethodDesc(VOID, BOOLEAN));
     private static final HooksMethodInstruction Hooks$setListenerOrientationHook = new HooksMethodInstruction("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
     private static final HooksMethodInstruction Hooks$setPooledMutableBlockPosToBelowEntity =
             new HooksMethodInstruction("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
@@ -657,7 +667,6 @@ public class Transformer implements IClassTransformer {
         ClassReader classReader = new ClassReader(bytes);
         classReader.accept(classNode, 0);
 
-        outerfor:
         for (MethodNode methodNode : classNode.methods) {
             // Minecraft checks if the player is looking at an entity by expanding their bounding box and then effectively
             // raytracing those found entities (I think it just does some angle and distance calculations).
@@ -674,7 +683,7 @@ public class Transformer implements IClassTransformer {
             // This vanilla AxisAlignedBB will then move in an absolute fashion
             if (Transformer.EntityRenderer$getMouseOver_name.is(methodNode)) {
                 logPatchStarting(Transformer.EntityRenderer$getMouseOver_name);
-
+                outerfor:
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     // This is a pretty unique method call, so we'll use it as the basis for finding the bytecode to patch
@@ -694,9 +703,30 @@ public class Transformer implements IClassTransformer {
                     }
                 }
             }
+            else if (Transformer.EntityRenderer$drawNameplate_name.is(methodNode)) {
+                logPatchStarting(Transformer.EntityRenderer$drawNameplate_name);
+                boolean patchComplete = false;
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                    AbstractInsnNode next = iterator.next();
+                    if (next instanceof MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
+                        if (Transformer.GlStateManager$disableLighting_name.is(methodInsnNode.name)) {
+                            iterator.previous();
+                            // boolean isThirdPersonFrontal argument, '8' should be consistent unless the method's description changes
+                            iterator.add(new VarInsnNode(Opcodes.ILOAD, 8));
+                            Transformer.Hooks$runNameplateCorrection.addTo(iterator);
+                            logPatchComplete(Transformer.EntityRenderer$drawNameplate_name);
+                            patchComplete = true;
+                            methodPatches++;
+                            break;
+                        }
+                    }
+                }
+                dieIfFalse(patchComplete, "Failed to find " + Transformer.GlStateManager$disableLighting_name + " in " + classNode.name + "::" + Transformer.EntityRenderer$drawNameplate_name);
+            }
         }
 
-        dieIfFalse(methodPatches == 1, classNode);
+        dieIfFalse(methodPatches == 2, classNode);
 
         ClassWriter classWriter = new ClassWriter(0);
         classNode.accept(classWriter);
