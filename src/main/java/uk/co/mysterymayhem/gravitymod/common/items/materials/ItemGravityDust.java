@@ -13,7 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -35,10 +34,6 @@ import java.util.ListIterator;
  * Created by Mysteryem on 2016-11-10.
  */
 public class ItemGravityDust extends Item implements IModItem {
-
-    public static class FallDamageListener {
-
-    }
 
     public static class BlockBreakListener {
 
@@ -297,12 +292,6 @@ public class ItemGravityDust extends Item implements IModItem {
                 worldIn.spawnEntityInWorld(entityitem);
             }
         }
-    }
-
-    @Override
-    public void preInit() {
-        MinecraftForge.EVENT_BUS.register(new FallDamageListener());
-        IModItem.super.preInit();
     }
 
     @Override
