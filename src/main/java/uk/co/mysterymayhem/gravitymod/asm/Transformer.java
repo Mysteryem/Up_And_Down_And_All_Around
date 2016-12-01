@@ -12,6 +12,7 @@ import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.objectweb.asm.util.TraceMethodVisitor;
 
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -36,9 +37,7 @@ public class Transformer implements IClassTransformer {
     // Superclass replacement details:
     // Effectively patches:
     //  Cleanly calls super method:
-    //      moveEntity, jump, handleWaterMovement, setEntityBoundingBox, updateFallState, pushOutOfBlocks (NYI), knockback
-    //  Calls super, but discards some changes:
-    //      setAngles (may be able to update this so super is cleanly called)
+    //      moveEntity, jump, handleWaterMovement, setEntityBoundingBox, updateFallState, pushOutOfBlocks (NYI), knockback, setAngles
     //  Should always call super:
     //      getEntityBoundingBox (in the case it doesn't call super, the mod probably isn't going to work anyway)
     //  Sometimes calls super:
@@ -165,6 +164,12 @@ public class Transformer implements IClassTransformer {
         printClassToStream(bytes, System.out);
     }
 
+    private static void printClassToFMLLogger(byte[] bytes) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        printClassToStream(bytes, byteArrayOutputStream);
+        FMLLog.info("\n%s", byteArrayOutputStream);
+    }
+
     /**
      * Internal method to print a class (from bytes), to an OutputStream.
      * @param bytes bytes that make up a class
@@ -176,10 +181,17 @@ public class Transformer implements IClassTransformer {
         PrintWriter writer = new PrintWriter(outputStream);
         TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
         classReader2.accept(traceClassVisitor, 0);
+        writer.flush();
     }
 
     private static void printMethodToStdOut(MethodNode methodNode) {
         printMethodToStream(methodNode, System.out);
+    }
+
+    private static void printMethodToFMLLogger(MethodNode methodNode) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        printMethodToStream(methodNode, byteArrayOutputStream);
+        FMLLog.info("\n%s", byteArrayOutputStream);
     }
 
     private static void printMethodToStream(MethodNode methodNode, OutputStream outputStream) {
@@ -188,6 +200,7 @@ public class Transformer implements IClassTransformer {
         TraceMethodVisitor traceMethodVisitor = new TraceMethodVisitor(textifier);
         methodNode.accept(traceMethodVisitor);
         textifier.print(writer);
+        writer.flush();
     }
 
     /**

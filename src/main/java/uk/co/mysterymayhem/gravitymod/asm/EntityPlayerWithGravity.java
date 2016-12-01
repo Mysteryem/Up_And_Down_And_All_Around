@@ -99,18 +99,23 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         super(worldIn, gameProfileIn);
         this.superConstructorsFinished = true;
 
-        // Instead of checking if the capability is null every time we set a boundingbox
-        IGravityDirectionCapability capability = API.getGravityDirectionCapability(this);
-        if (capability == null) {
-            //explode
-            throw new RuntimeException("[UpAndDown] Some other mod has blocked UpAndDown from adding its GravityDirectionCapability" +
-                    " to a player (or has straight up deleted it), this is very bad behaviour and whatever mod is causing this should be notified" +
-                    " immediately");
+        try {
+            // Instead of checking if the capability is null every time we set a boundingbox
+            IGravityDirectionCapability capability = API.getGravityDirectionCapability(this);
+            if (capability == null) {
+                //explode
+                throw new RuntimeException("[UpAndDown] Some other mod has blocked UpAndDown from adding its GravityDirectionCapability" +
+                        " to a player (or has straight up deleted it), this is very bad behaviour and whatever mod is causing this should be notified" +
+                        " immediately");
+            }
+        } catch (ClassCastException ex) {
+            throw new RuntimeException("[UpAndDown] Tried to get the gravity-direction-capability of a player, but another mod returned" +
+                    " it's own capability when it shouldn't have. Please report this to the author of the mod that caused this." +
+                    " UpAndDownAndAllAround is not at fault here", ex);
         }
 
         // We refuse to do these in setPosition called in the Entity constructor before the capability has been added
         // So we do them now, after the Entity constructor has finished and the GravityDirectionCapability has been added
-
         this.setEntityBoundingBox(Hooks.getGravityAdjustedHitbox(this));
         this.setSize(this.width, this.height);
 
@@ -308,24 +313,15 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         return toReturn;
     }
 
-    // TODO: use the new pitch and yaw that I calculate to create arguments to pass to the super method (so I don't set any rotation values myself)
     @Override
     public void setAngles(float yaw, float pitch) {
-        final float absolutePitch = this.rotationPitch;
-        final float absoluteYaw = this.rotationYaw;
-        final float f2 = this.prevRotationPitch;
-        final float f3 = this.prevRotationYaw;
-
-        // Call super to update ridden entity
-        super.setAngles(yaw, pitch);
-
         final EnumGravityDirection direction = API.getGravityDirection(this);
         final EnumGravityDirection reverseDirection = direction.getInverseAdjustmentFromDOWNDirection();
 
         final double relativePitchChange = -pitch*0.15d;
         final double relativeYawChange = yaw*0.15d;
 
-        final Vec3d normalLookVec = Vec3dHelper.getPreciseVectorForRotation(absolutePitch, absoluteYaw);
+        final Vec3d normalLookVec = Vec3dHelper.getPreciseVectorForRotation(this.rotationPitch, this.rotationYaw);
 
         final Vec3d relativeLookVec = reverseDirection.adjustLookVec(normalLookVec);
         final double[] relativePY = Vec3dHelper.getPrecisePitchAndYawFromVector(relativeLookVec);
@@ -364,7 +360,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
         // Yaw calculated through yaw change
         final double absoluteYawChange;
-        final double effectiveStartingAbsoluteYaw = absoluteYaw % 360;
+        final double effectiveStartingAbsoluteYaw = this.rotationYaw % 360;
 
         // Limit the change in yaw to 180 degrees each tick
         if (Math.abs(effectiveStartingAbsoluteYaw - changedAbsoluteYaw) > 180) {
@@ -379,17 +375,10 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             absoluteYawChange = changedAbsoluteYaw - effectiveStartingAbsoluteYaw;
         }
 
-        this.rotationYaw = (float)(absoluteYaw + absoluteYawChange);
+        float yawParam = (float)((absoluteYawChange)/0.15);
+        float pitchParam = (float)((this.rotationPitch - changedAbsolutePitch)/0.15);
 
-        this.rotationPitch = (float)changedAbsolutePitch;
-        this.prevRotationPitch = f2;
-        this.prevRotationPitch += this.rotationPitch - absolutePitch;
-        this.prevRotationYaw = f3;
-        this.prevRotationYaw += this.rotationYaw - absoluteYaw;
-    }
-
-    public Vec3d getSuperLook(float partialTicks) {
-        return super.getLook(partialTicks);
+        super.setAngles(yawParam, pitchParam);
     }
 
     @Override
