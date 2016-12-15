@@ -1,4 +1,4 @@
-package uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier;
+package uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;

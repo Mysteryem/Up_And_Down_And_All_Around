@@ -141,7 +141,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @SuppressWarnings("deprecation")
-    void makeMotionRelative() {
+    public void makeMotionRelative() {
         FieldState top = motionFieldStateStack.peek();
         if (top == FieldState.ABSOLUTE) {
             this.makeMotionFieldsRelative();
@@ -150,7 +150,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @SuppressWarnings("deprecation")
-    void makeMotionAbsolute() {
+    public void makeMotionAbsolute() {
         FieldState top = motionFieldStateStack.peek();
         if (top == FieldState.RELATIVE) {
             this.makeMotionFieldsAbsolute();
@@ -159,7 +159,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @SuppressWarnings("deprecation")
-    void popMotionStack() {
+    public void popMotionStack() {
         FieldState removed = motionFieldStateStack.pop();
         FieldState top = motionFieldStateStack.peek();
         if (top != removed) {
@@ -174,11 +174,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         }
     }
 
-    boolean isMotionRelative() {
+    public boolean isMotionRelative() {
         return motionFieldStateStack.peek() == FieldState.RELATIVE;
     }
 
-    boolean isMotionAbsolute() {
+    public boolean isMotionAbsolute() {
         return !this.isMotionRelative();
     }
 
@@ -211,7 +211,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
 
     @SuppressWarnings("deprecation")
-    void makeRotationAbsolute() {
+    public void makeRotationAbsolute() {
         FieldState top = rotationFieldStateStack.peek();
         if (top == FieldState.RELATIVE) {
             this.makeRotationFieldsAbsolute();
@@ -220,7 +220,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @SuppressWarnings("deprecation")
-    void makeRotationRelative() {
+    public void makeRotationRelative() {
         FieldState top = rotationFieldStateStack.peek();
         if (top == FieldState.ABSOLUTE) {
             this.makeRotationFieldsRelative();
@@ -229,7 +229,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @SuppressWarnings("deprecation")
-    void popRotationStack() {
+    public void popRotationStack() {
         FieldState removed = rotationFieldStateStack.pop();
         FieldState top = rotationFieldStateStack.peek();
         if (top != removed) {

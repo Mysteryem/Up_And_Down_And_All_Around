@@ -1,4 +1,4 @@
-package uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier;
+package uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier;
 
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
