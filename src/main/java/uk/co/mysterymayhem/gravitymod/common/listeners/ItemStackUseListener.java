@@ -22,8 +22,8 @@ import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler.EnumItemStackUseCompat;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.CombinedPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
 
 import java.util.*;

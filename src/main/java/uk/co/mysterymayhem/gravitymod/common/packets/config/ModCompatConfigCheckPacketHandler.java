@@ -12,9 +12,9 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.EnumPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.CombinedPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.EnumPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePostModifier;
 
 /**
  * Created by Mysteryem on 2016-10-26.

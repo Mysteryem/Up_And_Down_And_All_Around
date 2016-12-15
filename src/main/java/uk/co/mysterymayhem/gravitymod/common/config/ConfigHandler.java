@@ -6,9 +6,9 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.CombinedPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.EnumPrePostModifier;
-import uk.co.mysterymayhem.gravitymod.common.util.prepostmodifier.IPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.CombinedPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.EnumPrePostModifier;
+import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePostModifier;
 
 import java.io.File;
 import java.io.IOException;
