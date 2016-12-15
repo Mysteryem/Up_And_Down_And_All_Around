@@ -253,36 +253,18 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, ModIt
         }
     }
 
-    @SideOnly(Side.CLIENT)
-    private class MeshDefinitions implements ItemMeshDefinition {
-
-        final ArrayList<ModelResourceLocation> list;
-        final ModelResourceLocation generalResource;
-
-        MeshDefinitions() {
-            ItemGravityAnchor item = ItemGravityAnchor.this;
-            generalResource = new ModelResourceLocation(item.getRegistryName(), "inventory");
-
-            list = new ArrayList<>();
-            for (ItemFacing direction : ItemFacing.values()) {
-                list.add(new ModelResourceLocation(item.getRegistryName() + "_" + direction.name().toLowerCase(Locale.ENGLISH), "inventory"));
-            }
-        }
-
-        @Override
-        public ModelResourceLocation getModelLocation(ItemStack stack) {
-            return generalResource;
-        }
-    }
-
     @Override
-    @SuppressWarnings("ConfusingArgumentToVarargsMethod")
     @SideOnly(Side.CLIENT)
     public void preInitClient() {
-        ItemGravityAnchor.MeshDefinitions meshDefinitions = new ItemGravityAnchor.MeshDefinitions();
-        ModelBakery.registerItemVariants(this, meshDefinitions.generalResource);
-        ModelBakery.registerItemVariants(this, meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]));
-        ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
+        // ItemFacing used to produce the ModelResourceLocations
+        for (ItemFacing direction : ItemFacing.values()) {
+            ModelBakery.registerItemVariants(this, new ModelResourceLocation(this.getRegistryName() + "_" + direction.name().toLowerCase(Locale.ENGLISH), "inventory"));
+        }
+
+        // Ordinal of EnumGravityDirection provides the damage value/metadata of the itemstack
+        for (EnumGravityDirection gravityDirection : EnumGravityDirection.values()) {
+            ModelLoader.setCustomModelResourceLocation(this, gravityDirection.ordinal(), new ModelResourceLocation(this.getRegistryName(), "inventory"));
+        }
     }
 
     // Most of the ItemGravityAnchor class is this ItemPropertyGetter :\, why did I do this?
