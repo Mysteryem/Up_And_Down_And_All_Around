@@ -10,8 +10,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 
 import java.util.List;
@@ -23,17 +23,17 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
     private static final String NAME = "ultimategravitycontroller";
 
     @Override
-    public void postInitRecipes() {
+    public void postInit() {
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
                 "PGP",
                 "ISI",
                 "PIP",
 
-                'I', ModItems.gravityIngot,
-                'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
-                'P', ModItems.gravityPearl,
-                'S', ModItems.spacetimeAnomaly
+                'I', StaticRegistry.gravityIngot,
+                'G', new ItemStack(StaticRegistry.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
+                'P', StaticRegistry.gravityPearl,
+                'S', StaticRegistry.spacetimeAnomaly
         ));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
@@ -41,10 +41,10 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
                 "GSI",
                 "PIP",
 
-                'I', ModItems.gravityIngot,
-                'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
-                'P', ModItems.gravityPearl,
-                'S', ModItems.spacetimeAnomaly
+                'I', StaticRegistry.gravityIngot,
+                'G', new ItemStack(StaticRegistry.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
+                'P', StaticRegistry.gravityPearl,
+                'S', StaticRegistry.spacetimeAnomaly
                 ));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
@@ -52,10 +52,10 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
                 "ISG",
                 "PIP",
 
-                'I', ModItems.gravityIngot,
-                'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
-                'P', ModItems.gravityPearl,
-                'S', ModItems.spacetimeAnomaly
+                'I', StaticRegistry.gravityIngot,
+                'G', new ItemStack(StaticRegistry.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
+                'P', StaticRegistry.gravityPearl,
+                'S', StaticRegistry.spacetimeAnomaly
         ));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
@@ -63,10 +63,10 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
                 "ISI",
                 "PGP",
 
-                'I', ModItems.gravityIngot,
-                'G', new ItemStack(ModItems.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
-                'P', ModItems.gravityPearl,
-                'S', ModItems.spacetimeAnomaly
+                'I', StaticRegistry.gravityIngot,
+                'G', new ItemStack(StaticRegistry.personalGravityController, 1, OreDictionary.WILDCARD_VALUE),
+                'P', StaticRegistry.gravityPearl,
+                'S', StaticRegistry.spacetimeAnomaly
         ));
     }
 

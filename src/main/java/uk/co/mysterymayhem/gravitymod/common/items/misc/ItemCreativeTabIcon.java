@@ -18,7 +18,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
  * Shhh, nothing to see here
  * Created by Mysteryem on 2016-11-02.
  */
-public class ItemCreativeTabIcon extends Item implements IModItem {
+public class ItemCreativeTabIcon extends Item implements ModItems.IModItem {
     private static final String NAME = "creativetabicon";
     private static final NBTTagCompound fireworkTag = new NBTTagCompound();
     static {

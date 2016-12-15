@@ -19,8 +19,8 @@ import net.minecraftforge.oredict.RecipeSorter;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 import javax.annotation.Nonnull;
@@ -32,7 +32,7 @@ import java.util.List;
  * Craft with armour to enable [no prefix] gravity field interaction
  * Created by Mysteryem on 2016-11-11.
  */
-public class ItemArmourPaste extends Item implements IModItem {
+public class ItemArmourPaste extends Item implements ModItems.IModItem {
     private static final String NBT_KEY = "mystgravity_paste";
 
     private static final EnumSet<EntityEquipmentSlot> armourSlots = EnumSet.of(
@@ -141,9 +141,9 @@ public class ItemArmourPaste extends Item implements IModItem {
     }
 
     @Override
-    public void postInitRecipes() {
+    public void postInit() {
         //TODO: Replace with ore dictionary entry for slime ball
-        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), ModItems.gravityDust, "slimeball", "dustGlowstone"));
+        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticRegistry.gravityDust, "slimeball", "dustGlowstone"));
 //        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.gravityDust, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
 
         GameRegistry.addRecipe(new ArmourPasteRecipe());

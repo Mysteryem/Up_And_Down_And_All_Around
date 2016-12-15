@@ -24,9 +24,9 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Created by Mysteryem on 2016-11-09.
  */
-public class ItemGravityPearl extends Item implements IModItem {
+public class ItemGravityPearl extends Item implements ModItems.IModItem {
 
 //    private enum UseType {
 //        NONE(0f),
@@ -74,26 +74,26 @@ public class ItemGravityPearl extends Item implements IModItem {
         });
         this.setMaxStackSize(16);
 
-        IModItem.super.preInit();
+        ModItems.IModItem.super.preInit();
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitModel() {
+    public void preInitClient() {
         ModelLoader.registerItemVariants(this,
                 new ModelResourceLocation(this.getRegistryName() + "_push", "inventory"),
                 new ModelResourceLocation(this.getRegistryName() + "_pull", "inventory"));
-        IModItem.super.preInitModel();
+        ModItems.IModItem.super.preInitClient();
     }
 
     @Override
-    public void postInitRecipes() {
+    public void postInit() {
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 this,
                 " D ",
                 "DPD",
                 " D ",
-                'D', ModItems.gravityDust,
+                'D', StaticRegistry.gravityDust,
                 'P', Items.ENDER_PEARL));
     }
 

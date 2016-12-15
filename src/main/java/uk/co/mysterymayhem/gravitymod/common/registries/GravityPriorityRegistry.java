@@ -1,24 +1,41 @@
-package uk.co.mysterymayhem.gravitymod.common;
+package uk.co.mysterymayhem.gravitymod.common.registries;
 
+import com.google.common.primitives.UnsignedInteger;
 import net.minecraft.util.math.MathHelper;
+import scala.Int;
 
 /**
  * Created by Mysteryem on 2016-11-08.
  */
 public class GravityPriorityRegistry {
-    private static final int PRIORITY_SIZE = 2_000_000_000/3;
-    public static final int WEAK_MIN = 1;
+    private static final int NUM_PRIORITIES = 3;
+    private static final int NUM_EXTRA_VALUES = 4;
+
+    private static final int PRIORITY_SIZE =
+            (int)(
+                (
+                        (
+                                (long)Integer.MAX_VALUE - (long)Integer.MIN_VALUE //max unsigned int
+                        ) - NUM_EXTRA_VALUES //
+                ) / NUM_PRIORITIES
+            );
+
+    public static final int WEAK_MIN = Integer.MIN_VALUE;
     public static final int WEAK_MAX = WEAK_MIN + PRIORITY_SIZE;
+
     public static final int WEAK_GRAVITY_CONTROLLER = WEAK_MAX + 1;
+
     public static final int NORMAL_MIN = WEAK_GRAVITY_CONTROLLER + 1;
     public static final int NORMAL_MAX = NORMAL_MIN + PRIORITY_SIZE;
+
     public static final int PERSONAL_GRAVITY_CONTROLLER = NORMAL_MAX + 1;
 
     public static final int GRAVITY_ANCHOR = PERSONAL_GRAVITY_CONTROLLER + 1;
+
     public static final int STRONG_MIN = GRAVITY_ANCHOR + 1;
     public static final int STRONG_MAX = STRONG_MIN + PRIORITY_SIZE;
 
-    public static final int ULTIMATE_GRAVITY_CONTROLLER = STRONG_MAX + 1;
+    public static final int ULTIMATE_GRAVITY_CONTROLLER = STRONG_MAX + 1; //Integer.MAX_VALUE
 
     public static int interpolateWeak(double percent) {
         percent = MathHelper.clamp_double(percent, 0.0, 1.0);

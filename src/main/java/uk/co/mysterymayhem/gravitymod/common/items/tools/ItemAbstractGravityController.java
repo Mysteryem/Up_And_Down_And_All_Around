@@ -26,8 +26,7 @@ import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
 
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import java.util.Locale;
 /**
  * Created by Mysteryem on 2016-10-11.
  */
-public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, IModItem, IConditionallyAffectsGravity {
+public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, ModItems.IModItem, IConditionallyAffectsGravity {
 
     //7 values (0-6) -> first 3 bits
     private enum EnumControllerActiveDirection {
@@ -203,7 +202,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
-        IModItem.super.preInit();
+        ModItems.IModItem.super.preInit();
     }
 
     @SideOnly(Side.CLIENT)
@@ -421,7 +420,8 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         final ArrayList<ModelResourceLocation> list;
         final TIntObjectHashMap<ModelResourceLocation> modelLookup = new TIntObjectHashMap<>();
 
-        MeshDefinitions(ItemAbstractGravityController item) {
+        MeshDefinitions() {
+            ItemAbstractGravityController item = ItemAbstractGravityController.this;
             list = new ArrayList<>();
             for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
                 list.add(new ModelResourceLocation(item.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
@@ -459,10 +459,8 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void preInitModel() {
-        MeshDefinitions meshDefinitions = new MeshDefinitions(this);
-//        ModelResourceLocation[] itemModelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
-//        ModelBakery.registerItemVariants(this, (ResourceLocation[]) itemModelResourceLocations);
+    public void preInitClient() {
+        MeshDefinitions meshDefinitions = new MeshDefinitions();
         ModelResourceLocation[] modelResourceLocations = meshDefinitions.modelLookup.valueCollection().toArray(new ModelResourceLocation[meshDefinitions.modelLookup.valueCollection().size()]);
         ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);

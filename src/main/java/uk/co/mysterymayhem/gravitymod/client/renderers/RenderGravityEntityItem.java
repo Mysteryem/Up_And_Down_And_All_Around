@@ -1,7 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.client.renderers;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.RenderEntityItem;
@@ -19,8 +19,8 @@ import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
  * Created by Mysteryem on 2016-11-07.
  */
 public class RenderGravityEntityItem extends RenderEntityItem {
-    public RenderGravityEntityItem(RenderManager renderManagerIn, RenderItem p_i46167_2_) {
-        super(renderManagerIn, p_i46167_2_);
+    public RenderGravityEntityItem(RenderManager renderManagerIn) {
+        super(renderManagerIn, Minecraft.getMinecraft().getRenderItem());
     }
 
     //See RenderEntityItem's implementation

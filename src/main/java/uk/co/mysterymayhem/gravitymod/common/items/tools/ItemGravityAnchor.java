@@ -30,13 +30,13 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
-import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
-import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
+import uk.co.mysterymayhem.gravitymod.asm.Hooks;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
+import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ import java.util.Locale;
 /**
  * Created by Mysteryem on 2016-11-03.
  */
-public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModItem {
+public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, ModItems.IModItem {
 
     // If these are changed, the item jsons will need to be changed too!
     private enum ItemFacing {
@@ -62,18 +62,18 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
     public void preInit() {
         this.setHasSubtypes(true);
         this.addPropertyOverride(new ResourceLocation("facing"), new FacingPropertyGetter());
-        IModItem.super.preInit();
+        ModItems.IModItem.super.preInit();
     }
 
     @Override
-    public void postInitRecipes() {
+    public void postInit() {
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.DOWN.ordinal()),
                 "  C",
                 "GI ",
                 "GG ",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.DOWN.ordinal()),
@@ -81,7 +81,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 " IG",
                 " GG",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.UP.ordinal()),
@@ -89,7 +89,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 "GI ",
                 "  C",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.UP.ordinal()),
@@ -97,7 +97,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 " IG",
                 "C  ",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.NORTH.ordinal()),
@@ -105,7 +105,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 " I ",
                 " C ",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.SOUTH.ordinal()),
@@ -113,7 +113,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 " I ",
                 "GGG",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.EAST.ordinal()),
@@ -121,7 +121,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 "CIG",
                 "  G",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.WEST.ordinal()),
@@ -129,7 +129,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
                 "GIC",
                 "G  ",
                 'C', Items.COMPASS,
-                'G', ModItems.gravityIngot,
+                'G', StaticRegistry.gravityIngot,
                 'I', "ingotIron"));
     }
 
@@ -186,51 +186,49 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
         entityItem.hoverStart = 0;
-        if (!entityItem.hasNoGravity()) {
-            final EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(entityItem.getEntityItem().getItemDamage());
-            if (direction == EnumGravityDirection.DOWN) {
-                return false;
-            }
+        final EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(entityItem.getEntityItem().getItemDamage());
+        if (direction == EnumGravityDirection.DOWN) {
+            return false;
+        }
 
-            //TODO: Find the correct block and apply its slipperiness instead?
-            // The item entities tend to slide all over the place otherwise
-            if (entityItem.isCollided) {
-                entityItem.motionX *= 0.8d;
-                entityItem.motionY *= 0.8d;
-                entityItem.motionZ *= 0.8d;
-            }
+        //TODO: Find the correct block and apply its slipperiness instead?
+        // The item entities tend to slide all over the place otherwise
+        if (entityItem.isCollided) {
+            entityItem.motionX *= 0.8d;
+            entityItem.motionY *= 0.8d;
+            entityItem.motionZ *= 0.8d;
+        }
 
-            // Undo usual vanilla gravity
+        // Undo usual vanilla gravity
 //            entityItem.motionY += GRAVITY_DOWNWARDS_MOTION;
 
-            // Apply the correct change to motion
-            double[] d = direction.adjustXYZValues(0, GRAVITY_DOWNWARDS_MOTION, 0);
-            entityItem.motionX -= d[0];
-            entityItem.motionY -= d[1];
-            entityItem.motionZ -= d[2];
+        // Apply the correct change to motion
+        double[] d = direction.adjustXYZValues(0, GRAVITY_DOWNWARDS_MOTION, 0);
+        entityItem.motionX -= d[0];
+        entityItem.motionY -= d[1];
+        entityItem.motionZ -= d[2];
 
-            // TODO: Determine how much of an effect (if any) this has
-            switch (direction) {
-                case UP:
-                    entityItem.onGround = entityItem.isCollidedVertically && entityItem.motionY > 0;
-                    break;
-                case NORTH:
-                    entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionZ < 0;
-                    break;
-                case EAST:
-                    entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionX > 0;
-                    break;
-                case SOUTH:
-                    entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionZ > 0;
-                    break;
-                case WEST:
-                    entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionX < 0;
-                    break;
-            }
-
-            // Not sure if it's needed
-            entityItem.isAirBorne = !entityItem.onGround;
+        // TODO: Determine how much of an effect (if any) this has
+        switch (direction) {
+            case UP:
+                entityItem.onGround = entityItem.isCollidedVertically && entityItem.motionY > 0;
+                break;
+            case NORTH:
+                entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionZ < 0;
+                break;
+            case EAST:
+                entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionX > 0;
+                break;
+            case SOUTH:
+                entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionZ > 0;
+                break;
+            case WEST:
+                entityItem.onGround = entityItem.isCollidedHorizontally && entityItem.motionX < 0;
+                break;
         }
+
+        // Not sure if it's needed
+        entityItem.isAirBorne = !entityItem.onGround;
         return false;
     }
 
@@ -256,12 +254,13 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
     }
 
     @SideOnly(Side.CLIENT)
-    private static class MeshDefinitions implements ItemMeshDefinition {
+    private class MeshDefinitions implements ItemMeshDefinition {
 
         final ArrayList<ModelResourceLocation> list;
         final ModelResourceLocation generalResource;
 
-        MeshDefinitions(ItemGravityAnchor item) {
+        MeshDefinitions() {
+            ItemGravityAnchor item = ItemGravityAnchor.this;
             generalResource = new ModelResourceLocation(item.getRegistryName(), "inventory");
 
             list = new ArrayList<>();
@@ -279,8 +278,8 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IModI
     @Override
     @SuppressWarnings("ConfusingArgumentToVarargsMethod")
     @SideOnly(Side.CLIENT)
-    public void preInitModel() {
-        ItemGravityAnchor.MeshDefinitions meshDefinitions = new ItemGravityAnchor.MeshDefinitions(this);
+    public void preInitClient() {
+        ItemGravityAnchor.MeshDefinitions meshDefinitions = new ItemGravityAnchor.MeshDefinitions();
         ModelBakery.registerItemVariants(this, meshDefinitions.generalResource);
         ModelBakery.registerItemVariants(this, meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]));
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);

@@ -15,8 +15,8 @@ import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.Locale;
  * Created by Mysteryem on 2016-11-05.
  */
 @Optional.Interface(iface = ModSupport.INTERFACE_IBAUBLE, modid = ModSupport.BAUBLES_MOD_ID)
-public class ItemGravityBauble extends Item implements IBauble, IModItem, IWeakGravityEnabler {
+public class ItemGravityBauble extends Item implements IBauble, ModItems.IModItem, IWeakGravityEnabler {
     private static final ArrayList<String> DAMAGE_TO_NAME_MAP = new ArrayList<>();
 
     /*
@@ -82,7 +82,7 @@ public class ItemGravityBauble extends Item implements IBauble, IModItem, IWeakG
         }
         this.setHasSubtypes(true);
         this.setMaxStackSize(1);
-        IModItem.super.preInit();
+        ModItems.IModItem.super.preInit();
     }
 
     @Override
@@ -92,12 +92,14 @@ public class ItemGravityBauble extends Item implements IBauble, IModItem, IWeakG
         }
     }
 
+    // Implements client only interface
     @SideOnly(Side.CLIENT)
     private class MeshDefinitions implements ItemMeshDefinition {
 
         final ArrayList<ModelResourceLocation> list;
 
-        MeshDefinitions(ItemGravityBauble item) {
+        MeshDefinitions() {
+            ItemGravityBauble item = ItemGravityBauble.this;
             list = new ArrayList<>();
             for (String suffix : DAMAGE_TO_NAME_MAP) {
                 list.add(new ModelResourceLocation(item.getRegistryName() + "_" + suffix, "inventory"));
@@ -113,8 +115,8 @@ public class ItemGravityBauble extends Item implements IBauble, IModItem, IWeakG
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void preInitModel() {
-        MeshDefinitions meshDefinitions = new MeshDefinitions(this);
+    public void preInitClient() {
+        MeshDefinitions meshDefinitions = new MeshDefinitions();
         ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
         ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
         ModelLoader.setCustomMeshDefinition(this, meshDefinitions);

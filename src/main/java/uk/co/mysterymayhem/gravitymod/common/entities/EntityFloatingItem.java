@@ -15,7 +15,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModEntities;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 
 /**
@@ -39,7 +40,7 @@ public class EntityFloatingItem extends EntityItem {
                 && (world = entity.worldObj) != null
                 && !world.isRemote) {
             // Spawn the extra item that would be dropped normally
-            EntityItem newItem = new EntityItem(world, entity.posX, entity.posY, entity.posZ, new ItemStack(ModItems.gravityDust, ConfigHandler.gravityDustAmountDropped));
+            EntityItem newItem = new EntityItem(world, entity.posX, entity.posY, entity.posZ, new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
             newItem.motionX *= 0.1;
             newItem.motionY *= 0.1;
             newItem.motionZ *= 0.1;
@@ -55,7 +56,7 @@ public class EntityFloatingItem extends EntityItem {
 
         if (!this.worldObj.isRemote && this.age < this.lifespan && this.health > 0 && this.getEntityItem() != null /*&& stack.stackSize <= 0*/) {
             World world;
-            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(ModItems.gravityDust, ConfigHandler.gravityDustAmountDropped));
+            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
 //            newItem.lifespan = 20 * 10;
             newItem.motionX *= 0.1;
@@ -290,5 +291,38 @@ public class EntityFloatingItem extends EntityItem {
         else {
             this.playBounceSound(pos, blockIn);
         }
+    }
+
+    /**
+     * Created by Mysteryem on 2016-12-13.
+     */
+    public static class Wrapper extends ModEntities.ModEntityClassWrapper<EntityFloatingItem> {
+
+        @Override
+        public String getName() {
+            return "itemfloating";
+        }
+
+        @Override
+        public Class<EntityFloatingItem> getEntityClass() {
+            return EntityFloatingItem.class;
+        }
+
+        @Override
+        public int getTrackingRange() {
+            //extra range over EntityItem
+            return 80;
+        }
+
+        @Override
+        public int getUpdateFrequency() {
+            return 5;
+        }
+
+        @Override
+        public boolean sendsVelocityUpdates() {
+            return true;
+        }
+
     }
 }

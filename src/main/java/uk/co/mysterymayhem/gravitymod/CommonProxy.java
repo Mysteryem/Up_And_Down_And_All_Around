@@ -1,44 +1,52 @@
-package uk.co.mysterymayhem.gravitymod.common;
+package uk.co.mysterymayhem.gravitymod;
 
-import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.EntityRegistry;
-import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModBlocks;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModEntities;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
-import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 
+import java.util.ArrayList;
+
 /**
  * Created by Mysteryem on 2016-08-04.
  */
-public class CommonProxy {
+public class CommonProxy implements IFMLStaged {
 
     public GravityManagerCommon gravityManagerCommon;
+    protected ArrayList<IFMLStaged> setupObjects = new ArrayList<>();
 
+    @Override
     public void preInit() {
         GravityDirectionCapability.registerCapability();
         this.registerGravityManager();
         PacketHandler.registerMessages();
-        ModItems.preInitItems();
-        EntityRegistry.registerModEntity(EntityGravityItem.class, EntityGravityItem.NAME, GravityMod.getNextEntityID(), GravityMod.INSTANCE, 32, 10, true);
-        EntityRegistry.registerModEntity(EntityFloatingItem.class, EntityFloatingItem.NAME, GravityMod.getNextEntityID(), GravityMod.INSTANCE, 32, 10, true);
+
+        setupObjects.add(new ModItems());
+        setupObjects.add(new ModBlocks());
+        setupObjects.add(new ModEntities());
+
+        setupObjects.forEach(IFMLStaged::preInit);
     }
 
+    @Override
     public void init() {
+        setupObjects.forEach(IFMLStaged::init);
         this.registerListeners();
     }
 
+    @Override
     public void postInit() {
-        ModItems.postInitRecipes();
+        setupObjects.forEach(IFMLStaged::postInit);
     }
 
     public void registerGravityManager() {
@@ -51,7 +59,7 @@ public class CommonProxy {
         MinecraftForge.EVENT_BUS.register(new ItemStackUseListener());
         MinecraftForge.EVENT_BUS.register(new ItemGravityDust.BlockBreakListener());
         MinecraftForge.EVENT_BUS.register(EntityFloatingItem.class);
-//        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
+        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
     }
 
     public GravityManagerCommon getGravityManager() {
@@ -80,10 +88,5 @@ public class CommonProxy {
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public void onRightClickItemLowest(PlayerInteractEvent.RightClickItem event) {
         Hooks.popMotionStack(event.getEntityPlayer());
-    }
-
-    public <T extends Item & IModItem> T preInitItem(T item) {
-        item.preInit();
-        return item;
     }
 }

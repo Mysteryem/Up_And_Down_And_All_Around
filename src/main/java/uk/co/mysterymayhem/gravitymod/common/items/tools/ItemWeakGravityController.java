@@ -12,8 +12,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
-import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 
 import java.util.List;
@@ -33,15 +33,15 @@ public class ItemWeakGravityController extends ItemAbstractGravityController {
     }
 
     @Override
-    public void postInitRecipes() {
+    public void postInit() {
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
                 "ILI",
                 "LAL",
                 "ILI",
-                'I', ModItems.gravityIngot,
+                'I', StaticRegistry.gravityIngot,
                 'L', Blocks.LEVER,
-                'A', new ItemStack(ModItems.gravityAnchor, 1, OreDictionary.WILDCARD_VALUE)));
+                'A', new ItemStack(StaticRegistry.gravityAnchor, 1, OreDictionary.WILDCARD_VALUE)));
     }
 
     @Override

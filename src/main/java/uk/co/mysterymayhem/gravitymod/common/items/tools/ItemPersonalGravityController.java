@@ -10,8 +10,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
-import uk.co.mysterymayhem.gravitymod.common.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 
 import java.util.List;
@@ -26,15 +26,15 @@ public class ItemPersonalGravityController extends ItemAbstractGravityController
     }
 
     @Override
-    public void postInitRecipes() {
+    public void postInit() {
         GameRegistry.addRecipe(
                 new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
                 "IPI",
                 "PWP",
                 "IPI",
-                'I', ModItems.gravityIngot,
-                'P', ModItems.gravityPearl,
-                'W', new ItemStack(ModItems.weakGravityController, 1, OreDictionary.WILDCARD_VALUE));
+                'I', StaticRegistry.gravityIngot,
+                'P', StaticRegistry.gravityPearl,
+                'W', new ItemStack(StaticRegistry.weakGravityController, 1, OreDictionary.WILDCARD_VALUE));
     }
 
     @Override

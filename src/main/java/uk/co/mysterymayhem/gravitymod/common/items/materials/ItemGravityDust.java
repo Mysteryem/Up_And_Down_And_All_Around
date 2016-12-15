@@ -23,7 +23,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
-import uk.co.mysterymayhem.gravitymod.common.items.shared.IModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import java.util.ListIterator;
 /**
  * Created by Mysteryem on 2016-11-10.
  */
-public class ItemGravityDust extends Item implements IModItem {
+public class ItemGravityDust extends Item implements ModItems.IModItem {
 
     public static class BlockBreakListener {
 

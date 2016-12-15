@@ -7,7 +7,6 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import uk.co.mysterymayhem.gravitymod.common.CommonProxy;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
@@ -50,7 +49,7 @@ public class GravityMod {
     @Mod.Instance(GravityMod.MOD_ID)
     public static GravityMod INSTANCE;
 
-    @SidedProxy(clientSide = "uk.co.mysterymayhem.gravitymod.client.ClientProxy", serverSide = "uk.co.mysterymayhem.gravitymod.common.CommonProxy")
+    @SidedProxy(clientSide = "uk.co.mysterymayhem.gravitymod.ClientProxy", serverSide = "uk.co.mysterymayhem.gravitymod.CommonProxy")
     public static CommonProxy proxy;
 
     @EventHandler
