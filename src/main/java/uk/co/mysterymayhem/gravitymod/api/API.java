@@ -26,8 +26,8 @@ public class API {
      * @param player The player to apply the gravity to.
      * @param priority The priority of this 'prepared gravity transition'
      */
-    public static void setPlayerGravity(@Nonnull EnumGravityDirection newGravity, EntityPlayerMP player, int priority) {
-        GravityMod.proxy.getGravityManager().prepareGravityTransition(Objects.requireNonNull(newGravity), player, priority);
+    public static void setPlayerGravity(@Nonnull EnumGravityDirection newGravity, @Nonnull EntityPlayerMP player, int priority) {
+        GravityMod.proxy.getGravityManager().prepareGravityTransition(newGravity, player, priority);
     }
 
     /**
@@ -38,8 +38,8 @@ public class API {
      * @param noTimeout False to set a default timeout, preventing normal changes to gravity.
      *                  True to specifically set a zero timeout, normal changes will be able to take place immediately.
      */
-    public static void forceSetPlayerGravity(EnumGravityDirection newGravity, EntityPlayerMP player, boolean noTimeout) {
-        GravityMod.proxy.getGravityManager().doGravityTransition(Objects.requireNonNull(newGravity), player, noTimeout);
+    public static void forceSetPlayerGravity(@Nonnull EnumGravityDirection newGravity, @Nonnull EntityPlayerMP player, boolean noTimeout) {
+        GravityMod.proxy.getGravityManager().doGravityTransition(newGravity, player, noTimeout);
     }
 
 
@@ -49,7 +49,7 @@ public class API {
      * @param player The player whose gravity direction capability you are after
      * @return The specified player's gravity direction capability
      */
-    public static IGravityDirectionCapability getGravityDirectionCapability(EntityPlayer player) {
+    public static IGravityDirectionCapability getGravityDirectionCapability(@Nonnull EntityPlayer player) {
         return GravityDirectionCapability.getGravityCapability(player);
     }
 
@@ -60,9 +60,6 @@ public class API {
      * (will return DOWN if the player does not have the GravityCapability, e.g., while the EntityPlayer object is constructing)
      */
     public static EnumGravityDirection getGravityDirection(@Nonnull EntityPlayer player) {
-        if (player == null) {
-            throw new IllegalArgumentException("Player cannot be null");
-        }
         return GravityDirectionCapability.getGravityDirection(player);
     }
 
@@ -73,7 +70,7 @@ public class API {
      * (will return DOWN if the player does not have the GravityCapability, e.g., while the EntityPlayer object is
      * constructing or if the passed player object is NULL)
      */
-    public static EnumGravityDirection getGravityDirectionUnsafe(@Nullable EntityPlayer player) {
+    public static EnumGravityDirection getGravityDirectionNullable(@Nullable EntityPlayer player) {
         if (player == null) {
             return GravityDirectionCapability.DEFAULT_GRAVITY;
         }
