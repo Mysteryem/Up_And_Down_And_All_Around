@@ -3,6 +3,8 @@ package uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection;
 import net.minecraft.util.math.Vec3d;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 
+import javax.annotation.Nonnull;
+
 /**
  * Created by Mysteryem on 2016-10-10.
  */
@@ -12,7 +14,7 @@ public interface IGravityDirectionCapability {
     EnumGravityDirection getPendingDirection();
     int getTimeoutTicks();
 
-    void setDirection(EnumGravityDirection direction);
+    void setDirection(@Nonnull EnumGravityDirection direction);
     void setTransitionAngle(double angle);
     void setEyePosChangeVector(Vec3d vec3d);
     Vec3d getEyePosChangeVector();
@@ -24,8 +26,8 @@ public interface IGravityDirectionCapability {
      * Possibly also on both sides when a dimension change/respawn occurs
      * @param direction
      */
-    void setDirectionNoTimeout(EnumGravityDirection direction);
+    void setDirectionNoTimeout(@Nonnull EnumGravityDirection direction);
     void setTimeoutTicks(int newTimeout);
-    void setPendingDirection(EnumGravityDirection direction, int priority);
+    void setPendingDirection(@Nonnull EnumGravityDirection direction, int priority);
     void tick();
 }
