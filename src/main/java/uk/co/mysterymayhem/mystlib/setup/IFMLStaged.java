@@ -1,4 +1,4 @@
-package uk.co.mysterymayhem.gravitymod;
+package uk.co.mysterymayhem.mystlib.setup;
 
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
