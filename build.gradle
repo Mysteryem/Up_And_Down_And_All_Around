@@ -20,14 +20,14 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "2.3"
+version = "2.4"
 group= "uk.co.mysterymayhem.gravitymod" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "UpAndDownAndAllAround"
 targetCompatibility = "1.8"
 sourceCompatibility = "1.8"
 
 minecraft {
-    version = "1.10.2-12.18.2.2099"
+    version = "1.10.2-12.18.3.2185"
     runDir = "run"
     
     // the mappings can be changed at any time, and must be in the following format.

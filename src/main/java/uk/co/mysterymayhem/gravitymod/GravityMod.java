@@ -24,8 +24,8 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
         acceptableRemoteVersions = GravityMod.ACCEPTABLE_VERSIONS)
 public class GravityMod {
     public static final String MOD_ID = "mysttmtgravitymod";
-    public static final String VERSION = "2.3";
-    public static final String ACCEPTABLE_VERSIONS = "[2.3,2.4)";
+    public static final String VERSION = "2.4";
+    public static final String ACCEPTABLE_VERSIONS = "[2.4,2.5)";
     public static final String MINECRAFT_VERSION = "1.10.2";
     public static final String DEPENDENCIES_LIST = "after:" + ModSupport.BAUBLES_MOD_ID;
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
