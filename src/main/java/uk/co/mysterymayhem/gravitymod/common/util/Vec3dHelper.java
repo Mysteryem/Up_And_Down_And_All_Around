@@ -3,9 +3,6 @@ package uk.co.mysterymayhem.gravitymod.common.util;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-import static net.minecraft.util.math.MathHelper.ASINE_TAB;
-import static net.minecraft.util.math.MathHelper.FRAC_BIAS;
-
 /**
  * Created by Mysteryem on 2016-10-01.
  */
@@ -55,6 +52,9 @@ public class Vec3dHelper {
         double yaw = MathHelper.atan2(-xyz.xCoord, xyz.zCoord) * ONE_HUNDRED_EIGHTY_OVER_PI;
         return new double[]{pitch, yaw};
     }
+
+    private static final double FRAC_BIAS = ReflectionLambdas.get_MathHelper$FRAC_BIAS.getAsDouble();
+    private static final double[] ASINE_TAB = ReflectionLambdas.get_MathHelper$ASINE_TAB.get();
 
     private static double fastASin(double input) {
         boolean negateResult = false;

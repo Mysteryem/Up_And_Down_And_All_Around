@@ -15,9 +15,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModEntities;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWrapper;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 /**
  * Created by Mysteryem on 2016-11-09.
@@ -54,7 +55,11 @@ public class EntityFloatingItem extends EntityItem {
     public void setDead() {
         // Only spawn the new item if setDead wasn't called due to the entity despawning
 
-        if (!this.worldObj.isRemote && this.age < this.lifespan && this.health > 0 && this.getEntityItem() != null /*&& stack.stackSize <= 0*/) {
+        if (!this.worldObj.isRemote
+                && ReflectionLambdas.get_EntityItem$age.applyAsInt(this) < this.lifespan
+                && ReflectionLambdas.get_EntityItem$health.applyAsInt(this) > 0
+                && this.getEntityItem() != null
+                /*&& stack.stackSize <= 0*/) {
             World world;
             EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
@@ -296,7 +301,7 @@ public class EntityFloatingItem extends EntityItem {
     /**
      * Created by Mysteryem on 2016-12-13.
      */
-    public static class Wrapper extends ModEntities.ModEntityClassWrapper<EntityFloatingItem> {
+    public static class Wrapper implements IGravityModEntityClassWrapper<EntityFloatingItem> {
 
         @Override
         public String getName() {

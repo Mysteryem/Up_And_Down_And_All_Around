@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.items.misc;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,12 +14,11 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
-import uk.co.mysterymayhem.gravitymod.GravityMod;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
+import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
  * Shhh, nothing to see here
  * Created by Mysteryem on 2016-11-02.
  */
-public class ItemCreativeTabIcon extends Item implements ModItems.IModItem {
+public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCreativeTabIcon> {
     private static final String NAME = "creativetabicon";
     private static final NBTTagCompound fireworkTag = new NBTTagCompound();
     static {
@@ -53,12 +53,10 @@ public class ItemCreativeTabIcon extends Item implements ModItems.IModItem {
         return NAME;
     }
 
-    //Don't set the creative tab, but do everything else normally
+    // Don't set the creative tab
     @Override
-    public void preInit() {
-        this.setUnlocalizedName(GravityMod.MOD_ID + "." + this.getName());
-        this.setRegistryName(GravityMod.MOD_ID, this.getName());
-        GameRegistry.register(this);
+    public CreativeTabs getModCreativeTab() {
+        return null;
     }
 
     @SideOnly(Side.CLIENT)
@@ -103,9 +101,10 @@ public class ItemCreativeTabIcon extends Item implements ModItems.IModItem {
 
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
-        if (entityItem.ticksExisted != entityItem.age + 1) {
-            entityItem.lifespan = entityItem.age + ENTITY_LIFETIME_TICKS;
-            entityItem.ticksExisted = entityItem.age + 1;
+        int age = ReflectionLambdas.get_EntityItem$age.applyAsInt(entityItem);
+        if (entityItem.ticksExisted != age + 1) {
+            entityItem.lifespan = age + ENTITY_LIFETIME_TICKS;
+            entityItem.ticksExisted = age + 1;
         }
         boolean remote;
         if ((remote = entityItem.worldObj.isRemote) && currentClientEntity == entityItem) {

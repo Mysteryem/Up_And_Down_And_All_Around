@@ -111,6 +111,8 @@ public class ConfigHandler {
     public static int numNormalGravityEnablersRequiredForNormalGravity = 4;
     public static int numNormalEnablersWeakEnablersCountsAs = 4;
     public static int gravityDustAmountDropped = 5;
+    public static int gravityGeneratorMaxRadius = 5;
+    public static int gravityGeneratorMaxHeight = 11;
 
     public static void loadConfig(FMLPreInitializationEvent event) {
         File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();

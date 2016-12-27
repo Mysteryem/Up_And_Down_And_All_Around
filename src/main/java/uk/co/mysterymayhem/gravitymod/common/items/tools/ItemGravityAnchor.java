@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
@@ -32,21 +31,20 @@ import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * Created by Mysteryem on 2016-11-03.
  */
-public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, ModItems.IModItem {
+public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGravityModItem<ItemGravityAnchor> {
 
     // If these are changed, the item jsons will need to be changed too!
     private enum ItemFacing {
@@ -62,7 +60,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, ModIt
     public void preInit() {
         this.setHasSubtypes(true);
         this.addPropertyOverride(new ResourceLocation("facing"), new FacingPropertyGetter());
-        ModItems.IModItem.super.preInit();
+        IGravityModItem.super.preInit();
     }
 
     @Override

@@ -9,30 +9,32 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
+import uk.co.mysterymayhem.gravitymod.api.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
-import uk.co.mysterymayhem.gravitymod.api.events.GravityTransitionEvent;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemArmourPaste;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.packets.config.ModCompatConfigCheckMessage;
-import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChangeMessage;
-import net.minecraftforge.event.entity.player.PlayerEvent.Clone;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
+
+import javax.annotation.Nonnull;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -119,7 +121,7 @@ public class GravityManagerCommon {
         return !(playerMP instanceof FakePlayer);
     }
 
-    public void doGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player, boolean noTimeout) {
+    public void doGravityTransition(@Nonnull EnumGravityDirection newDirection, @Nonnull EntityPlayerMP player, boolean noTimeout) {
         EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
         if (oldDirection != newDirection) {
             GravityTransitionEvent.Server event = new GravityTransitionEvent.Server.Pre(newDirection, oldDirection, player);
@@ -132,14 +134,8 @@ public class GravityManagerCommon {
         }
     }
 
-    public void prepareGravityTransition(EnumGravityDirection newDirection, EntityPlayerMP player, int priority) {
-        if (player == null) {
-            return;
-        }
+    public void prepareGravityTransition(@Nonnull EnumGravityDirection newDirection, @Nonnull EntityPlayerMP player, int priority) {
         IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(player);
-        if (gravityCapability == null) {
-            return;
-        }
         gravityCapability.setPendingDirection(newDirection, priority);
     }
 

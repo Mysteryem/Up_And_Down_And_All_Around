@@ -19,9 +19,9 @@ import net.minecraftforge.oredict.RecipeSorter;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,7 +32,7 @@ import java.util.List;
  * Craft with armour to enable [no prefix] gravity field interaction
  * Created by Mysteryem on 2016-11-11.
  */
-public class ItemArmourPaste extends Item implements ModItems.IModItem {
+public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourPaste> {
     private static final String NBT_KEY = "mystgravity_paste";
 
     private static final EnumSet<EntityEquipmentSlot> armourSlots = EnumSet.of(

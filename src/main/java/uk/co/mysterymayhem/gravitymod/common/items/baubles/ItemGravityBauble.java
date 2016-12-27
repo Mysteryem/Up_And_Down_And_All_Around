@@ -16,7 +16,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.Locale;
  * Created by Mysteryem on 2016-11-05.
  */
 @Optional.Interface(iface = ModSupport.INTERFACE_IBAUBLE, modid = ModSupport.BAUBLES_MOD_ID)
-public class ItemGravityBauble extends Item implements IBauble, ModItems.IModItem, IWeakGravityEnabler {
+public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<ItemGravityBauble>, IWeakGravityEnabler {
     private static final ArrayList<String> DAMAGE_TO_NAME_MAP = new ArrayList<>();
 
     /*
@@ -82,7 +82,7 @@ public class ItemGravityBauble extends Item implements IBauble, ModItems.IModIte
         }
         this.setHasSubtypes(true);
         this.setMaxStackSize(1);
-        ModItems.IModItem.super.preInit();
+        IGravityModItem.super.preInit();
     }
 
     @Override

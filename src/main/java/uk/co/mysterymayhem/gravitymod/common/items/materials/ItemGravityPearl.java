@@ -24,9 +24,10 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Created by Mysteryem on 2016-11-09.
  */
-public class ItemGravityPearl extends Item implements ModItems.IModItem {
+public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravityPearl> {
 
 //    private enum UseType {
 //        NONE(0f),
@@ -74,7 +75,7 @@ public class ItemGravityPearl extends Item implements ModItems.IModItem {
         });
         this.setMaxStackSize(16);
 
-        ModItems.IModItem.super.preInit();
+        IGravityModItem.super.preInit();
     }
 
     @SideOnly(Side.CLIENT)
@@ -83,7 +84,7 @@ public class ItemGravityPearl extends Item implements ModItems.IModItem {
         ModelLoader.registerItemVariants(this,
                 new ModelResourceLocation(this.getRegistryName() + "_push", "inventory"),
                 new ModelResourceLocation(this.getRegistryName() + "_pull", "inventory"));
-        ModItems.IModItem.super.preInitClient();
+        IGravityModItem.super.preInitClient();
     }
 
     @Override
@@ -260,7 +261,7 @@ public class ItemGravityPearl extends Item implements ModItems.IModItem {
 
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
-        int age = entityItem.age;
+        int age = ReflectionLambdas.get_EntityItem$age.applyAsInt(entityItem);
         if (entityItem.worldObj.isRemote) {
             // For some reason this fixes some client/server desync. Is there perhaps a bigger vanilla issue at play here?
             age++;

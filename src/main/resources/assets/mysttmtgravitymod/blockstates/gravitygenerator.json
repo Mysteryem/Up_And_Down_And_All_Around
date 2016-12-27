@@ -1,0 +1,48 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "mysttmtgravitymod:gravitygenerator",
+    "textures": {
+      "front": "mysttmtgravitymod:blocks/gravitygenerator_off",
+      "side": "mysttmtgravitymod:blocks/gravitygenerator_base",
+      "back": "mysttmtgravitymod:blocks/gravitygenerator_base"
+    }
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "facing": {
+      "north": {},
+      "south": {"y": 180},
+      "west": {"y": 270},
+      "east": {"y": 90},
+      "up": {"x": -90},
+      "down": {"x": 90}
+    },
+    "active": {
+      "false": {},
+      "true": {
+        "textures": {
+          "front": "mysttmtgravitymod:blocks/gravitygenerator_on"
+        }
+      }
+    },
+    "tier": {
+      "weak": {
+        "textures": {
+          "side": "mysttmtgravitymod:blocks/gravitygenerator_base"
+        }
+      },
+      "normal": {
+        "textures": {
+          "side": "blocks/iron_block"
+        }
+      },
+      "strong": {
+        "textures": {
+          "side": "blocks/diamond_block"
+        }
+      }
+    }
+  }
+}

@@ -10,7 +10,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.client.renderers.RenderGravityEntityItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModEntities;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWrapper;
 
 /**
  * Class exists so we can have different Render class for these item entities
@@ -76,7 +76,7 @@ public class EntityGravityItem extends EntityItem implements IEntityAdditionalSp
     /**
      * Created by Mysteryem on 2016-12-14.
      */
-    public static class Wrapper extends ModEntities.ModEntityClassWrapper<EntityGravityItem> {
+    public static class Wrapper implements IGravityModEntityClassWrapper<EntityGravityItem> {
         @Override
         public Class<EntityGravityItem> getEntityClass() {
             return EntityGravityItem.class;

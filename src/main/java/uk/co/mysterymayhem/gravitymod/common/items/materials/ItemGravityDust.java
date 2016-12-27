@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -23,7 +24,8 @@ import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +35,7 @@ import java.util.ListIterator;
 /**
  * Created by Mysteryem on 2016-11-10.
  */
-public class ItemGravityDust extends Item implements ModItems.IModItem {
+public class ItemGravityDust extends Item implements IGravityModItem<ItemGravityDust> {
 
     public static class BlockBreakListener {
 
@@ -47,7 +49,8 @@ public class ItemGravityDust extends Item implements ModItems.IModItem {
         @SubscribeEvent(priority = EventPriority.LOWEST)
         public void onBlockDropItems(BlockEvent.HarvestDropsEvent event) {
             EntityPlayer harvester = event.getHarvester();
-            if (harvester != null/* && !(harvester instanceof FakePlayer)*/) {
+            // FakePlayers are allowed, custom item entities are not spawned in that case
+            if (harvester != null) {
 
                 World world = event.getWorld();
                 IBlockState blockState = event.getState();
@@ -127,13 +130,26 @@ public class ItemGravityDust extends Item implements ModItems.IModItem {
                             // Vanilla uses <=, which technically means there is a 1/(pretty big) chance for an item to still drop
                             // even with a drop chance of 0, in the case that the pseudo-random number generator generates exactly zero
                             if (world.rand.nextFloat() < event.getDropChance()) {
-                                //drop special item
-                                BlockBreakListener.spawnAsSpecialEntity(world, event.getPos(), stack);
+                                if (!(harvester instanceof FakePlayer)) {
+                                    // drop special item
+                                    BlockBreakListener.spawnAsSpecialEntity(world, event.getPos(), stack);
+                                    it.remove();
+                                }
+                                else {
+                                    // add dust directly to drops (don't want a quarry to spawn floating items. Quarries
+                                    // should be able to collect the gravityDust and send it straight into a storage system
+                                    it.add(new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
+                                }
                             }
                             else {
-                                //no drop at all
+                                if (!(harvester instanceof FakePlayer)) {
+                                    // no drop at all
+                                    it.remove();
+                                }
+                                else {
+                                    // do nothing
+                                }
                             }
-                            it.remove();
                         }
                         else {
                             // Item should drop as per normal (we'll let vanilla handle if the item drops or not)

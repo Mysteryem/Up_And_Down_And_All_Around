@@ -1,13 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.common.registries;
 
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityBoots;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityChestplate;
@@ -20,14 +14,14 @@ import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemGravityAnchor;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemPersonalGravityController;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemUltimateGravityController;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemWeakGravityController;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems.IModItem;
+import uk.co.mysterymayhem.mystlib.setup.registries.AbstractItemRegistry;
 
 import java.util.ArrayList;
 
 /**
  * Created by Mysteryem on 2016-08-08.
  */
-public class ModItems extends ModObjectRegistry<IModItem<?>, ArrayList<IModItem<?>>> {
+public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList<IGravityModItem<?>>> {
 
     public static final CreativeTabs UP_AND_DOWN_CREATIVE_TAB;
     //'fake' tab for JEI compat
@@ -80,52 +74,23 @@ public class ModItems extends ModObjectRegistry<IModItem<?>, ArrayList<IModItem<
     }
 
     @Override
-    public void preInit() {
-        registerItems();
-        super.preInit();
-    }
-
-    private void registerItems() {
-        ArrayList<IModItem<?>> allModItems = this.getModObjects();
-        allModItems.add(creativeTabIcon             = new ItemCreativeTabIcon());
-        allModItems.add(personalGravityController   = new ItemPersonalGravityController());
-        allModItems.add(weakGravityController       = new ItemWeakGravityController());
-        allModItems.add(ultimateGravityController   = new ItemUltimateGravityController());
-        allModItems.add(gravityBauble               = new ItemGravityBauble());
-        allModItems.add(gravityAnchor               = new ItemGravityAnchor());
-        allModItems.add(gravityIngot                = new ItemGravityIngot());
-        allModItems.add(gravityPearl                = new ItemGravityPearl());
-        allModItems.add(gravityDust                 = new ItemGravityDust());
-        allModItems.add(spacetimeAnomaly            = new ItemSpacetimeAnomaly());
-        allModItems.add(armourPaste                 = new ItemArmourPaste());
-        allModItems.add(gravityBoots                = new ItemGravityBoots());
-        allModItems.add(gravityChestplate           = new ItemGravityChestplate());
-        allModItems.add(gravityHelmet               = new ItemGravityHelmet());
-        allModItems.add(gravityLeggings             = new ItemGravityLeggings());
+    protected void addToCollection(ArrayList<IGravityModItem<?>> modObjects) {
+        modObjects.add(creativeTabIcon             = new ItemCreativeTabIcon());
+        modObjects.add(personalGravityController   = new ItemPersonalGravityController());
+        modObjects.add(weakGravityController       = new ItemWeakGravityController());
+        modObjects.add(ultimateGravityController   = new ItemUltimateGravityController());
+        modObjects.add(gravityBauble               = new ItemGravityBauble());
+        modObjects.add(gravityAnchor               = new ItemGravityAnchor());
+        modObjects.add(gravityIngot                = new ItemGravityIngot());
+        modObjects.add(gravityPearl                = new ItemGravityPearl());
+        modObjects.add(gravityDust                 = new ItemGravityDust());
+        modObjects.add(spacetimeAnomaly            = new ItemSpacetimeAnomaly());
+        modObjects.add(armourPaste                 = new ItemArmourPaste());
+        modObjects.add(gravityBoots                = new ItemGravityBoots());
+        modObjects.add(gravityChestplate           = new ItemGravityChestplate());
+        modObjects.add(gravityHelmet               = new ItemGravityHelmet());
+        modObjects.add(gravityLeggings             = new ItemGravityLeggings());
         REGISTRY_SETUP_ALLOWED = true;
     }
 
-    /**
-     * It may be frowned upon, but this is so I can have some item classes that extend Item and some that extend ItemArmor
-     * whilst still having common default code for both of them.
-     *
-     * Created by Mysteryem on 2016-11-05.
-     */
-    public interface IModItem<T extends Item & IModItem<T>> extends IModObject<T>{
-        @Override
-        @SideOnly(Side.CLIENT)
-        default void preInitClient(){
-            T cast = this.getCast();
-            ModelLoader.setCustomModelResourceLocation((Item)this, 0, new ModelResourceLocation(cast.getRegistryName(), "inventory"));
-        }
-
-        @Override
-        default void preInit() {
-            T cast = this.getCast();
-            cast.setUnlocalizedName(GravityMod.MOD_ID + "." + this.getName());
-            cast.setRegistryName(new ResourceLocation(GravityMod.MOD_ID, this.getName()));
-            cast.setCreativeTab(UP_AND_DOWN_CREATIVE_TAB);
-            GameRegistry.register(cast);
-        }
-    }
 }

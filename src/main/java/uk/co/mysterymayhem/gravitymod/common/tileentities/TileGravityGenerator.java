@@ -1,0 +1,382 @@
+package uk.co.mysterymayhem.gravitymod.common.tileentities;
+
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.common.util.FakePlayer;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
+import uk.co.mysterymayhem.gravitymod.api.API;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModTileEntityClassWrapper;
+import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+
+import java.util.List;
+
+import static net.minecraftforge.common.util.Constants.NBT.TAG_BYTE;
+import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
+
+/**
+ * Created by Mysteryem on 2016-12-18.
+ */
+public class TileGravityGenerator extends TileEntity implements ITickable {
+
+    public static final int MAX_RADIUS = ConfigHandler.gravityGeneratorMaxRadius;
+    public static final int MIN_RADIUS = 0;
+    public static final int MAX_HEIGHT = ConfigHandler.gravityGeneratorMaxHeight;
+    public static final int MIN_HEIGHT = 1;
+
+    private static int clampRadius(int radius) {
+        return Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, radius));
+    }
+
+    private static int clampHeight(int height) {
+        return Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height));
+    }
+
+
+//    protected final EnumMap<EnumFacing, AxisAlignedBB> searchVolumes = new EnumMap<>(EnumFacing.class);
+
+    private int relativeXRadius = MAX_RADIUS;
+    private int relativeZRadius = MAX_RADIUS;
+    private int relativeYHeight = MAX_HEIGHT;
+    private AxisAlignedBB searchVolume = null;
+    private double maxDistance;
+    // Effectively final
+    private Vec3d volumeSpawnPoint = null;
+    // Effectively final
+    private EnumGravityTier gravityTier = null;
+    // Effectively final
+    private EnumFacing facing = null;
+
+    public TileGravityGenerator(EnumGravityTier gravityTier, EnumFacing facing) {
+        this.gravityTier = gravityTier;
+        this.facing = facing;
+    }
+
+    @SuppressWarnings("unused")
+    public TileGravityGenerator() {
+        //used with reflection
+    }
+
+    public EnumFacing getFacing() {
+        return this.facing;
+    }
+
+    public int getRelativeXRadius() {
+        return relativeXRadius;
+    }
+
+    public void setFacing(EnumFacing facing) {
+        this.facing = facing;
+        this.updateVolumeSpawnPos();
+        this.updateSearchVolume();
+        this.markDirty();
+    }
+
+    public void setRelativeXRadius(int relativeXRadius) {
+        this.relativeXRadius = clampRadius(relativeXRadius);
+        this.updateSearchVolume();
+        this.markDirty();
+    }
+
+    public int getRelativeZRadius() {
+        return relativeZRadius;
+    }
+
+    public void setRelativeZRadius(int relativeZRadius) {
+        this.relativeZRadius = clampRadius(relativeZRadius);
+        this.updateSearchVolume();
+        this.markDirty();
+    }
+
+    public int getRelativeYHeight() {
+        return relativeYHeight;
+    }
+
+    public void setRelativeYHeight(int relativeYHeight) {
+        this.relativeYHeight = clampHeight(relativeYHeight);
+        this.updateSearchVolume();
+        this.markDirty();
+    }
+
+    private static final String TIER_NBT_KEY = "tier";
+    private static final String FACING_NBT_KEY = "facing";
+    private static final String REL_XRADIUS_KEY = "relxrad";
+    private static final String REL_ZRADIUS_KEY = "relzrad";
+    private static final String REL_HEIGHT_KEY = "relheight";
+
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        if (compound.hasKey(TIER_NBT_KEY, TAG_BYTE)
+                && compound.hasKey(FACING_NBT_KEY, TAG_BYTE)
+                && compound.hasKey(REL_XRADIUS_KEY, TAG_INT)
+                && compound.hasKey(REL_ZRADIUS_KEY, TAG_INT)
+                && compound.hasKey(REL_HEIGHT_KEY, TAG_INT)) {
+            int gravityTier = compound.getByte(TIER_NBT_KEY);
+            EnumGravityTier[] tierValues = EnumGravityTier.values();
+            int length = tierValues.length;
+            if (gravityTier < 0) {
+                GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s", this, gravityTier, length);
+                gravityTier = 0;
+                this.invalidate();
+            }
+            else if (gravityTier >= length) {
+                GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
+                        this, gravityTier, length);
+                gravityTier = length - 1;
+                this.invalidate();
+            }
+            this.gravityTier = tierValues[gravityTier];
+
+            int facingOrdinal = compound.getByte(FACING_NBT_KEY);
+            EnumFacing[] facingValues = EnumFacing.values();
+            length = facingValues.length;
+            if (facingOrdinal < 0) {
+                GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
+                        this, gravityTier, length);
+                facingOrdinal = 0;
+                this.invalidate();
+            }
+            else if (facingOrdinal >= length) {
+                GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
+                        this, gravityTier, length);
+                facingOrdinal = length - 1;
+                this.invalidate();
+            }
+            this.facing = facingValues[facingOrdinal];
+
+            this.relativeXRadius = clampRadius(compound.getInteger(REL_XRADIUS_KEY));
+            this.relativeZRadius = clampRadius(compound.getInteger(REL_ZRADIUS_KEY));
+            this.relativeYHeight = clampHeight(compound.getInteger(REL_HEIGHT_KEY));
+            this.updateSearchVolume();
+        }
+        else {
+            GravityMod.logWarning("Reading facing from nbt for %s failed. Tier tag present: %s, facing tag present: %s",
+                    this, compound.hasKey(TIER_NBT_KEY, TAG_BYTE), compound.hasKey(FACING_NBT_KEY, TAG_BYTE));
+            this.invalidate();
+        }
+        super.readFromNBT(compound);
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        compound.setByte(TIER_NBT_KEY, (byte)this.gravityTier.ordinal());
+        compound.setByte(FACING_NBT_KEY, (byte)this.facing.ordinal());
+        compound.setInteger(REL_XRADIUS_KEY, this.relativeXRadius);
+        compound.setInteger(REL_ZRADIUS_KEY, this.relativeZRadius);
+        compound.setInteger(REL_HEIGHT_KEY, this.relativeYHeight);
+        return super.writeToNBT(compound);
+    }
+
+    @Override
+    public NBTTagCompound getUpdateTag() {
+        return this.writeToNBT(new NBTTagCompound());
+    }
+
+    // when relativeX/ZRadius or relativeYHeight get changed, we need to update the searchvolume
+    private void updateSearchVolume() {
+//        Vec3d centreBlockPos = new Vec3d(this.getPos()).addVector(0.5, 0.5, 0.5);
+        final AxisAlignedBB offset = Block.FULL_BLOCK_AABB.offset(this.getPos());
+        final EnumGravityDirection direction = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
+        // 0 -> +0 either side, 2 -> +0.5 either side = +1, 3 -> +1 either side = +2 etc.
+        double yIncrease = (relativeYHeight - 1) * 0.5d;
+        double[] relativeXYZExpansion = direction.adjustXYZValuesMaintainSigns(relativeXRadius, yIncrease, relativeZRadius);
+        double[] relativeYMovement = direction.adjustXYZValues(0, yIncrease + 1, 0);
+        this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
+                .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
+        this.maxDistance = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
+        //fill map with search volumes
+    }
+
+    private void updateVolumeSpawnPos() {
+        BlockPos pos = this.getPos();
+        switch (this.facing) {
+            case DOWN:
+                this.volumeSpawnPoint = new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                break;
+            case UP:
+                this.volumeSpawnPoint = new Vec3d(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+                break;
+            case NORTH:
+                this.volumeSpawnPoint = new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ());
+                break;
+            case SOUTH:
+                this.volumeSpawnPoint = new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 1);
+                break;
+            case WEST:
+                this.volumeSpawnPoint = new Vec3d(pos.getX(), pos.getY() + 0.5, pos.getZ() + 0.5);
+                break;
+            default://case EAST:
+                this.volumeSpawnPoint = new Vec3d(pos.getX() + 1, pos.getY() + 0.5, pos.getZ() + 0.5);
+                break;
+        }
+    }
+
+    public boolean affectsPlayer(EntityPlayerMP playerMP) {
+        return this.gravityTier.isPlayerAffected(playerMP);
+    }
+
+    @Override
+    public void setPos(BlockPos posIn) {
+        super.setPos(posIn);
+        this.updateSearchVolume();
+        this.updateVolumeSpawnPos();
+    }
+
+    @Override
+    public void update() {
+        if (!this.worldObj.isRemote) {
+//            IBlockState blockState = this.worldObj.getBlockState(this.getPos());
+            boolean blockPowered = this.worldObj.isBlockPowered(this.getPos());
+//            if (this.setupRequired) {
+//                if (!blockState.getPropertyNames().contains(BlockGravityGenerator.FACING)) {
+//                    this.invalidate();
+//                    return;
+//                }
+//                else {
+//                    EnumFacing facing = blockState.getValue(BlockGravityGenerator.FACING);
+//                    this.updateSearchVolumes();
+//                    this.updateOnFacingChange(facing);
+//                }
+//                this.setupRequired = false;
+//            }
+//            boolean isActive = blockState.getValue(BlockGravityGenerator.ENABLED);
+
+            if (blockPowered) {
+//                EnumFacing facing = blockState.getValue(BlockGravityGenerator.FACING).getOpposite();
+                EnumGravityDirection enumGravityDirection = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
+                AxisAlignedBB volumeToCheck = this.searchVolume;
+//                RenderGlobal.renderFilledBox(volumeToCheck, 1f, 1f, 1f, 0.5f);
+
+                List<EntityPlayerMP> entitiesWithinAABB = this.worldObj.getEntitiesWithinAABB(
+                        EntityPlayerMP.class,
+                        volumeToCheck,
+                        input -> (!(input instanceof FakePlayer) && TileGravityGenerator.this.affectsPlayer(input)));
+                for (EntityPlayerMP player : entitiesWithinAABB) {
+//                    player.getEntityBoundingBox().getCenter();
+                    AxisAlignedBB bb = player.getEntityBoundingBox();
+                    Vec3d bbOrigin;
+//                    Vec3d closestCornerOfBBTo = findClosestCornerOfBBTo(bb, this.volumeSpawnPoint);
+//                    double squareDistance = closestCornerOfBBTo.squareDistanceTo(this.volumeSpawnPoint);
+                    if (bb instanceof GravityAxisAlignedBB) {
+                        bbOrigin = ((GravityAxisAlignedBB) bb).getOrigin();
+                    }
+                    else {
+                        bbOrigin = new Vec3d(bb.minX + (bb.maxX - bb.minX) * 0.5D, bb.minY + (bb.maxY - bb.minY) * 0.5D, bb.minZ + (bb.maxZ - bb.minZ) * 0.5D);
+                    }
+//                    if (!volumeToCheck.isVecInside(bbOrigin)) {
+//                        continue;
+//                    }
+                    double squareDistance = this.volumeSpawnPoint.squareDistanceTo(bbOrigin);
+//                    Vec3d bbCentre = new Vec3d(player.posX, player.posY, player.posZ);
+                    int priority = this.getPriority(1 - squareDistance / this.maxDistance);
+                    API.setPlayerGravity(enumGravityDirection, player, priority);
+                }
+            }
+        }
+    }
+
+    public int getPriority(double percent) {
+        return this.gravityTier.getPriority(percent);
+    }
+    
+//    private static Vec3d findClosestCornerOfBBTo(AxisAlignedBB bb, Vec3d pos) {
+//        double x = pos.xCoord;
+//        double y = pos.yCoord;
+//        double z = pos.zCoord;
+//
+//        double closestX;
+//        double closestY;
+//        double closestZ;
+//
+//        if (bb.minX >= x) {
+//            closestX = bb.minX;
+//        }
+//        else if (bb.maxX <= x) {
+//            closestX = bb.maxX;
+//        }
+//        else {
+//            double maKSSide = bb.maxX - x;
+//            double minSide = x - bb.minX;
+//            if (maKSSide < minSide) {
+//                closestX = bb.maxX;
+//            }
+//            else {
+//                closestX = bb.minX;
+//            }
+//        }
+//
+//        if (bb.minY >= y) {
+//            closestY = bb.minY;
+//        }
+//        else if (bb.maxY <= y) {
+//            closestY = bb.maxY;
+//        }
+//        else {
+//            double maxSide = bb.maxY - y;
+//            double minSide = y - bb.minY;
+//            if (maxSide < minSide) {
+//                closestY = bb.maxY;
+//            }
+//            else {
+//                closestY = bb.minY;
+//            }
+//        }
+//
+//        if (bb.minZ >= z) {
+//            closestZ = bb.minZ;
+//        }
+//        else if (bb.maxZ <= z) {
+//            closestZ = bb.maxZ;
+//        }
+//        else {
+//            double maxSide = bb.maxZ - z;
+//            double minSide = z - bb.minZ;
+//            if (maxSide < minSide) {
+//                closestZ = bb.maxZ;
+//            }
+//            else {
+//                closestZ = bb.minZ;
+//            }
+//        }
+//
+//        return new Vec3d(closestX, closestY, closestZ);
+//    }
+//
+//    private static Vec3d findClosestCornerOfBBTo2(AxisAlignedBB bb, Vec3d pos) {
+//        double x = pos.xCoord;
+//        double y = pos.yCoord;
+//        double z = pos.zCoord;
+//
+//        double closestX;
+//        double closestY;
+//        double closestZ;
+//
+//        closestX = Math.abs(x - bb.maxX) < Math.abs(x - bb.minX) ? bb.maxX : bb.minX;
+//        closestY = Math.abs(y - bb.maxY) < Math.abs(y - bb.minY) ? bb.maxY : bb.minY;
+//        closestZ = Math.abs(z - bb.maxZ) < Math.abs(z - bb.minZ) ? bb.maxZ : bb.minZ;
+//
+//        return new Vec3d(closestX, closestY, closestZ);
+//    }
+
+    public static class Wrapper implements IGravityModTileEntityClassWrapper<TileGravityGenerator> {
+
+        @Override
+        public String getName() {
+            return "tilegravitygenerator";
+        }
+
+        @Override
+        public Class<TileGravityGenerator> getEntityClass() {
+            return TileGravityGenerator.class;
+        }
+    }
+}

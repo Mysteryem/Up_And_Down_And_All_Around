@@ -7,7 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
  * Used in crafting the best/string gravity controller
  * Created by Mysteryem on 2016-11-11.
  */
-public class ItemSpacetimeAnomaly extends Item implements ModItems.IModItem {
+public class ItemSpacetimeAnomaly extends Item implements IGravityModItem<ItemSpacetimeAnomaly> {
     @Override
     public String getName() {
         return "spacetimeanomaly";

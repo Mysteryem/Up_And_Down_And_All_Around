@@ -26,6 +26,7 @@ import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
 
@@ -36,7 +37,7 @@ import java.util.Locale;
 /**
  * Created by Mysteryem on 2016-10-11.
  */
-public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, ModItems.IModItem, IConditionallyAffectsGravity {
+public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, IGravityModItem<ItemAbstractGravityController>, IConditionallyAffectsGravity {
 
     //7 values (0-6) -> first 3 bits
     private enum EnumControllerActiveDirection {
@@ -190,6 +191,12 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         return combinedMeta >>> 3;
     }
 
+//    private final GravityManagerCommon.GravityStrengthType gravityStrengthType;
+//
+//    public ItemAbstractGravityController(GravityManagerCommon.GravityStrengthType gravityStrengthType) {
+//        this.gravityStrengthType = gravityStrengthType;
+//    }
+
     abstract boolean affectsPlayer(EntityPlayerMP player);
 
     @Override
@@ -202,7 +209,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
-        ModItems.IModItem.super.preInit();
+        IGravityModItem.super.preInit();
     }
 
     @SideOnly(Side.CLIENT)

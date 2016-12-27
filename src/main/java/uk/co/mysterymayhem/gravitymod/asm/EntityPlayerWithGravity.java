@@ -22,6 +22,7 @@ import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.util.BlockStateHelper;
+import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
@@ -689,8 +690,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 //                }
             }
             if (isOnLadder && isMonkeyBars) {
-                if (this.distanceWalkedOnStepModified > (float)this.nextStepDistance) {
-                    this.nextStepDistance = (int)this.distanceWalkedOnStepModified + 1;
+                if (this.distanceWalkedOnStepModified > (float) ReflectionLambdas.get_Entity$nextStepDistance.applyAsInt(this)) {
+                    ReflectionLambdas.set_Entity$nextStepDistance.accept(this, (int)this.distanceWalkedOnStepModified + 1);
                     this.playStepSound(blockpos, iblockstate.getBlock());
                 }
             }

@@ -17,19 +17,19 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit() {
         super.preInit();
-        this.setupObjects.forEach(IFMLStaged::preInitClient);
+        this.preInitClient();
     }
 
     @Override
     public void init() {
         super.init();
-        this.setupObjects.forEach(IFMLStaged::initClient);
+        this.initClient();
     }
 
     @Override
     public void postInit() {
         super.postInit();
-        this.setupObjects.forEach(IFMLStaged::postInitClient);
+        this.postInitClient();
     }
 
     @Override

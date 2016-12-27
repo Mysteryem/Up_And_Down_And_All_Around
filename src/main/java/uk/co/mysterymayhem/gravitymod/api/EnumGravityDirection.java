@@ -12,6 +12,7 @@ import net.minecraft.util.math.Vec3i;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
+//TODO: Replace anonymous inner BlockPos classes with non-inner classes (faster, no reference to 'EnumGravityDirection.this' passed around)
 /**
  * Enum of the gravity direction objects.
  * Created by Mysteryem on 2016-08-14.
