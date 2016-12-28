@@ -149,6 +149,8 @@ public class GravityManagerCommon {
                         new GravityChangeMessage(event.player.getName(), gravityDirection, true),
                         (EntityPlayerMP) event.player
                 );
+                // When the client receives the gravity change packet, their position changes client side, we teleport them back via a packet
+                ((EntityPlayerMP)event.player).connection.setPlayerLocation(event.player.posX, event.player.posY, event.player.posZ, event.player.rotationYaw, event.player.rotationPitch);
             }
             PacketHandler.INSTANCE.sendTo(new ModCompatConfigCheckMessage(ItemStackUseListener.getHashCode()), (EntityPlayerMP) event.player);
         }
