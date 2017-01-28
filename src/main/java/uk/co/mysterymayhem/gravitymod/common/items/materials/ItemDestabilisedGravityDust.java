@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.client.renderers.RenderNothing;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWrapper;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
@@ -30,6 +31,8 @@ import java.util.Random;
  * Created by Mysteryem on 2017-01-26.
  */
 public class ItemDestabilisedGravityDust extends Item implements IGravityModItem<ItemDestabilisedGravityDust> {
+    private static final boolean DESTROYED_WHEN_DROPPED = ConfigHandler.destabilisedGravityDustDissipatesWhenDropped;
+
     @Override
     public String getName() {
         return "destabilisedgravitydust";
@@ -44,7 +47,9 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.destabilisedgravitydust.warning"));
+        if (DESTROYED_WHEN_DROPPED) {
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.destabilisedgravitydust.warning"));
+        }
     }
 
     @Override
@@ -54,21 +59,24 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
 
     @Override
     public Entity createEntity(World world, Entity location, ItemStack itemstack) {
-        DissipationEntity dissipationEntity = new DissipationEntity(world);
-        dissipationEntity.motionX = location.motionX;
-        dissipationEntity.motionY = location.motionY;
-        dissipationEntity.motionZ = location.motionZ;
-        dissipationEntity.posX = location.posX;
-        dissipationEntity.posY = location.posY;
-        dissipationEntity.posZ = location.posZ;
-        dissipationEntity.prevPosX = location.prevPosX;
-        dissipationEntity.prevPosY = location.prevPosY;
-        dissipationEntity.prevPosZ = location.prevPosZ;
-        if (location instanceof EntityItem) {
+        if (DESTROYED_WHEN_DROPPED && location instanceof EntityItem) {
+            DissipationEntity dissipationEntity = new DissipationEntity(world);
+            dissipationEntity.motionX = location.motionX;
+            dissipationEntity.motionY = location.motionY;
+            dissipationEntity.motionZ = location.motionZ;
+            dissipationEntity.posX = location.posX;
+            dissipationEntity.posY = location.posY;
+            dissipationEntity.posZ = location.posZ;
+            dissipationEntity.prevPosX = location.prevPosX;
+            dissipationEntity.prevPosY = location.prevPosY;
+            dissipationEntity.prevPosZ = location.prevPosZ;
             dissipationEntity.originalStackSize = ((EntityItem) location).getEntityItem().stackSize;
-        }
 
-        return dissipationEntity;
+            return dissipationEntity;
+        }
+        else {
+            return null;
+        }
     }
 
     public static class DissipationEntity extends Entity implements IEntityAdditionalSpawnData {

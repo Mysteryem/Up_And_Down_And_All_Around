@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -25,14 +26,18 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.common.Optional;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IGravityFieldsVisible;
 import uk.co.mysterymayhem.gravitymod.client.model.ModelGravityGoggles;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+
+import java.util.List;
 
 /**
  * Created by Mysteryem on 2017-01-25.
@@ -64,6 +69,17 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
 //        super(materialIn, renderIndexIn, equipmentSlotIn);
 //    }
 
+
+    @Override
+    public void postInit() {
+        GameRegistry.addRecipe(new ShapedOreRecipe(this,
+                "IBI",
+                "GIG",
+                'I', "ingotIron",
+                'B', StaticItems.LIQUID_ANTI_MASS_BUCKET,
+                'G', "blockGlass"));
+    }
+
     @Override
     @Optional.Method(modid = ModSupport.BAUBLES_MOD_ID)
     public BaubleType getBaubleType(ItemStack itemStack) {
@@ -73,6 +89,12 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
     @Override
     public String getName() {
         return "gravitygoggles";
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravityfieldgoggles.line1"));
     }
 
     @Override

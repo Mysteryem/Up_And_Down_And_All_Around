@@ -1,7 +1,10 @@
 package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
 import baubles.api.IBauble;
+import com.google.common.collect.Lists;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -10,7 +13,7 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
@@ -19,6 +22,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.RecipeSorter;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
+import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
@@ -63,7 +67,22 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         return tagCompound != null && tagCompound.hasKey(NBT_KEY);
     }
 
-    private class ArmourPasteRemoval implements IRecipe {
+    private static class ArmourPasteRemoval extends ShapelessRecipes {
+
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static {
+            NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
+            if (tagCompound == null) {
+                tagCompound = new NBTTagCompound();
+                DUMMY_RECIPE_INPUT.setTagCompound(tagCompound);
+            }
+            tagCompound.setBoolean(NBT_KEY, true);
+        }
+
+        public ArmourPasteRemoval() {
+            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
+        }
 
         @Override
         public boolean matches(InventoryCrafting inv, World worldIn) {
@@ -109,6 +128,10 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             NBTTagCompound tagCompound = copy.getTagCompound();
             if (tagCompound != null) {
                 tagCompound.removeTag(NBT_KEY);
+                if (tagCompound.hasNoTags()) {
+                    // Prevent leaving behind empty tags
+                    copy.setTagCompound(null);
+                }
             }
 //            copy.stackSize = 1;
             return copy;
@@ -122,7 +145,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         @Nullable
         @Override
         public ItemStack getRecipeOutput() {
-            return null;
+            return super.getRecipeOutput();
         }
 
         @Override
@@ -132,7 +155,23 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     }
 
 
-    private class ArmourPasteRecipe implements IRecipe {
+    private static class ArmourPasteRecipe extends ShapelessRecipes {
+
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE, 1);
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static {
+            NBTTagCompound tagCompound = DUMMY_RECIPE_OUTPUT.getTagCompound();
+            if (tagCompound == null) {
+                tagCompound = new NBTTagCompound();
+                DUMMY_RECIPE_OUTPUT.setTagCompound(tagCompound);
+            }
+            tagCompound.setBoolean(NBT_KEY, true);
+        }
+
+
+        public ArmourPasteRecipe() {
+            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(StaticItems.ARMOUR_PASTE)));
+        }
 
         @Override
         public boolean matches(InventoryCrafting inv, World worldIn) {
@@ -142,7 +181,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
                 ItemStack stack = inv.getStackInSlot(i);
                 if (stack != null) {
                     Item item = stack.getItem();
-                    if (item == ItemArmourPaste.this) {
+                    if (item == StaticItems.ARMOUR_PASTE) {
                         if (++pasteItemsFound > 1) {
                             return false;
                         }
@@ -169,7 +208,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             ItemStack armourStack = null;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 armourStack = inv.getStackInSlot(i);
-                if (armourStack != null && armourStack.getItem() != ItemArmourPaste.this) {
+                if (armourStack != null && armourStack.getItem() != StaticItems.ARMOUR_PASTE) {
                     break;
                 }
             }
@@ -195,7 +234,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         @Nullable
         @Override
         public ItemStack getRecipeOutput() {
-            return null;
+            return super.getRecipeOutput();
         }
 
         @Override
@@ -209,9 +248,20 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         return "armourpaste";
     }
 
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void preInitClient() {
+        String ANY_ARMOUR_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.nopaste");
+        String ANY_ARMOUR_WITH_PASTE_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.paste");
+        ArmourPasteRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
+        ArmourPasteRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
+        ArmourPasteRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
+        ArmourPasteRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
+        IGravityModItem.super.preInitClient();
+    }
+
     @Override
     public void postInit() {
-        //TODO: Replace with ore dictionary entry for slime ball
         GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone"));
 //        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.GRAVITY_DUST, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
 
@@ -224,11 +274,18 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
-            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.infobaubles"));
+        KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
+        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
+                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.infobaubles"));
+            }
+            else {
+                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.info"));
+            }
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.inforemoval"));
         }
         else {
-            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.info"));
+            tooltip.add(keyBindSneak.getDisplayName() + I18n.format("mouseovertext.mysttmtgravitymod.presskeyfordetails"));
         }
     }
 

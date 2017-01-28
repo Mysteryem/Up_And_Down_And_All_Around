@@ -113,6 +113,7 @@ public class ConfigHandler {
     public static int gravityDustAmountDropped = 5;
     public static int gravityGeneratorMaxRadius = 5; // Width = (x*2 + 1) // Min value 0
     public static int gravityGeneratorMaxHeight = 11; // Min value 1
+    public static boolean destabilisedGravityDustDissipatesWhenDropped = true;
 
     public static void loadConfig(FMLPreInitializationEvent event) {
         File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();
@@ -225,6 +226,10 @@ public class ConfigHandler {
                 4, Integer.MIN_VALUE, Integer.MAX_VALUE,
                 "Weak gravity enablers count as this many normal gravity enablers.\n" +
                         "This makes more sense thematically to be greater than 1, but '1' or '0' will still work\n");
+
+        ConfigHandler.destabilisedGravityDustDissipatesWhenDropped = config.getBoolean(
+                "item.destabilisedAnti-Mass.destroyedWhenDropped", Configuration.CATEGORY_GENERAL,
+                true, "Destabilised Anti-Mass should dissipate/be destroyed when dropped out of an inventory");
 
         if (config.hasChanged()) {
             config.save();

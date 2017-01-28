@@ -18,11 +18,14 @@ import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.oredict.RecipeSorter;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.liquids.LiquidAntiMass;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModBlock;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -40,15 +43,23 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
         return "liquidantimass";
     }
 
-    private static class ShapelessVoidRemainingItems extends ShapelessRecipes {
+    private static class ShapelessVoidOneBucket extends ShapelessRecipes {
 
-        public ShapelessVoidRemainingItems(ItemStack output, List<ItemStack> inputList) {
+        public ShapelessVoidOneBucket(ItemStack output, List<ItemStack> inputList) {
             super(output, inputList);
         }
 
         @Override
         public ItemStack[] getRemainingItems(InventoryCrafting inv) {
-            return new ItemStack[inv.getSizeInventory()];
+            ItemStack[] remainingItems = super.getRemainingItems(inv);
+            for (int i = 0; i < remainingItems.length; i++) {
+                ItemStack remainingItem = remainingItems[i];
+                if (remainingItem != null && remainingItem.getItem() == Items.BUCKET) {
+                    remainingItems[i] = null;
+                    break;
+                }
+            }
+            return remainingItems;
         }
     }
 
@@ -60,7 +71,8 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
     @Override
     public void postInit() {
         // Recipe whereby the input bucket (as a part of the lava bucket) becomes the output bucket
-        GameRegistry.addRecipe(new ShapelessVoidRemainingItems(
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + ShapelessVoidOneBucket.class.getSimpleName().toLowerCase(Locale.ENGLISH), ShapelessVoidOneBucket.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        GameRegistry.addRecipe(new ShapelessVoidOneBucket(
                 this.getBucket(),
                 Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
                         new ItemStack(Items.LAVA_BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
