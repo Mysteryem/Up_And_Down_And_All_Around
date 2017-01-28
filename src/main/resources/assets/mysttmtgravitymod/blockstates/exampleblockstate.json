@@ -1,0 +1,30 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "mysttmtgravitymod:gravitypearl"
+  },
+  "variants": {
+    "normal": {
+      "true": {
+        "textures": {
+          "texture": "blocks/planks_oak",
+          "wall": "blocks/planks_oak"
+        },
+        "model": "pressure_plate_up",
+        "uvlock": true
+      },
+      "false": {
+
+      }
+    },
+    "special": {
+      "true": {
+        "submodel": "mysttmtgravitymod:gravityleggings"
+      },
+      "false": {
+
+      }
+    },
+    "inventory" : [{}]
+  }
+}

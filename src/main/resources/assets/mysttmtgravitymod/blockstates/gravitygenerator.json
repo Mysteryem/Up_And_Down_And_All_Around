@@ -5,42 +5,58 @@
     "textures": {
       "front": "mysttmtgravitymod:blocks/gravitygenerator_off",
       "side": "mysttmtgravitymod:blocks/gravitygenerator_base",
-      "back": "mysttmtgravitymod:blocks/gravitygenerator_base"
+      "side_on": "mysttmtgravitymod:blocks/gravitygenerator_base",
+      "back": "mysttmtgravitymod:blocks/gravitygenerator_base",
+      "back_on": "mysttmtgravitymod:blocks/gravitygenerator_base",
+      "front_on" : "mysttmtgravitymod:blocks/gravitygenerator_on"
     }
   },
   "variants": {
     "normal": [{}],
     "inventory": [{}],
     "facing": {
-      "north": {},
-      "south": {"y": 180},
-      "west": {"y": 270},
-      "east": {"y": 90},
-      "up": {"x": -90},
-      "down": {"x": 90}
+      "north": {"x": 90},
+      "south": {"x": -90},
+      "west": {"x": 90, "y": -90},
+      "east": {"x": 90, "y": 90},
+      "up": {},
+      "down": {"x": 180}
     },
     "active": {
       "false": {},
       "true": {
-        "textures": {
-          "front": "mysttmtgravitymod:blocks/gravitygenerator_on"
-        }
+        "model": "mysttmtgravitymod:gravitygenerator_on"
       }
     },
     "tier": {
       "weak": {
         "textures": {
-          "side": "mysttmtgravitymod:blocks/gravitygenerator_base"
+          "side": "mysttmtgravitymod:blocks/weakgravitygenerator_side",
+          "side_on": "mysttmtgravitymod:blocks/weakgravitygenerator_side_on",
+          "front": "mysttmtgravitymod:blocks/weakgravitygenerator_front",
+          "front_on": "mysttmtgravitymod:blocks/weakgravitygenerator_front_on",
+          "back": "mysttmtgravitymod:blocks/weakgravitygenerator_base",
+          "back_on": "mysttmtgravitymod:blocks/weakgravitygenerator_base_on"
         }
       },
       "normal": {
         "textures": {
-          "side": "blocks/iron_block"
+          "side": "mysttmtgravitymod:blocks/normalgravitygenerator_side",
+          "side_on": "mysttmtgravitymod:blocks/normalgravitygenerator_side_on",
+          "front": "mysttmtgravitymod:blocks/normalgravitygenerator_front",
+          "front_on": "mysttmtgravitymod:blocks/normalgravitygenerator_front_on",
+          "back": "mysttmtgravitymod:blocks/normalgravitygenerator_base",
+          "back_on": "mysttmtgravitymod:blocks/normalgravitygenerator_base_on"
         }
       },
       "strong": {
         "textures": {
-          "side": "blocks/diamond_block"
+          "side": "mysttmtgravitymod:blocks/stronggravitygenerator_side",
+          "side_on": "mysttmtgravitymod:blocks/stronggravitygenerator_side_on",
+          "front": "mysttmtgravitymod:blocks/stronggravitygenerator_front",
+          "front_on": "mysttmtgravitymod:blocks/stronggravitygenerator_front_on",
+          "back": "mysttmtgravitymod:blocks/stronggravitygenerator_base",
+          "back_on": "mysttmtgravitymod:blocks/stronggravitygenerator_base_on"
         }
       }
     }
