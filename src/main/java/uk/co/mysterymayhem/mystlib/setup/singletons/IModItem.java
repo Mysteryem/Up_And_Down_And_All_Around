@@ -15,17 +15,17 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  *
  * Created by Mysteryem on 2016-11-05.
  */
-public interface IModItem<T extends Item & IModItem<T>> extends IModObject<T> {
+public interface IModItem<T extends Item & IModItem<T>> extends IModObject {
     @Override
     @SideOnly(Side.CLIENT)
     default void preInitClient(){
-        T cast = this.getCast();
+        T cast = this.getItem();
         ModelLoader.setCustomModelResourceLocation((Item)this, 0, new ModelResourceLocation(cast.getRegistryName(), "inventory"));
     }
 
     @Override
     default void preInit() {
-        T cast = this.getCast();
+        T cast = this.getItem();
         cast.setUnlocalizedName(this.getModID() + "." + this.getName());
         cast.setRegistryName(new ResourceLocation(this.getModID(), this.getName()));
         CreativeTabs creativeTab = this.getModCreativeTab();
@@ -33,5 +33,11 @@ public interface IModItem<T extends Item & IModItem<T>> extends IModObject<T> {
             cast.setCreativeTab(creativeTab);
         }
         GameRegistry.register(cast);
+        IModObject.super.preInit();
+    }
+
+    @SuppressWarnings("unchecked")
+    default T getItem() {
+        return (T)this;
     }
 }

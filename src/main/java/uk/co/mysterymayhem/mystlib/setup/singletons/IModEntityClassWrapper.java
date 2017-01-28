@@ -11,7 +11,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * Doesn't need to be an interface, unlike IModItem/IModBlock, since
  * Created by Mysteryem on 2016-12-08.
  */
-public interface IModEntityClassWrapper<T extends Entity> extends IModObject<Class<T>> {
+public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
     Class<T> getEntityClass();
 
     /**
@@ -41,7 +41,6 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject<Cla
      */
     boolean sendsVelocityUpdates();
 
-    Object getModInstance();
     int getUniqueID();
 
     @Override
@@ -54,6 +53,7 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject<Cla
                 this.getTrackingRange(),
                 this.getUpdateFrequency(),
                 this.sendsVelocityUpdates());
+        IModObject.super.preInit();
     }
 
     @Override
@@ -68,10 +68,5 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject<Cla
     @SideOnly(Side.CLIENT)
     default IRenderFactory<? super T> getRenderFactory() {
         return null;
-    }
-
-    @Override
-    default Class<T> getCast() {
-        return this.getEntityClass();
     }
 }

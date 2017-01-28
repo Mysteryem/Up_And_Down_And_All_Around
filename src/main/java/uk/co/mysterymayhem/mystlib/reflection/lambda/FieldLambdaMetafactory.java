@@ -6,6 +6,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.util.TraceClassVisitor;
 import sun.misc.Unsafe;
+import uk.co.mysterymayhem.mystlib.reflection.LookupHelper;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FieldLambdaMetafactory {
     private static final boolean DEBUG = false;
 
+    static final MethodHandles.Lookup TRUSTED_LOOKUP = LookupHelper.getTrustedLookup();
     private static final String OBJECT_INTERNAL_NAME = "java/lang/Object";
     private static final String CONSTRUCTOR_NAME = "<init>";
     private static final String NO_ARGS_RETURN_VOID_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE);
@@ -33,7 +35,7 @@ public class FieldLambdaMetafactory {
     static {
         try {
             Class<?> innerFactoryClass = Class.forName("java.lang.invoke.InnerClassLambdaMetafactory");
-            MethodHandle counterGetter = LambdaBuilder.TRUSTED_LOOKUP.findStaticGetter(innerFactoryClass, "counter", AtomicInteger.class);
+            MethodHandle counterGetter = TRUSTED_LOOKUP.findStaticGetter(innerFactoryClass, "counter", AtomicInteger.class);
             counter = (AtomicInteger) counterGetter.invokeExact();
 
             // Get Unsafe instance
@@ -43,7 +45,7 @@ public class FieldLambdaMetafactory {
             Unsafe temp = null;
             for (Field declaredField : declaredFields) {
                 if (declaredField.getType() == Unsafe.class) {
-                    temp = (Unsafe) LambdaBuilder.TRUSTED_LOOKUP.unreflectGetter(declaredField).invokeExact();
+                    temp = (Unsafe) TRUSTED_LOOKUP.unreflectGetter(declaredField).invokeExact();
                     break;
                 }
             }
@@ -122,7 +124,7 @@ public class FieldLambdaMetafactory {
         writer.flush();
     }
 
-    static CallSite metaFactory(@Nonnull MethodHandles.Lookup caller,
+    public static CallSite metaFactory(@Nonnull MethodHandles.Lookup caller,
                                 String interfaceMethodName,
                                 @Nonnull MethodType invokedType,
                                 MethodType interfaceMethodType,
@@ -160,7 +162,7 @@ public class FieldLambdaMetafactory {
         }
 
         // Loads the class with the same classloader and privileges as this.targetClass
-        // So the class can access private fields/methods/constructors and use INVOKESPECIAL instructions with methods
+        // So the class can access private fields/methods/constructors and use INVOKESPECIAL instructions with method
         Class<?> innerClass = UNSAFE.defineAnonymousClass(this.targetClass, classBytes, null);
 
         Constructor<?>[] constructors = innerClass.getDeclaredConstructors();
@@ -184,8 +186,8 @@ public class FieldLambdaMetafactory {
             @Override
             void visitInterfaceMethod(MethodVisitor mv, MethodType interfaceClassMethodType, MethodHandle fieldMethodHandle, MethodType handleMethodType) throws LambdaBuilder.LambdaBuildException {
                 Class<?> ifaceReturnType = interfaceClassMethodType.returnType();
-                MethodHandleInfo methodHandleInfo = LambdaBuilder.TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
-                Field field = methodHandleInfo.reflectAs(Field.class, LambdaBuilder.TRUSTED_LOOKUP);
+                MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
+                Field field = methodHandleInfo.reflectAs(Field.class, TRUSTED_LOOKUP);
                 Class<?> fieldDeclaringClass = field.getDeclaringClass();
                 Class<?> fieldType = field.getType();
                 if (!ifaceReturnType.isAssignableFrom(fieldType)) {
@@ -203,8 +205,8 @@ public class FieldLambdaMetafactory {
                 if (interfaceClassMethodType.returnType() != void.class) {
                     throw new LambdaBuilder.LambdaBuildException("Interface method return type must be 'void'");
                 }
-                MethodHandleInfo methodHandleInfo = LambdaBuilder.TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
-                Field field = methodHandleInfo.reflectAs(Field.class, LambdaBuilder.TRUSTED_LOOKUP);
+                MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
+                Field field = methodHandleInfo.reflectAs(Field.class, TRUSTED_LOOKUP);
                 Class<?> fieldDeclaringClass = field.getDeclaringClass();
                 Class<?> fieldType = field.getType();
                 String name = field.getName();
@@ -228,8 +230,8 @@ public class FieldLambdaMetafactory {
             @Override
             void visitInterfaceMethod(MethodVisitor mv, MethodType interfaceClassMethodType, MethodHandle fieldMethodHandle, MethodType handleMethodType) throws LambdaBuilder.LambdaBuildException {
                 Class<?> ifaceReturnType = interfaceClassMethodType.returnType();
-                MethodHandleInfo methodHandleInfo = LambdaBuilder.TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
-                Field field = methodHandleInfo.reflectAs(Field.class, LambdaBuilder.TRUSTED_LOOKUP);
+                MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
+                Field field = methodHandleInfo.reflectAs(Field.class, TRUSTED_LOOKUP);
                 Class<?> fieldDeclaringClass = field.getDeclaringClass();
                 Class<?> fieldType = field.getType();
                 String name = field.getName();
@@ -258,8 +260,8 @@ public class FieldLambdaMetafactory {
                 if (interfaceClassMethodType.returnType() != void.class) {
                     throw new LambdaBuilder.LambdaBuildException("Interface method return type must be 'void'");
                 }
-                MethodHandleInfo methodHandleInfo = LambdaBuilder.TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
-                Field field = methodHandleInfo.reflectAs(Field.class, LambdaBuilder.TRUSTED_LOOKUP);
+                MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(fieldMethodHandle);
+                Field field = methodHandleInfo.reflectAs(Field.class, TRUSTED_LOOKUP);
                 Class<?> fieldDeclaringClass = field.getDeclaringClass();
                 Class<?> fieldType = field.getType();
                 String name = field.getName();
@@ -308,7 +310,7 @@ public class FieldLambdaMetafactory {
 
         public static FieldOpType getOpType(MethodHandle methodHandle) {
             try {
-                MethodHandleInfo methodHandleInfo = LambdaBuilder.TRUSTED_LOOKUP.revealDirect(methodHandle);
+                MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(methodHandle);
                 int referenceKind = methodHandleInfo.getReferenceKind();
                 return LOOKUP_FROM_INT.get(referenceKind);
             } catch (Exception e) {
