@@ -8,7 +8,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticBlocks;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import java.util.List;
 
@@ -29,8 +30,8 @@ public class ItemSpacetimeAnomaly extends Item implements IGravityModItem<ItemSp
                 "DPD",
                 "PSP",
                 "DPD",
-                'D', StaticRegistry.gravityDust,
-                'P', StaticRegistry.gravityPearl,
+                'D', StaticBlocks.RESTABILISED_GRAVITY_DUST_BLOCK,
+                'P', StaticItems.GRAVITY_PEARL,
                 'S', Items.NETHER_STAR);
     }
 

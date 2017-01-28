@@ -31,4 +31,5 @@ public class ModSupport {
 
     public static final String BAUBLES_MOD_ID = "Baubles";
     public static final String INTERFACE_IBAUBLE = "baubles.api.IBauble";
+    public static final String INTERFACE_IRENDERBAUBLE = "baubles.api.render.IRenderBauble";
 }

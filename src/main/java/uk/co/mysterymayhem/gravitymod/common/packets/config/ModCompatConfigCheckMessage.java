@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.packets.config;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
 /**
  * Created by Mysteryem on 2016-10-24.
@@ -12,9 +13,8 @@ public class ModCompatConfigCheckMessage implements IMessage {
     private EnumConfigPacketType packetType;
     private ByteBuf configData;
 
-    @SuppressWarnings("unused")
-    public ModCompatConfigCheckMessage() {
-    }
+    @UsedReflexively
+    public ModCompatConfigCheckMessage() {/**/}
 
     public ModCompatConfigCheckMessage(int modCompatHashcode) {
         this(EnumConfigPacketType.SERVER_TO_CLIENT_SERVER_HASH_CHECK);

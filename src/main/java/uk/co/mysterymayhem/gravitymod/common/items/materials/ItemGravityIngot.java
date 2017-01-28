@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 /**
  * Armour crafted out of this material is affected by weak gravity fields
@@ -17,7 +17,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 public class ItemGravityIngot extends Item implements IGravityModItem<ItemGravityIngot> {
     // Like iron armour, but crappier
     public static ItemArmor.ArmorMaterial ARMOUR_MATERIAL =
-            EnumHelper.addArmorMaterial("gravityiron", GravityMod.MOD_ID + ":gravityiron", 15, new int[]{1, 4, 3, 1}, 10, SoundEvents.ITEM_ARMOR_EQUIP_IRON, 0F);
+            EnumHelper.addArmorMaterial("gravityiron", GravityMod.MOD_ID + ":gravityiron", 15, new int[]{1, 3, 4, 1}, 10, SoundEvents.ITEM_ARMOR_EQUIP_IRON, 0F);
 
     @Override
     public String getName() {
@@ -35,7 +35,7 @@ public class ItemGravityIngot extends Item implements IGravityModItem<ItemGravit
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 this,
                 "DID",
-                'D', StaticRegistry.gravityDust,
+                'D', StaticItems.DESTABILISED_GRAVITY_DUST,
                 'I', "ingotIron"));
     }
 }

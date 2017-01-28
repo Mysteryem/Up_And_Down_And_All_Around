@@ -11,10 +11,7 @@ import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModBlocks;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModEntities;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.registries.ModTileEntities;
+import uk.co.mysterymayhem.gravitymod.common.registries.*;
 import uk.co.mysterymayhem.mystlib.setup.IFMLStaged;
 import uk.co.mysterymayhem.mystlib.setup.registries.AbstractIFMLStagedRegistry;
 
@@ -37,6 +34,7 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         modObjects.add(new ModBlocks());
         modObjects.add(new ModEntities());
         modObjects.add(new ModTileEntities());
+        modObjects.add(new ModGUIs());
     }
 
     @Override

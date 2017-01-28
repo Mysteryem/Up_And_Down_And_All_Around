@@ -9,7 +9,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
  * Created by Mysteryem on 2016-12-25.
  */
 public enum EnumGravityTier implements IStringSerializable {
-    WEAK("weak") {
+    WEAK("weak", new float[]{1, 1, 1}) {
         @Override
         public int getPriority(double percent) {
             return GravityPriorityRegistry.interpolateWeak(percent);
@@ -20,7 +20,7 @@ public enum EnumGravityTier implements IStringSerializable {
             return GravityManagerCommon.playerIsAffectedByWeakGravity(playerMP);
         }
     },
-    NORMAL("normal") {
+    NORMAL("normal", new float[]{0.66796875f, 0, 0.66796875f}) {
         @Override
         public int getPriority(double percent) {
             return GravityPriorityRegistry.interpolateNormal(percent);
@@ -31,7 +31,7 @@ public enum EnumGravityTier implements IStringSerializable {
             return GravityManagerCommon.playerIsAffectedByNormalGravity(playerMP);
         }
     },
-    STRONG("strong") {
+    STRONG("strong", new float[]{0.3359375f, 0.3359375f, 1}) {
         @Override
         public int getPriority(double percent) {
             return GravityPriorityRegistry.interpolateStrong(percent);
@@ -48,9 +48,11 @@ public enum EnumGravityTier implements IStringSerializable {
     public abstract boolean isPlayerAffected(EntityPlayerMP playerMP);
 
     private final String internalPrefix;
+    private final float[] colour;
 
-    EnumGravityTier(String internalPrefix) {
+    EnumGravityTier(String internalPrefix, float[] colour) {
         this.internalPrefix = internalPrefix;
+        this.colour = colour;
     }
 
     public String getInternalPrefix() {
@@ -60,5 +62,9 @@ public enum EnumGravityTier implements IStringSerializable {
     @Override
     public String getName() {
         return this.getInternalPrefix();
+    }
+
+    public float[] getColour() {
+        return colour;
     }
 }

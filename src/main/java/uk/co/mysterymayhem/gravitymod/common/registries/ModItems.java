@@ -2,21 +2,30 @@ package uk.co.mysterymayhem.gravitymod.common.registries;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.ForgeModContainer;
+import net.minecraftforge.fluids.UniversalBucket;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityBoots;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityChestplate;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityHelmet;
 import uk.co.mysterymayhem.gravitymod.common.items.armour.ItemGravityLeggings;
 import uk.co.mysterymayhem.gravitymod.common.items.baubles.ItemGravityBauble;
+import uk.co.mysterymayhem.gravitymod.common.items.baubles.ItemGravityFieldGoggles;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.*;
 import uk.co.mysterymayhem.gravitymod.common.items.misc.ItemCreativeTabIcon;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemGravityAnchor;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemPersonalGravityController;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemUltimateGravityController;
 import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemWeakGravityController;
+import uk.co.mysterymayhem.gravitymod.common.liquids.LiquidAntiMass;
 import uk.co.mysterymayhem.mystlib.setup.registries.AbstractItemRegistry;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-08-08.
@@ -31,6 +40,13 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
             @Override
             public Item getTabIconItem() {
                 return creativeTabIcon;
+            }
+
+            @SideOnly(Side.CLIENT)
+            @Override
+            public void displayAllRelevantItems(@Nonnull List<ItemStack> itemList) {
+                itemList.add(StaticItems.LIQUID_ANTI_MASS_BUCKET);
+                super.displayAllRelevantItems(itemList);
             }
         };
 
@@ -66,8 +82,12 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
     static ItemGravityChestplate gravityChestplate;
     static ItemGravityHelmet gravityHelmet;
     static ItemGravityLeggings gravityLeggings;
+    static ItemGravityFieldGoggles gravityFieldGoggles;
+    static ItemDestabilisedGravityDust destabilisedGravityDust;
+    static ItemRestabilisedGravityDust restabilisedGravityDust;
+    static ItemStack liquidAntiMassBucket;
 
-    static boolean REGISTRY_SETUP_ALLOWED = false;
+    static boolean STATIC_SETUP_ALLOWED = false;
 
     public ModItems() {
         super(new ArrayList<>());
@@ -75,6 +95,7 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
 
     @Override
     protected void addToCollection(ArrayList<IGravityModItem<?>> modObjects) {
+        liquidAntiMassBucket = UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, LiquidAntiMass.INSTANCE);
         modObjects.add(creativeTabIcon             = new ItemCreativeTabIcon());
         modObjects.add(personalGravityController   = new ItemPersonalGravityController());
         modObjects.add(weakGravityController       = new ItemWeakGravityController());
@@ -90,7 +111,10 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
         modObjects.add(gravityChestplate           = new ItemGravityChestplate());
         modObjects.add(gravityHelmet               = new ItemGravityHelmet());
         modObjects.add(gravityLeggings             = new ItemGravityLeggings());
-        REGISTRY_SETUP_ALLOWED = true;
+        modObjects.add(gravityFieldGoggles         = new ItemGravityFieldGoggles());
+        modObjects.add(destabilisedGravityDust     = new ItemDestabilisedGravityDust());
+        modObjects.add(restabilisedGravityDust     = new ItemRestabilisedGravityDust());
+        STATIC_SETUP_ALLOWED = true;
     }
 
 }

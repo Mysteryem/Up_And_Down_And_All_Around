@@ -26,7 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 import javax.annotation.Nullable;
@@ -94,7 +94,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
                 " D ",
                 "DPD",
                 " D ",
-                'D', StaticRegistry.gravityDust,
+                'D', StaticItems.RESTABILISED_GRAVITY_DUST,
                 'P', Items.ENDER_PEARL));
     }
 

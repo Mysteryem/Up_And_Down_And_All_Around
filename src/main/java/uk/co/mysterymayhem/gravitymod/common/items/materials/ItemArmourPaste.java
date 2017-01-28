@@ -3,8 +3,10 @@ package uk.co.mysterymayhem.gravitymod.common.items.materials;
 import baubles.api.IBauble;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
@@ -21,12 +23,13 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Craft with armour to enable [no prefix] gravity field interaction
@@ -60,6 +63,74 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         return tagCompound != null && tagCompound.hasKey(NBT_KEY);
     }
 
+    private class ArmourPasteRemoval implements IRecipe {
+
+        @Override
+        public boolean matches(InventoryCrafting inv, World worldIn) {
+            int pasteItemsFound = 0;
+            int waterBucketItemsFound = 0;
+            for (int i = 0; i < inv.getSizeInventory(); i++) {
+                ItemStack stack = inv.getStackInSlot(i);
+                if (stack != null) {
+                    Item item = stack.getItem();
+                    if (item == Items.WATER_BUCKET) {
+                        if (++waterBucketItemsFound > 1) {
+                            return false;
+                        }
+                    }
+                    else if (stack.stackSize == 1 && (isItemArmour(stack, item) || isItemBauble(item)) && hasPasteTag(stack)) {
+                        if (++pasteItemsFound > 1) {
+                            // Found too many paste items
+                            return false;
+                        }
+                    }
+                    else {
+                        // Found an item that isn't a water bucket or an armour piece/bauble with a paste tag
+                        return false;
+                    }
+                }
+            }
+            // Necessary to check as either could be zero
+            return pasteItemsFound == 1 && waterBucketItemsFound == 1;
+        }
+
+        @Nullable
+        @Override
+        public ItemStack getCraftingResult(InventoryCrafting inv) {
+            ItemStack armourStack = null;
+            for (int i = 0; i < inv.getSizeInventory(); i++) {
+                armourStack = inv.getStackInSlot(i);
+                if (armourStack != null && armourStack.getItem() != Items.WATER_BUCKET) {
+                    break;
+                }
+            }
+
+            ItemStack copy = armourStack.copy();
+            NBTTagCompound tagCompound = copy.getTagCompound();
+            if (tagCompound != null) {
+                tagCompound.removeTag(NBT_KEY);
+            }
+//            copy.stackSize = 1;
+            return copy;
+        }
+
+        @Override
+        public int getRecipeSize() {
+            return 2;
+        }
+
+        @Nullable
+        @Override
+        public ItemStack getRecipeOutput() {
+            return null;
+        }
+
+        @Override
+        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
+            return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+        }
+    }
+
 
     private class ArmourPasteRecipe implements IRecipe {
 
@@ -77,13 +148,11 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
                         }
                     }
                     else if (isItemArmour(stack, item) || isItemBauble(item)) {
-                        if (hasPasteTag(stack) || item instanceof IWeakGravityEnabler) {
+                        if (stack.stackSize != 1 || hasPasteTag(stack) || item instanceof IWeakGravityEnabler) {
                             return false;
                         }
-                        else {
-                            if (++nonPasteItemsFound > 1) {
-                                return false;
-                            }
+                        else if (++nonPasteItemsFound > 1) {
+                            return false;
                         }
                     }
                     else {
@@ -113,7 +182,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             }
             tagCompound.setBoolean(NBT_KEY, true);
             //
-            copy.stackSize = 1;
+//            copy.stackSize = 1;
             return copy;
 
         }
@@ -143,11 +212,13 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     @Override
     public void postInit() {
         //TODO: Replace with ore dictionary entry for slime ball
-        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticRegistry.gravityDust, "slimeball", "dustGlowstone"));
-//        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.gravityDust, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
+        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone"));
+//        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.GRAVITY_DUST, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
 
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
         GameRegistry.addRecipe(new ArmourPasteRecipe());
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + this.getName(), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "");
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        GameRegistry.addRecipe(new ArmourPasteRemoval());
     }
 
     @SideOnly(Side.CLIENT)
@@ -159,5 +230,10 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         else {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.info"));
         }
+    }
+
+    @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
     }
 }

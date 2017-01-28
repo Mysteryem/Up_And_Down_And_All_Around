@@ -1,7 +1,9 @@
-package uk.co.mysterymayhem.gravitymod.common.blocks;
+package uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.BlockPistonBase;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -12,29 +14,41 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
-import uk.co.mysterymayhem.gravitymod.common.tileentities.TileGravityGenerator;
+import uk.co.mysterymayhem.gravitymod.common.blocks.AbstractModBlock;
+import uk.co.mysterymayhem.gravitymod.common.blocks.GenericItemBlock;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticGUIs;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.block.metaconverters.AbstractMetaMapper.MetaHelper;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-10-10.
  */
-public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerator, ItemBlock> /*implements ITileEntityProvider*/ {
+public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerator, GenericItemBlock<BlockGravityGenerator>> /*implements ITileEntityProvider*/ {
 //    private static final String name = "gravitygenerator";
 
     public static final PropertyEnum<EnumGravityTier> TIER = PropertyEnum.create("tier", EnumGravityTier.class);
@@ -46,20 +60,15 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     public static final PropertyBool ENABLED = PropertyBool.create("active");
 
 //    public final EnumGravityTier gravityTier;
-    public static ItemBlock getItemBlock (BlockGravityGenerator block) {
-        ItemBlock itemBlock = new ItemBlock(block);
-        itemBlock.setHasSubtypes(true);
-        return itemBlock;
-    }
 
     public BlockGravityGenerator(/*EnumGravityTier gravityTier*/) {
-        super(Material.ROCK, MapColor.QUARTZ, new MetaHelper().addMeta(TIER).addNonMeta(FACING, ENABLED));
-//        this.gravityTier = gravityTier;
+        super(Material.IRON, MapColor.IRON, new MetaHelper().addMeta(TIER).addNonMeta(FACING, ENABLED));
+        this.setHardness(5F).setResistance(10f).setSoundType(SoundType.METAL);
     }
 
     @Override
-    public ItemBlock createItem(BlockGravityGenerator block) {
-        ItemBlock itemBlock = new ItemBlock(block) {
+    public GenericItemBlock<BlockGravityGenerator> createItem(BlockGravityGenerator block) {
+        GenericItemBlock<BlockGravityGenerator> itemBlock = new GenericItemBlock<BlockGravityGenerator>(block) {
             @Override
             public String getUnlocalizedName(ItemStack stack) {
                 int itemDamage = stack.getItemDamage();
@@ -68,9 +77,65 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 return this.getBlock().getUnlocalizedName() + '.' + extra;
 //                return super.getUnlocalizedName(stack);
             }
+
+            @Override
+            public EnumRarity getRarity(ItemStack stack) {
+                if (stack.isItemEnchanted()) {
+                    return EnumRarity.RARE;
+                }
+                int itemDamage = stack.getItemDamage();
+                IBlockState stateFromMeta = getStateFromMeta(itemDamage);
+                switch(stateFromMeta.getValue(TIER)) {
+                    case WEAK:
+                        return GravityMod.RARITY_WEAK;
+                    case NORMAL:
+                        return GravityMod.RARITY_NORMAL;
+                    default://case STRONG:
+                        return GravityMod.RARITY_STRONG;
+                }
+            }
         };
         itemBlock.setHasSubtypes(true);
         return itemBlock;
+    }
+
+    @Override
+    public int damageDropped(IBlockState state) {
+        return this.getMetaFromState(state);
+    }
+
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
+        if (!worldIn.isRemote) {
+            TileEntity tileEntity = worldIn.getTileEntity(pos);
+
+//            if (tileEntity instanceof TileGravityGenerator && playerIn instanceof EntityPlayerMP) {
+//                EntityPlayerMP playerMP = (EntityPlayerMP)playerIn;
+//                playerMP.connection.sendPacket(new SPacketOpenWindow(playerMP.currentWindowId, ));
+//            }
+            if (tileEntity instanceof TileGravityGenerator) {
+                StaticGUIs.GUI_GRAVITY_GENERATOR.openGUI(playerIn, worldIn, pos);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        TileEntity tileEntity = worldIn.getTileEntity(pos);
+        if (tileEntity instanceof TileGravityGenerator && tileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
+            IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+            int slots = itemHandler.getSlots();
+            for (int i = 0; i < slots; i++) {
+                // Extracting items may not be necessary
+                ItemStack stackInSlot = itemHandler.extractItem(i, Integer.MAX_VALUE, false);
+                if (stackInSlot != null) {
+                    Block.spawnAsEntity(worldIn, pos, stackInSlot);
+                }
+            }
+        }
+
+        super.breakBlock(worldIn, pos, state);
     }
 
     //    @Override
@@ -123,7 +188,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
 //    @Override
 //    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
 //        if (!worldIn.isRemote) {
-//            if (worldIn.isBlockPowered(pos)) {
+//            if (worldIn.isPowered(pos)) {
 //                worldIn.setBlockState(pos, state.withProperty(ENABLED, true), 1 | 2);
 //            }
 //        }
@@ -186,19 +251,25 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     @Override
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
         TileEntity tileEntity;
-        tileEntity = worldIn.getTileEntity(pos);
+        if (worldIn instanceof ChunkCache) {
+            tileEntity = ((ChunkCache) worldIn).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
+        }
+        else {
+            tileEntity = worldIn.getTileEntity(pos);
+        }
         EnumFacing facing = EnumFacing.UP;
         boolean blockPowered = false;
         if (tileEntity instanceof TileGravityGenerator) {
-            TileGravityGenerator generator = (TileGravityGenerator)tileEntity;
-            facing = generator.getFacing();
-            if (worldIn instanceof World) {
-                blockPowered = ((World) worldIn).isBlockPowered(pos);
+            TileGravityGenerator tileGravityGenerator = (TileGravityGenerator)tileEntity;
+            World world = tileGravityGenerator.getWorld();
+            if (world != null) {
+                blockPowered = world.isBlockPowered(pos);
             }
             else {
-                blockPowered = isBlockPowered(worldIn, pos);
+                // fallback I guess
+                blockPowered = tileGravityGenerator.isPowered();
             }
-
+            facing = tileGravityGenerator.getFacing();
         }
         return state.withProperty(FACING, facing).withProperty(ENABLED, blockPowered);
 //        return super.getActualState(state, worldIn, pos);
@@ -248,7 +319,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     }
 
     @Override
-    public ItemBlock getItem() {
+    public GenericItemBlock<BlockGravityGenerator> getItem() {
         return this.item;
     }
 
@@ -267,5 +338,42 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
             GravityMod.logWarning("Failed to create tile entity in %s due to invalid blockstate %s", world, state);
             return null;
         }
+    }
+
+    @Override
+    public void postInit() {
+        super.postInit();
+
+//        ItemStack antimassBucket = UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, LiquidAntiMass.INSTANCE);
+        ItemStack weakGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.WEAK)));
+        ItemStack normalGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.NORMAL)));
+        ItemStack strongGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.STRONG)));
+
+        GameRegistry.addRecipe(new ShapedOreRecipe(
+                weakGenerator,
+                "SCS",
+                "CRC",
+                "SCS",
+                'S', "stone",
+                'C', "cobblestone",
+                'R', StaticItems.RESTABILISED_GRAVITY_DUST));
+
+        GameRegistry.addRecipe(new ShapedOreRecipe(
+                normalGenerator,
+                "GWG",
+                "WIW",
+                "GWG",
+                'G', StaticItems.GRAVITY_INGOT,
+                'W', weakGenerator,
+                'I', "ingotIron"));
+
+        GameRegistry.addRecipe(new ShapedOreRecipe(
+                strongGenerator,
+                "GNG",
+                "NLN",
+                "GNG",
+                'G', "ingotGold",
+                'N', normalGenerator,
+                'L', "blockLapis"));
     }
 }

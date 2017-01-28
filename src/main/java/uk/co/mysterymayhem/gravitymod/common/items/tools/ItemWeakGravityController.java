@@ -12,9 +12,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
-import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import java.util.List;
 
@@ -34,14 +34,34 @@ public class ItemWeakGravityController extends ItemAbstractGravityController {
 
     @Override
     public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
-                "ILI",
-                "LAL",
-                "ILI",
-                'I', StaticRegistry.gravityIngot,
-                'L', Blocks.LEVER,
-                'A', new ItemStack(StaticRegistry.gravityAnchor, 1, OreDictionary.WILDCARD_VALUE)));
+        // Registers one recipe for 'off' visible direction, in-game, only the DOWN_OFF state is craftable, but this
+        // will allow JEI to show recipes for each 'off' visible direction
+        for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
+            if (visibleState.isOffState()) {
+                int outputMeta = getCombinedMetaFor(EnumControllerActiveDirection.NONE, visibleState);
+                GameRegistry.addRecipe(new ShapedOreRecipe(
+                        new ItemStack(this, 1, outputMeta),
+                        "RLR",
+                        "LAL",
+                        "RLR",
+                        'R', StaticItems.RESTABILISED_GRAVITY_DUST,
+                        'L', Blocks.LEVER,
+                        'A', new ItemStack(StaticItems.GRAVITY_ANCHOR, 1, OreDictionary.WILDCARD_VALUE)));
+            }
+        }
+//        for (int inputMeta : ItemAbstractGravityController.LEGAL_METADATA) {
+//            EnumControllerVisibleState visibleState = EnumControllerVisibleState.getFromCombinedMeta(inputMeta);
+//            int outputMeta = getCombinedMetaFor(EnumControllerActiveDirection.NONE, visibleState.getOffState());
+//
+//            GameRegistry.addRecipe(new ShapedOreRecipe(
+//                    new ItemStack(this, 1, outputMeta),
+//                    "ILI",
+//                    "LAL",
+//                    "ILI",
+//                    'I', StaticItems.GRAVITY_INGOT,
+//                    'L', Blocks.LEVER,
+//                    'A', new ItemStack(StaticItems.GRAVITY_ANCHOR, 1, OreDictionary.WILDCARD_VALUE)));
+//        }
     }
 
     @Override

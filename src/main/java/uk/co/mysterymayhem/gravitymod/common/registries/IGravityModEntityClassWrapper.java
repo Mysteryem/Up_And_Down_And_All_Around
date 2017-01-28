@@ -7,17 +7,7 @@ import uk.co.mysterymayhem.mystlib.setup.singletons.IModEntityClassWrapper;
 /**
  * Created by Mysteryem on 2016-12-24.
  */
-public interface IGravityModEntityClassWrapper<T extends Entity> extends IModEntityClassWrapper<T> {
-    @Override
-    default String getModID() {
-        return GravityMod.MOD_ID;
-    }
-
-    @Override
-    default Object getModInstance() {
-        return GravityMod.INSTANCE;
-    }
-
+public interface IGravityModEntityClassWrapper<T extends Entity> extends IModEntityClassWrapper<T>, IGravityModCommon {
     @Override
     default int getUniqueID() {
         return GravityMod.getNextEntityID();

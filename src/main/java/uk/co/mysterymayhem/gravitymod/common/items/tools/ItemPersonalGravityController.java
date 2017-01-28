@@ -4,15 +4,16 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.OreDictionary;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
-import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import java.util.List;
 
@@ -27,14 +28,19 @@ public class ItemPersonalGravityController extends ItemAbstractGravityController
 
     @Override
     public void postInit() {
-        GameRegistry.addRecipe(
-                new ItemStack(this, 1, ItemAbstractGravityController.DEFAULT_META),
-                "IPI",
-                "PWP",
-                "IPI",
-                'I', StaticRegistry.gravityIngot,
-                'P', StaticRegistry.gravityPearl,
-                'W', new ItemStack(StaticRegistry.weakGravityController, 1, OreDictionary.WILDCARD_VALUE));
+        for (int inputMeta : ItemAbstractGravityController.LEGAL_METADATA) {
+            EnumControllerVisibleState visibleState = EnumControllerVisibleState.getFromCombinedMeta(inputMeta);
+            int outputMeta = getCombinedMetaFor(EnumControllerActiveDirection.NONE, visibleState.getOffState());
+
+            GameRegistry.addRecipe(
+                    new ItemStack(this, 1, outputMeta),
+                    "IPI",
+                    "PWP",
+                    "IPI",
+                    'I', StaticItems.GRAVITY_INGOT,
+                    'P', StaticItems.GRAVITY_PEARL,
+                    'W', new ItemStack(StaticItems.WEAK_GRAVITY_CONTROLLER, 1, inputMeta));
+        }
     }
 
     @Override
@@ -53,5 +59,10 @@ public class ItemPersonalGravityController extends ItemAbstractGravityController
         tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.personalgravitycontroller"));
         ItemTooltipListener.addNormalGravityTooltip(tooltip, playerIn);
         super.addInformation(stack, playerIn, tooltip, advanced);
+    }
+
+    @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
     }
 }

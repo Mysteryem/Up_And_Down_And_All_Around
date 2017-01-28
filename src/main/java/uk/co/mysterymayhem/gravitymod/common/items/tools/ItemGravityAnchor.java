@@ -12,6 +12,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
+import net.minecraft.item.EnumRarity;
 import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,6 +28,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import org.lwjgl.input.Keyboard;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
@@ -34,7 +36,7 @@ import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 import javax.annotation.Nullable;
@@ -57,6 +59,11 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
     }
 
     @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
+    }
+
+    @Override
     public void preInit() {
         this.setHasSubtypes(true);
         this.addPropertyOverride(new ResourceLocation("facing"), new FacingPropertyGetter());
@@ -71,7 +78,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 "GI ",
                 "GG ",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.DOWN.ordinal()),
@@ -79,7 +86,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 " IG",
                 " GG",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.UP.ordinal()),
@@ -87,7 +94,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 "GI ",
                 "  C",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.UP.ordinal()),
@@ -95,7 +102,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 " IG",
                 "C  ",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.NORTH.ordinal()),
@@ -103,7 +110,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 " I ",
                 " C ",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.SOUTH.ordinal()),
@@ -111,7 +118,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 " I ",
                 "GGG",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.EAST.ordinal()),
@@ -119,7 +126,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 "CIG",
                 "  G",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this, 1, EnumGravityDirection.WEST.ordinal()),
@@ -127,7 +134,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                 "GIC",
                 "G  ",
                 'C', Items.COMPASS,
-                'G', StaticRegistry.gravityIngot,
+                'G', StaticItems.GRAVITY_INGOT,
                 'I', "ingotIron"));
     }
 

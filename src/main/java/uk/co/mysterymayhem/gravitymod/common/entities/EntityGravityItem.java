@@ -11,6 +11,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.client.renderers.RenderGravityEntityItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWrapper;
+import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
 /**
  * Class exists so we can have different Render class for these item entities
@@ -18,11 +19,9 @@ import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWr
  */
 public class EntityGravityItem extends EntityItem implements IEntityAdditionalSpawnData {
 
-    public static final String NAME = "itemgravity";
-
     private EnumGravityDirection direction = EnumGravityDirection.DOWN;
 
-    @SuppressWarnings("unused")
+    @UsedReflexively
     public EntityGravityItem(World world) {
         super(world);
         this.setNoGravity(true);

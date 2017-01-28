@@ -64,6 +64,8 @@ public enum EnumGravityDirection implements IStringSerializable {
                 }
             };
         }
+        @Override public EnumGravityDirection getRelativePositiveX() {return WEST;}
+        @Override public EnumGravityDirection getRelativePositiveZ() {return SOUTH;}
     },
     DOWN(new Vec3i(0, 0, 0), "down", EnumFacing.DOWN) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, y, z};}
@@ -87,6 +89,8 @@ public enum EnumGravityDirection implements IStringSerializable {
             entityLivingBase.posZ = (bb.minZ + bb.maxZ) / 2.0D;
         }
         @Override public BlockPos makeRelativeBlockPos(BlockPos blockPos) {return blockPos;}
+        @Override public EnumGravityDirection getRelativePositiveX() {return EAST;}
+        @Override public EnumGravityDirection getRelativePositiveZ() {return SOUTH;}
     },
     NORTH(new Vec3i(90, 0, 0), "north", EnumFacing.NORTH) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, -z, y};}
@@ -132,6 +136,8 @@ public enum EnumGravityDirection implements IStringSerializable {
                 }
             };
         }
+        @Override public EnumGravityDirection getRelativePositiveX() {return EAST;}
+        @Override public EnumGravityDirection getRelativePositiveZ() {return DOWN;}
     },
     EAST(new Vec3i(0, 0, 90), "east", EnumFacing.EAST) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{-y, x, z};}
@@ -176,6 +182,8 @@ public enum EnumGravityDirection implements IStringSerializable {
                 }
             };
         }
+        @Override public EnumGravityDirection getRelativePositiveX() {return UP;}
+        @Override public EnumGravityDirection getRelativePositiveZ() {return SOUTH;}
     },
     SOUTH(new Vec3i(-90, 0, 0), "south", EnumFacing.SOUTH) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{x, z, -y};}
@@ -220,6 +228,8 @@ public enum EnumGravityDirection implements IStringSerializable {
                 }
             };
         }
+        @Override public EnumGravityDirection getRelativePositiveX() {return EAST;}
+        @Override public EnumGravityDirection getRelativePositiveZ() {return UP;}
     },
     WEST(new Vec3i(0, 0, -90), "west", EnumFacing.WEST) {
         @Override public double[] adjustXYZValues(double x, double y, double z) {return new double[]{y, -x, z};}
@@ -264,6 +274,8 @@ public enum EnumGravityDirection implements IStringSerializable {
                 }
             };
         }
+        @Override public EnumGravityDirection getRelativePositiveX() {return DOWN;}
+        @Override public EnumGravityDirection getRelativePositiveZ() {return SOUTH;}
     };
 
     public abstract double[] adjustXYZValues(double x, double y, double z);
@@ -462,6 +474,50 @@ public enum EnumGravityDirection implements IStringSerializable {
      */
     public EnumGravityDirection getOpposite() {
         return this.getInverseAdjustmentFromDOWNDirection();
+    }
+
+    public EnumGravityDirection getRelativePositiveY() {
+        return this.getOpposite();
+    }
+
+    public EnumGravityDirection getRelativeNegativeY() {
+        return this;
+    }
+
+    public abstract EnumGravityDirection getRelativePositiveX();
+
+    public EnumGravityDirection getRelativeNegativeX() {
+        return this.getRelativePositiveX().getOpposite();
+    }
+
+    public abstract EnumGravityDirection getRelativePositiveZ();
+
+    public EnumGravityDirection getRelativeNegativeZ() {
+        return this.getRelativePositiveZ().getOpposite();
+    }
+
+    public EnumGravityDirection getRelativeEast() {
+        return this.getRelativePositiveX();
+    }
+
+    public EnumGravityDirection getRelativeWest() {
+        return this.getRelativeNegativeX();
+    }
+
+    public EnumGravityDirection getRelativeUp() {
+        return this.getRelativePositiveY();
+    }
+
+    public EnumGravityDirection getRelativeDown() {
+        return this.getRelativeNegativeY();
+    }
+
+    public EnumGravityDirection getRelativeNorth() {
+        return this.getRelativeNegativeZ();
+    }
+
+    public EnumGravityDirection getRelativeSouth() {
+        return this.getRelativePositiveZ();
     }
 
     @Override

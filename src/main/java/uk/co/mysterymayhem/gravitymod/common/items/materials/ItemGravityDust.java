@@ -25,7 +25,7 @@ import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -137,8 +137,8 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                                 }
                                 else {
                                     // add dust directly to drops (don't want a quarry to spawn floating items. Quarries
-                                    // should be able to collect the gravityDust and send it straight into a storage system
-                                    it.add(new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
+                                    // should be able to collect the GRAVITY_DUST and send it straight into a storage system
+                                    it.add(new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
                                 }
                             }
                             else {

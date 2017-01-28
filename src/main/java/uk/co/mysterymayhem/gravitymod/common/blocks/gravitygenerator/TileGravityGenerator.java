@@ -1,8 +1,12 @@
-package uk.co.mysterymayhem.gravitymod.common.tileentities;
+package uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -10,15 +14,22 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
+import uk.co.mysterymayhem.gravitymod.client.blocks.gravitygenerator.ClientTickListener;
+import uk.co.mysterymayhem.gravitymod.client.blocks.gravitygenerator.GravityParticle;
+import uk.co.mysterymayhem.gravitymod.client.blocks.gravitygenerator.VolumeParticle;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
-import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModTileEntityClassWrapper;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Random;
 
 import static net.minecraftforge.common.util.Constants.NBT.TAG_BYTE;
 import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
@@ -32,38 +43,84 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     public static final int MIN_RADIUS = 0;
     public static final int MAX_HEIGHT = ConfigHandler.gravityGeneratorMaxHeight;
     public static final int MIN_HEIGHT = 1;
+    public static final int MAX_VOLUME = MAX_HEIGHT * (2 * MAX_RADIUS + 1) * (2 * MAX_RADIUS + 1);
+    public static final int MIN_TICKS_PER_PARTICLE_SPAWN = 1;
+    public static final int MAX_TICKS_PER_PARTICLE_SPAWN = 10;
 
-    private static int clampRadius(int radius) {
+    public int getVolume() {
+        return this.relativeYHeight * (2 * this.relativeXRadius + 1) * (2 * this.relativeZRadius + 1);
+    }
+
+    public static int clampRadius(int radius) {
         return Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, radius));
     }
 
-    private static int clampHeight(int height) {
+    public static int clampHeight(int height) {
         return Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height));
     }
 
+    public static int clampWidth(int width) {
+        return radiusToWidth(clampRadius(widthToRadius(width)));
+    }
 
-//    protected final EnumMap<EnumFacing, AxisAlignedBB> searchVolumes = new EnumMap<>(EnumFacing.class);
+    public static int radiusToWidth(int radius) {
+        return radius * 2 + 1;
+    }
+
+    public static int widthToRadius(int width) {
+        return (width - 1)/2;
+    }
+
+    //    protected final EnumMap<EnumFacing, AxisAlignedBB> searchVolumes = new EnumMap<>(EnumFacing.class);
 
     private int relativeXRadius = MAX_RADIUS;
     private int relativeZRadius = MAX_RADIUS;
     private int relativeYHeight = MAX_HEIGHT;
-    private AxisAlignedBB searchVolume = null;
-    private double maxDistance;
+//    private Object
+
+    public AxisAlignedBB getSearchVolume() {
+        return searchVolume;
+    }
+
+    // SideOnly fields are nasty
+    // It's important that the field is not initialised otherwise constructors will attempt to access the field on the
+    // server side
+    @SideOnly(Side.CLIENT)
+    private VolumeParticle volumeParticle;
+
+    @SideOnly(Side.CLIENT)
+    public VolumeParticle getVolumeParticle() {
+        return this.volumeParticle;
+    }
+
+
+    @SideOnly(Side.CLIENT)
+    public boolean playerCanSeeRange() {
+        return ClientTickListener.clientPlayerCanSeeGravityFields();
+    }
+
+    //Initial value should never be used
+    private AxisAlignedBB searchVolume = Block.FULL_BLOCK_AABB;
+    private double maxDistance = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
     // Effectively final
     private Vec3d volumeSpawnPoint = null;
     // Effectively final
     private EnumGravityTier gravityTier = null;
     // Effectively final
     private EnumFacing facing = null;
+    private EnumGravityDirection gravityDirection = null;
 
     public TileGravityGenerator(EnumGravityTier gravityTier, EnumFacing facing) {
         this.gravityTier = gravityTier;
         this.facing = facing;
+        this.gravityDirection = EnumGravityDirection.fromEnumFacing(facing.getOpposite());
     }
 
-    @SuppressWarnings("unused")
-    public TileGravityGenerator() {
-        //used with reflection
+    @UsedReflexively
+    public TileGravityGenerator() {/**/}
+
+    public EnumGravityTier getGravityTier() {
+        return gravityTier;
     }
 
     public EnumFacing getFacing() {
@@ -76,15 +133,19 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 
     public void setFacing(EnumFacing facing) {
         this.facing = facing;
+        this.gravityDirection = EnumGravityDirection.fromEnumFacing(facing.getOpposite());
         this.updateVolumeSpawnPos();
         this.updateSearchVolume();
         this.markDirty();
     }
 
     public void setRelativeXRadius(int relativeXRadius) {
-        this.relativeXRadius = clampRadius(relativeXRadius);
-        this.updateSearchVolume();
-        this.markDirty();
+        int newRadius = clampRadius(relativeXRadius);
+        if (this.relativeXRadius != newRadius) {
+            this.relativeXRadius = newRadius;
+            this.updateSearchVolume();
+            this.markDirty();
+        }
     }
 
     public int getRelativeZRadius() {
@@ -92,9 +153,12 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public void setRelativeZRadius(int relativeZRadius) {
-        this.relativeZRadius = clampRadius(relativeZRadius);
-        this.updateSearchVolume();
-        this.markDirty();
+        int newRadius = clampRadius(relativeZRadius);
+        if (this.relativeZRadius != newRadius) {
+            this.relativeZRadius = newRadius;
+            this.updateSearchVolume();
+            this.markDirty();
+        }
     }
 
     public int getRelativeYHeight() {
@@ -102,9 +166,12 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public void setRelativeYHeight(int relativeYHeight) {
-        this.relativeYHeight = clampHeight(relativeYHeight);
-        this.updateSearchVolume();
-        this.markDirty();
+        int newHeight = clampHeight(relativeYHeight);
+        if (this.relativeYHeight != newHeight) {
+            this.relativeYHeight = newHeight;
+            this.updateSearchVolume();
+            this.markDirty();
+        }
     }
 
     private static final String TIER_NBT_KEY = "tier";
@@ -113,8 +180,42 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     private static final String REL_ZRADIUS_KEY = "relzrad";
     private static final String REL_HEIGHT_KEY = "relheight";
 
+    // Possible future feature whereby items must be inserted in order to unlock additional features of the gravity
+    // generator
+//    private static final String INVENTORY_KEY = "inventory";
+//
+//    private IItemHandler inventory = new ItemStackHandler(1) {
+//        @Override
+//        protected void onContentsChanged(int slot) {
+//            TileGravityGenerator.this.markDirty();
+//        }
+//    };
+//
+//    @Override
+//    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+//        if (capability == ITEM_HANDLER_CAPABILITY) {
+//            return true;
+//        }
+//        else {
+//            return super.hasCapability(capability, facing);
+//        }
+//    }
+//
+//    @Override
+//    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+//        if (capability == ITEM_HANDLER_CAPABILITY) {
+//            return ITEM_HANDLER_CAPABILITY.cast(this.inventory);
+//        }
+//        else {
+//            return super.getCapability(capability, facing);
+//        }
+//    }
+
     @Override
     public void readFromNBT(NBTTagCompound compound) {
+//        if (compound.hasKey(INVENTORY_KEY, TAG_LIST)) {
+//            ITEM_HANDLER_CAPABILITY.readNBT(this.inventory, null, compound.getTagList(INVENTORY_KEY, TAG_COMPOUND));
+//        }
         if (compound.hasKey(TIER_NBT_KEY, TAG_BYTE)
                 && compound.hasKey(FACING_NBT_KEY, TAG_BYTE)
                 && compound.hasKey(REL_XRADIUS_KEY, TAG_INT)
@@ -152,6 +253,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
                 this.invalidate();
             }
             this.facing = facingValues[facingOrdinal];
+            this.gravityDirection = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
 
             this.relativeXRadius = clampRadius(compound.getInteger(REL_XRADIUS_KEY));
             this.relativeZRadius = clampRadius(compound.getInteger(REL_ZRADIUS_KEY));
@@ -173,6 +275,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         compound.setInteger(REL_XRADIUS_KEY, this.relativeXRadius);
         compound.setInteger(REL_ZRADIUS_KEY, this.relativeZRadius);
         compound.setInteger(REL_HEIGHT_KEY, this.relativeYHeight);
+//        compound.setTag(INVENTORY_KEY, ITEM_HANDLER_CAPABILITY.writeNBT(this.inventory, null));
         return super.writeToNBT(compound);
     }
 
@@ -180,6 +283,28 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     public NBTTagCompound getUpdateTag() {
         return this.writeToNBT(new NBTTagCompound());
     }
+
+    @Override
+    public void handleUpdateTag(NBTTagCompound tag) {
+        super.handleUpdateTag(tag);
+    }
+
+    @Nullable
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(this.pos, 0, this.getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+        this.handleUpdateTag(pkt.getNbtCompound());
+        BlockPos pos = this.pos;
+        IBlockState blockState = this.worldObj.getBlockState(pos);
+        // Update rendering of the block on the client side
+        this.worldObj.notifyBlockUpdate(pos, blockState, blockState, 3);
+    }
+
+    private double percentOfMaxVolume = this.getVolume() / MAX_VOLUME;
+    private int ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - percentOfMaxVolume * (MAX_TICKS_PER_PARTICLE_SPAWN - MIN_TICKS_PER_PARTICLE_SPAWN));
 
     // when relativeX/ZRadius or relativeYHeight get changed, we need to update the searchvolume
     private void updateSearchVolume() {
@@ -193,7 +318,13 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
                 .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
         this.maxDistance = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
-        //fill map with search volumes
+        this.percentOfMaxVolume = this.getVolume() / (double)MAX_VOLUME;
+        this.ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - this.extendPercentageOfMaxVolume() * (MAX_TICKS_PER_PARTICLE_SPAWN - MIN_TICKS_PER_PARTICLE_SPAWN));
+    }
+
+    private double extendPercentageOfMaxVolume() {
+//        return Math.pow(this.percentOfMaxVolume, 0.5);
+        return 1-Math.pow(this.percentOfMaxVolume - 1, 4); //1-(x-1)^(4)
     }
 
     private void updateVolumeSpawnPos() {
@@ -231,11 +362,17 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         this.updateVolumeSpawnPos();
     }
 
+    private boolean powered = false;
+
+    public boolean isPowered() {
+        return this.powered;
+    }
+
     @Override
     public void update() {
+        this.powered = this.worldObj.isBlockPowered(this.getPos());
         if (!this.worldObj.isRemote) {
 //            IBlockState blockState = this.worldObj.getBlockState(this.getPos());
-            boolean blockPowered = this.worldObj.isBlockPowered(this.getPos());
 //            if (this.setupRequired) {
 //                if (!blockState.getPropertyNames().contains(BlockGravityGenerator.FACING)) {
 //                    this.invalidate();
@@ -250,9 +387,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 //            }
 //            boolean isActive = blockState.getValue(BlockGravityGenerator.ENABLED);
 
-            if (blockPowered) {
+            if (this.powered) {
 //                EnumFacing facing = blockState.getValue(BlockGravityGenerator.FACING).getOpposite();
-                EnumGravityDirection enumGravityDirection = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
+                EnumGravityDirection enumGravityDirection = this.gravityDirection;
                 AxisAlignedBB volumeToCheck = this.searchVolume;
 //                RenderGlobal.renderFilledBox(volumeToCheck, 1f, 1f, 1f, 0.5f);
 
@@ -280,6 +417,57 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
                     int priority = this.getPriority(1 - squareDistance / this.maxDistance);
                     API.setPlayerGravity(enumGravityDirection, player, priority);
                 }
+            }
+        }
+        else {
+            this.updateRangeParticle();
+            this.spawnFallingParticles();
+            this.clientTicksLived++;
+        }
+    }
+
+    private int clientTicksLived = 0;
+
+    private static final Random sharedRandom = new Random();
+
+    @SideOnly(Side.CLIENT)
+    private void spawnFallingParticles() {
+        int particleSetting = Minecraft.getMinecraft().gameSettings.particleSetting;
+        if (particleSetting != 2) {
+            if (this.powered) {
+//                if (this.playerCanSeeRange()) {
+                    if ((this.clientTicksLived + (sharedRandom.nextBoolean() ? 1 : 0)) % (particleSetting == 0 ? this.ticksPerSpawn : this.ticksPerSpawn * 2) == 0) {
+                        Minecraft.getMinecraft().effectRenderer.addEffect(new GravityParticle(this.gravityDirection, this.searchVolume, this.gravityTier, this.worldObj));
+                    }
+//                }
+//                else {
+//                    if ((this.clientTicksLived + (sharedRandom.nextBoolean() ? 1 : 0)) % (particleSetting == 0 ? this.ticksPerSpawn * 2 : this.ticksPerSpawn * 4) == 0) {
+//                        Minecraft.getMinecraft().effectRenderer.addEffect(new GravityParticle(this.gravityDirection, this.searchVolume, this.gravityTier, this.worldObj));
+//                    }
+//                }
+            }
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    void updateRangeParticle() {
+        if (this.playerCanSeeRange()) {
+            if (this.volumeParticle == null || !(this.volumeParticle).isAlive()) {
+                float[] colour = this.gravityTier.getColour();
+                float red = colour[0];
+                float green = colour[1];
+                float blue = colour[2];
+                //float alpha = this.worldObj.isPowered(this.getPos()) ? 0.4f : 0.2f;
+                float alphaPowered = 0.3f;
+                float alphaUnpowered = 0.1f;
+                VolumeParticle volumeParticle = new VolumeParticle(this, red, green, blue, alphaPowered, alphaUnpowered);
+                this.volumeParticle = volumeParticle;
+                Minecraft.getMinecraft().effectRenderer.addEffect(volumeParticle);
+            }
+        }
+        else {
+            if (this.volumeParticle != null) {
+                this.volumeParticle = null;
             }
         }
     }
@@ -367,16 +555,4 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 //        return new Vec3d(closestX, closestY, closestZ);
 //    }
 
-    public static class Wrapper implements IGravityModTileEntityClassWrapper<TileGravityGenerator> {
-
-        @Override
-        public String getName() {
-            return "tilegravitygenerator";
-        }
-
-        @Override
-        public Class<TileGravityGenerator> getEntityClass() {
-            return TileGravityGenerator.class;
-        }
-    }
 }

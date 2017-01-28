@@ -1,6 +1,8 @@
 package uk.co.mysterymayhem.gravitymod.common.packets;
 
 import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -26,5 +28,9 @@ public class PacketHandler {
         INSTANCE.registerMessage(GravityChangePacketHandler.class, GravityChangeMessage.class, nextID(), Side.SERVER);
         INSTANCE.registerMessage(ModCompatConfigCheckPacketHandler.class, ModCompatConfigCheckMessage.class, nextID(), Side.CLIENT);
         INSTANCE.registerMessage(ModCompatConfigCheckPacketHandler.class, ModCompatConfigCheckMessage.class, nextID(), Side.SERVER);
+    }
+
+    public static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Class<REQ> requestMessageType, Side processingSide) {
+        INSTANCE.registerMessage(messageHandler, requestMessageType, nextID(), processingSide);
     }
 }

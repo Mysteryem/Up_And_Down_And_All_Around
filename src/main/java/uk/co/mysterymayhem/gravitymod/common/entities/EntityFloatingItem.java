@@ -17,7 +17,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWrapper;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 /**
@@ -41,7 +41,7 @@ public class EntityFloatingItem extends EntityItem {
                 && (world = entity.worldObj) != null
                 && !world.isRemote) {
             // Spawn the extra item that would be dropped normally
-            EntityItem newItem = new EntityItem(world, entity.posX, entity.posY, entity.posZ, new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
+            EntityItem newItem = new EntityItem(world, entity.posX, entity.posY, entity.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
             newItem.motionX *= 0.1;
             newItem.motionY *= 0.1;
             newItem.motionZ *= 0.1;
@@ -61,7 +61,7 @@ public class EntityFloatingItem extends EntityItem {
                 && this.getEntityItem() != null
                 /*&& stack.stackSize <= 0*/) {
             World world;
-            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticRegistry.gravityDust, ConfigHandler.gravityDustAmountDropped));
+            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
 //            newItem.lifespan = 20 * 10;
             newItem.motionX *= 0.1;

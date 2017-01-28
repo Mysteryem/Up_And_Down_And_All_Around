@@ -1,23 +1,27 @@
 package uk.co.mysterymayhem.gravitymod.common.blocks;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
-import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModBlock;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModBlockWithItem;
 import uk.co.mysterymayhem.mystlib.block.metaconverters.AbstractMetaMapper;
 import uk.co.mysterymayhem.mystlib.block.metaconverters.AbstractMetaMapper.MetaHelper;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * Created by Mysteryem on 2016-12-17.
  */
-public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITEM>, ITEM extends Item> extends Block implements IGravityModBlock<BLOCK, ITEM> {
+@SuppressWarnings("unchecked")
+public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITEM>, ITEM extends Item> extends Block implements IGravityModBlockWithItem<BLOCK, ITEM> {
 
     protected final ITEM item;
     protected final AbstractMetaMapper<AbstractModBlock<BLOCK, ITEM>> metaConverter;
@@ -122,8 +126,79 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
         this(materialIn, MetaHelper.withMeta(metaProperties));
     }
 
+    @Override
+    @Nonnull
+    public BLOCK setLightOpacity(int opacity) {
+        super.setLightOpacity(opacity);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setLightLevel(float value) {
+        super.setLightLevel(value);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setBlockUnbreakable() {
+        super.setBlockUnbreakable();
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setTickRandomly(boolean shouldTick) {
+        super.setTickRandomly(shouldTick);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setUnlocalizedName(@Nonnull String name) {
+        super.setUnlocalizedName(name);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setHardness(float hardness) {
+        super.setHardness(hardness);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setResistance(float resistance) {
+        super.setResistance(resistance);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setSoundType(@Nonnull SoundType sound) {
+        super.setSoundType(sound);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK disableStats() {
+        super.disableStats();
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setCreativeTab(@Nonnull CreativeTabs tab) {
+        super.setCreativeTab(tab);
+        return this.getBlock();
+    }
+
     @SuppressWarnings("deprecation")
     @Override
+    @Nonnull
     public IBlockState getStateFromMeta(int meta) {
         return this.metaConverter.apply(meta);
     }
@@ -134,6 +209,7 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
     }
 
     @Override
+    @Nonnull
     public BlockStateContainer getBlockState() {
         return this.blockState;
     }

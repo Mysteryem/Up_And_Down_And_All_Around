@@ -30,9 +30,8 @@ import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Mysteryem on 2016-10-11.
@@ -40,7 +39,7 @@ import java.util.Locale;
 public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, IGravityModItem<ItemAbstractGravityController>, IConditionallyAffectsGravity {
 
     //7 values (0-6) -> first 3 bits
-    private enum EnumControllerActiveDirection {
+    protected enum EnumControllerActiveDirection {
         DOWN(EnumGravityDirection.DOWN),
         UP(EnumGravityDirection.UP),
         NORTH(EnumGravityDirection.NORTH),
@@ -81,7 +80,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
     }
 
     //12 values (0-11) -> next 4 bits
-    private enum EnumControllerVisibleState {
+    protected enum EnumControllerVisibleState {
         DOWN_OFF("down", EnumControllerActiveDirection.DOWN, null),
         DOWN_ON("down_on", null, EnumControllerActiveDirection.DOWN),
         UP_OFF("up", EnumControllerActiveDirection.UP, null),
@@ -126,12 +125,16 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
             return (0b0000111 & combinedMeta) | this.mask;
         }
 
-        public static EnumControllerVisibleState getOffState(EnumControllerVisibleState other) {
-            int ordinal = other.ordinal();
+        public EnumControllerVisibleState getOffState() {
+            int ordinal = this.ordinal();
             if (ordinal % 2 == 1) {
                 return EnumControllerVisibleState.values()[ordinal - 1];
             }
-            return other;
+            return this;
+        }
+
+        public boolean isOffState() {
+            return this.onlyLegalDirection == null;
         }
 
         public String getUnlocalizedName() {
@@ -155,7 +158,9 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
     static final int DEFAULT_META = getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF);
 
-    private static final int[] LEGAL_METADATA;
+    protected static final int[] LEGAL_METADATA;
+    public static final List<Integer> LEGAL_METADATA_LIST;
+    public static final Set<Integer> LEGAL_METADATA_SET;
     static {
         ArrayList<Integer> legalMetaList = new ArrayList<>();
         for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
@@ -177,17 +182,20 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         for (int i = 0; i < listSize; i++) {
             LEGAL_METADATA[i] = legalMetaList.get(i);
         }
+        List<Integer> collect = Arrays.stream(LEGAL_METADATA).boxed().collect(Collectors.toList());
+        LEGAL_METADATA_LIST = Collections.unmodifiableList(collect);
+        LEGAL_METADATA_SET = Collections.unmodifiableSet(new HashSet<>(LEGAL_METADATA_LIST));
     }
 
-    private static int getCombinedMetaFor(EnumControllerActiveDirection active, EnumControllerVisibleState visible) {
+    protected static int getCombinedMetaFor(EnumControllerActiveDirection active, EnumControllerVisibleState visible) {
         return active.mask | visible.mask;
     }
 
-    private static int getActiveDirectionMetaFromCombinedMeta(int combinedMeta) {
+    protected static int getActiveDirectionMetaFromCombinedMeta(int combinedMeta) {
         return combinedMeta & 0b111;
     }
 
-    private static int getVisibleStateMetaFromCombinedMeta(int combinedMeta) {
+    protected static int getVisibleStateMetaFromCombinedMeta(int combinedMeta) {
         return combinedMeta >>> 3;
     }
 
@@ -256,7 +264,10 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         }
         else if (tab == ModItems.FAKE_TAB_FOR_CONTROLLERS) {
             for (int legalMeta : LEGAL_METADATA) {
-                subItems.add(new ItemStack(this, 1, legalMeta));
+                EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(legalMeta);
+                if (fromCombinedMeta == EnumControllerActiveDirection.NONE) {
+                    subItems.add(new ItemStack(this, 1, legalMeta));
+                }
             }
         }
     }
@@ -293,7 +304,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
         if (activeDirection != EnumControllerActiveDirection.NONE) {
             activeDirection = EnumControllerActiveDirection.NONE;
-            EnumControllerVisibleState offStateFromMeta = EnumControllerVisibleState.getOffState(EnumControllerVisibleState.getFromCombinedMeta(meta));
+            EnumControllerVisibleState offStateFromMeta = EnumControllerVisibleState.getFromCombinedMeta(meta).getOffState();
             meta = getCombinedMetaFor(activeDirection, offStateFromMeta);
             itemstack.setItemDamage(meta);
         }

@@ -3,6 +3,7 @@ package uk.co.mysterymayhem.gravitymod.common.packets.gravitychange;
 import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
 import java.util.Collection;
 
@@ -11,10 +12,8 @@ import java.util.Collection;
  */
 public class GravityChangeMessage implements IMessage {
 
-    @SuppressWarnings("unused")
-    public GravityChangeMessage(){
-
-    }
+    @UsedReflexively
+    public GravityChangeMessage(){/**/}
 
     String toSend;
     EnumGravityDirection newGravityDirection;

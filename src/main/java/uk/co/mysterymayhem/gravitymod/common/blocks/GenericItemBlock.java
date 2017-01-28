@@ -8,11 +8,11 @@ import net.minecraft.item.ItemBlock;
  */
 public class GenericItemBlock<T extends Block> extends ItemBlock {
 
-    @SuppressWarnings("unchecked")
-    private final T block = (T)super.block;
+    private final T block;
 
     public GenericItemBlock(T block) {
         super(block);
+        this.block = block;
     }
 
     @Override
