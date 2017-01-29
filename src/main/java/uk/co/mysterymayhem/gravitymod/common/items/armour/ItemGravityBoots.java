@@ -35,8 +35,8 @@ public class ItemGravityBoots extends ItemArmor implements IGravityModItem<ItemG
                 'L', StaticItems.LIQUID_ANTI_MASS_BUCKET));
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 new ItemStack(this),
-                "ILI",
                 "I I",
+                "ILI",
                 'I', "ingotIron",
                 'L', StaticItems.LIQUID_ANTI_MASS_BUCKET));
         GameRegistry.addShapelessRecipe(new ItemStack(this), Items.IRON_BOOTS, StaticItems.LIQUID_ANTI_MASS_BUCKET);
