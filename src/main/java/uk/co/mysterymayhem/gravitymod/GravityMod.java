@@ -31,7 +31,7 @@ public class GravityMod {
     public static final String VERSION = "2.5";
     public static final String ACCEPTABLE_VERSIONS = "[2.5,2.6)";
     public static final String MINECRAFT_VERSION = "1.10.2";
-    public static final String DEPENDENCIES_LIST = "after:" + ModSupport.BAUBLES_MOD_ID;
+    public static final String DEPENDENCIES_LIST = "required-after:Forge@[12.18.2.2107,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
 
     public static final EnumRarity RARITY_WEAK = EnumHelper.addRarity("WEAK_GRAVITY",TextFormatting.WHITE, "Weak Strength");
