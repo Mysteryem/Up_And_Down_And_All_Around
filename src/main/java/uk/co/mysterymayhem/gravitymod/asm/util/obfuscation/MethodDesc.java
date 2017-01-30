@@ -1,17 +1,19 @@
 package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation;
 
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.DeobfAwareString;
+
 /**
  * Created by Mysteryem on 2017-01-30.
  */
 public class MethodDesc extends DeobfAwareString {
-    public MethodDesc(IClassProxy returnType, IClassProxy... paremeterTypes) {
+    public MethodDesc(IClassName returnType, IClassName... paremeterTypes) {
         super(buildDesc(returnType, paremeterTypes));
     }
 
-    private static String buildDesc(IClassProxy returnType, IClassProxy... paremeterTypes) {
+    private static String buildDesc(IClassName returnType, IClassName... paremeterTypes) {
         StringBuilder builder = new StringBuilder();
         builder.append('(');
-        for (IClassProxy parameterType : paremeterTypes) {
+        for (IClassName parameterType : paremeterTypes) {
             builder.append(parameterType.asDescriptor());
         }
         builder.append(')').append(returnType.asDescriptor());

@@ -1,7 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names;
 
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.DeobfAwareString;
-
 /**
  * Created by Mysteryem on 2017-01-30.
  */

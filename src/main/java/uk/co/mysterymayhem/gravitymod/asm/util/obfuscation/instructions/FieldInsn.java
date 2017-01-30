@@ -2,7 +2,7 @@ package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.IClassProxy;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.IClassName;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.IDeobfAware;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.UnqualifiedName;
 
@@ -11,11 +11,11 @@ import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.UnqualifiedName
  */
 public class FieldInsn extends FieldInsnNode implements IDeobfAwareInstruction {
 
-    public FieldInsn(int opcode, UnqualifiedName ownerAndName, IClassProxy type) {
+    public FieldInsn(int opcode, UnqualifiedName ownerAndName, IClassName type) {
         super(opcode, ownerAndName.owner, ownerAndName.name, type.asDescriptor());
     }
 
-    public FieldInsn(int opcode, IClassProxy owner, IDeobfAware name, IClassProxy type) {
+    public FieldInsn(int opcode, IClassName owner, IDeobfAware name, IClassName type) {
         super(opcode, owner.toString(), name.toString(), type.asDescriptor());
     }
 

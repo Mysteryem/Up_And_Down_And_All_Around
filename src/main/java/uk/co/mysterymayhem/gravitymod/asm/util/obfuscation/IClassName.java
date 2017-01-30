@@ -1,13 +1,13 @@
 package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation;
 
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ArrayClassName;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ArrayName;
 
 /**
  * Created by Mysteryem on 2017-01-30.
  */
-public interface IClassProxy {
-    default ArrayClassName asArray() {
-        return new ArrayClassName(this);
+public interface IClassName {
+    default ArrayName asArray() {
+        return new ArrayName(this);
     }
 
     default String asDescriptor() {

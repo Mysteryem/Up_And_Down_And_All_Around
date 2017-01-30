@@ -13,11 +13,12 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.objectweb.asm.util.TraceMethodVisitor;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.*;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.FieldInsn;
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.HooksInsn;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.HookInsn;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.MethodInsn;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.DeobfAwareString;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.FieldName;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.MethodName;
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ObjectCName;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ObjectName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -143,37 +144,37 @@ public class Transformer implements IClassTransformer {
     /*
         Shared reference class names
      */
-    private static final ObjectCName ActionResult = new ObjectCName("net/minecraft/util/ActionResult");
-    private static final ObjectCName AbstractClientPlayer = new ObjectCName("net/minecraft/client/entity/AbstractClientPlayer");
-    private static final ObjectCName AxisAlignedBB = new ObjectCName("net/minecraft/util/math/AxisAlignedBB");
-    private static final ObjectCName Block = new ObjectCName("net/minecraft/block/Block");
-    private static final ObjectCName BlockPos = new ObjectCName("net/minecraft/util/math/BlockPos");
-    private static final ObjectCName BlockPos$PooledMutableBlockPos = new ObjectCName("net/minecraft/util/math/BlockPos$PooledMutableBlockPos");
-    private static final ObjectCName Blocks = new ObjectCName("net/minecraft/init/Blocks");
-    private static final ObjectCName CPacketPlayer = new ObjectCName("net/minecraft/network/play/client/CPacketPlayer");
-    private static final ObjectCName Entity = new ObjectCName("net/minecraft/entity/Entity");
-    private static final ObjectCName EntityLivingBase = new ObjectCName("net/minecraft/entity/EntityLivingBase");
-    private static final ObjectCName EntityPlayer = new ObjectCName("net/minecraft/entity/player/EntityPlayer");
-    private static final ObjectCName EntityPlayerMP = new ObjectCName("net/minecraft/entity/player/EntityPlayerMP");
-    private static final ObjectCName EntityPlayerSP = new ObjectCName("net/minecraft/client/entity/EntityPlayerSP");
-    private static final ObjectCName EnumActionResult = new ObjectCName("net/minecraft/util/EnumActionResult");
-    private static final ObjectCName EnumFacing = new ObjectCName("net/minecraft/util/EnumFacing");
-    private static final ObjectCName EnumHand = new ObjectCName("net/minecraft/util/EnumHand");
-    private static final ObjectCName FoodStats = new ObjectCName("net/minecraft/util/FoodStats");
-    private static final ObjectCName Item = new ObjectCName("net/minecraft/item/Item");
-    private static final ObjectCName ItemStack = new ObjectCName("net/minecraft/item/ItemStack");
-    private static final ObjectCName NetHandlerPlayServer = new ObjectCName("net/minecraft/network/NetHandlerPlayServer");
-    private static final ObjectCName Vec3d = new ObjectCName("net/minecraft/util/math/Vec3d");
-    private static final ObjectCName World = new ObjectCName("net/minecraft/world/World");
-    private static final ObjectCName WorldClient = new ObjectCName("net/minecraft/client/multiplayer/WorldClient");
+    private static final ObjectName ActionResult = new ObjectName("net/minecraft/util/ActionResult");
+    private static final ObjectName AbstractClientPlayer = new ObjectName("net/minecraft/client/entity/AbstractClientPlayer");
+    private static final ObjectName AxisAlignedBB = new ObjectName("net/minecraft/util/math/AxisAlignedBB");
+    private static final ObjectName Block = new ObjectName("net/minecraft/block/Block");
+    private static final ObjectName BlockPos = new ObjectName("net/minecraft/util/math/BlockPos");
+    private static final ObjectName BlockPos$PooledMutableBlockPos = new ObjectName("net/minecraft/util/math/BlockPos$PooledMutableBlockPos");
+    private static final ObjectName Blocks = new ObjectName("net/minecraft/init/Blocks");
+    private static final ObjectName CPacketPlayer = new ObjectName("net/minecraft/network/play/client/CPacketPlayer");
+    private static final ObjectName Entity = new ObjectName("net/minecraft/entity/Entity");
+    private static final ObjectName EntityLivingBase = new ObjectName("net/minecraft/entity/EntityLivingBase");
+    private static final ObjectName EntityPlayer = new ObjectName("net/minecraft/entity/player/EntityPlayer");
+    private static final ObjectName EntityPlayerMP = new ObjectName("net/minecraft/entity/player/EntityPlayerMP");
+    private static final ObjectName EntityPlayerSP = new ObjectName("net/minecraft/client/entity/EntityPlayerSP");
+    private static final ObjectName EnumActionResult = new ObjectName("net/minecraft/util/EnumActionResult");
+    private static final ObjectName EnumFacing = new ObjectName("net/minecraft/util/EnumFacing");
+    private static final ObjectName EnumHand = new ObjectName("net/minecraft/util/EnumHand");
+    private static final ObjectName FoodStats = new ObjectName("net/minecraft/util/FoodStats");
+    private static final ObjectName Item = new ObjectName("net/minecraft/item/Item");
+    private static final ObjectName ItemStack = new ObjectName("net/minecraft/item/ItemStack");
+    private static final ObjectName NetHandlerPlayServer = new ObjectName("net/minecraft/network/NetHandlerPlayServer");
+    private static final ObjectName Vec3d = new ObjectName("net/minecraft/util/math/Vec3d");
+    private static final ObjectName World = new ObjectName("net/minecraft/world/World");
+    private static final ObjectName WorldClient = new ObjectName("net/minecraft/client/multiplayer/WorldClient");
     // Non-minecraft classes
 //    private static final ObjectClassName EntityFloatingItem = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/entities/EntityFloatingItem");
-    private static final ObjectCName EntityPlayerWithGravity = new ObjectCName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
-    private static final ObjectCName GravityAxisAlignedBB = new ObjectCName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
-    private static final ObjectCName ItemStackAndBoolean = new ObjectCName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
-    private static final ObjectCName List = new ObjectCName("java/util/List");
-    private static final ObjectCName Predicate = new ObjectCName("com/google/common/base/Predicate");
-    private static final ObjectCName SoundSystem = new ObjectCName("paulscode/sound/SoundSystem");
+    private static final ObjectName EntityPlayerWithGravity = new ObjectName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
+    private static final ObjectName GravityAxisAlignedBB = new ObjectName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
+    private static final ObjectName ItemStackAndBoolean = new ObjectName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
+    private static final ObjectName List = new ObjectName("java/util/List");
+    private static final ObjectName Predicate = new ObjectName("com/google/common/base/Predicate");
+    private static final ObjectName SoundSystem = new ObjectName("paulscode/sound/SoundSystem");
     /*
         Mojang field instructions
      */
@@ -240,61 +241,61 @@ public class Transformer implements IClassTransformer {
     /*
         Up And Down And All Around asm hook method instructions
      */
-    private static final HooksInsn Hooks$addAdjustedVector = new HooksInsn("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
-    private static final HooksInsn Hooks$adjustVec = new HooksInsn("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
+    private static final HookInsn Hooks$addAdjustedVector = new HookInsn("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
+    private static final HookInsn Hooks$adjustVec = new HookInsn("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
     //    private static final HooksMethodInstruction Hooks$adjustXYZ = new HooksMethodInstruction("adjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksInsn Hooks$constructNewGAABBFrom2Vec3d = new HooksInsn("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
-    private static final HooksInsn Hooks$getBlockPosAtTopOfPlayer = new HooksInsn("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
-    private static final HooksInsn Hooks$getBlockPostBelowEntity = new HooksInsn("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
-    private static final HooksInsn Hooks$getBottomOfEntity = new HooksInsn("getBottomOfEntity", new MethodDesc(Vec3d, Entity));
-    private static final HooksInsn Hooks$getImmutableBlockPosBelowEntity = new HooksInsn("getImmutableBlockPosBelowEntity", new MethodDesc(BlockPos, Entity));
-    private static final HooksInsn Hooks$getOriginRelativePosX = new HooksInsn("getOriginRelativePosX", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getOriginRelativePosY = new HooksInsn("getOriginRelativePosY", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getOriginRelativePosZ = new HooksInsn("getOriginRelativePosZ", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getPrevRelativeYawHead = new HooksInsn("getPrevRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
-    private static final HooksInsn Hooks$getRelativeBottomOfBB = new HooksInsn("getRelativeBottomOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
-    private static final HooksInsn Hooks$getRelativeDownBlockPos = new HooksInsn("getRelativeDownBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
-    private static final HooksInsn Hooks$getRelativeLookVec = new HooksInsn("getRelativeLookVec", new MethodDesc(Vec3d, Entity));
-    private static final HooksInsn Hooks$getRelativePitch = new HooksInsn("getRelativePitch", new MethodDesc(FLOAT, Entity));
-    private static final HooksInsn Hooks$getRelativePrevPitch = new HooksInsn("getRelativePrevPitch", new MethodDesc(FLOAT, Entity));
-    private static final HooksInsn Hooks$getRelativePrevPosX = new HooksInsn("getRelativePrevPosX", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getRelativePrevPosZ = new HooksInsn("getRelativePrevPosZ", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getRelativePrevYaw = new HooksInsn("getRelativePrevYaw", new MethodDesc(FLOAT, Entity));
-    private static final HooksInsn Hooks$getRelativePosX = new HooksInsn("getRelativePosX", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getRelativePosY = new HooksInsn("getRelativePosY", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getRelativePosZ = new HooksInsn("getRelativePosZ", new MethodDesc(DOUBLE, Entity));
-    private static final HooksInsn Hooks$getRelativeTopOfBB = new HooksInsn("getRelativeTopOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
-    private static final HooksInsn Hooks$getRelativeUpblockPos_INT_ARG = new HooksInsn("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, INT, Entity));
-    private static final HooksInsn Hooks$getRelativeUpblockPos_NO_ARGS = new HooksInsn("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
-    private static final HooksInsn Hooks$getRelativeYaw = new HooksInsn("getRelativeYaw", new MethodDesc(FLOAT, Entity));
-    private static final HooksInsn Hooks$getRelativeYawHead = new HooksInsn("getRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
-    private static final HooksInsn Hooks$getRelativeYOfBlockPos = new HooksInsn("getRelativeYOfBlockPos", new MethodDesc(INT, BlockPos, Entity));
-    private static final HooksInsn Hooks$getVanillaEntityBoundingBox = new HooksInsn("getVanillaEntityBoundingBox", new MethodDesc(AxisAlignedBB, Entity));
-    private static final HooksInsn Hooks$inverseAdjustXYZ = new HooksInsn("inverseAdjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksInsn Hooks$isHeadspaceFree = new HooksInsn("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
-    private static final HooksInsn Hooks$makePositionAbsolute = new HooksInsn("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
-    private static final HooksInsn Hooks$makePositionRelative = new HooksInsn("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
+    private static final HookInsn Hooks$constructNewGAABBFrom2Vec3d = new HookInsn("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
+    private static final HookInsn Hooks$getBlockPosAtTopOfPlayer = new HookInsn("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
+    private static final HookInsn Hooks$getBlockPostBelowEntity = new HookInsn("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
+    private static final HookInsn Hooks$getBottomOfEntity = new HookInsn("getBottomOfEntity", new MethodDesc(Vec3d, Entity));
+    private static final HookInsn Hooks$getImmutableBlockPosBelowEntity = new HookInsn("getImmutableBlockPosBelowEntity", new MethodDesc(BlockPos, Entity));
+    private static final HookInsn Hooks$getOriginRelativePosX = new HookInsn("getOriginRelativePosX", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getOriginRelativePosY = new HookInsn("getOriginRelativePosY", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getOriginRelativePosZ = new HookInsn("getOriginRelativePosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getPrevRelativeYawHead = new HookInsn("getPrevRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
+    private static final HookInsn Hooks$getRelativeBottomOfBB = new HookInsn("getRelativeBottomOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
+    private static final HookInsn Hooks$getRelativeDownBlockPos = new HookInsn("getRelativeDownBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
+    private static final HookInsn Hooks$getRelativeLookVec = new HookInsn("getRelativeLookVec", new MethodDesc(Vec3d, Entity));
+    private static final HookInsn Hooks$getRelativePitch = new HookInsn("getRelativePitch", new MethodDesc(FLOAT, Entity));
+    private static final HookInsn Hooks$getRelativePrevPitch = new HookInsn("getRelativePrevPitch", new MethodDesc(FLOAT, Entity));
+    private static final HookInsn Hooks$getRelativePrevPosX = new HookInsn("getRelativePrevPosX", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getRelativePrevPosZ = new HookInsn("getRelativePrevPosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getRelativePrevYaw = new HookInsn("getRelativePrevYaw", new MethodDesc(FLOAT, Entity));
+    private static final HookInsn Hooks$getRelativePosX = new HookInsn("getRelativePosX", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getRelativePosY = new HookInsn("getRelativePosY", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getRelativePosZ = new HookInsn("getRelativePosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HookInsn Hooks$getRelativeTopOfBB = new HookInsn("getRelativeTopOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
+    private static final HookInsn Hooks$getRelativeUpblockPos_INT_ARG = new HookInsn("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, INT, Entity));
+    private static final HookInsn Hooks$getRelativeUpblockPos_NO_ARGS = new HookInsn("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
+    private static final HookInsn Hooks$getRelativeYaw = new HookInsn("getRelativeYaw", new MethodDesc(FLOAT, Entity));
+    private static final HookInsn Hooks$getRelativeYawHead = new HookInsn("getRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
+    private static final HookInsn Hooks$getRelativeYOfBlockPos = new HookInsn("getRelativeYOfBlockPos", new MethodDesc(INT, BlockPos, Entity));
+    private static final HookInsn Hooks$getVanillaEntityBoundingBox = new HookInsn("getVanillaEntityBoundingBox", new MethodDesc(AxisAlignedBB, Entity));
+    private static final HookInsn Hooks$inverseAdjustXYZ = new HookInsn("inverseAdjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
+    private static final HookInsn Hooks$isHeadspaceFree = new HookInsn("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
+    private static final HookInsn Hooks$makePositionAbsolute = new HookInsn("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
+    private static final HookInsn Hooks$makePositionRelative = new HookInsn("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
     //    private static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksInsn Hooks$netHandlerPlayServerGetPacketZ = new HooksInsn("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
-    private static final HooksInsn Hooks$netHandlerPlayServerGetRelativeY = new HooksInsn("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksInsn Hooks$netHandlerPlayServerHandleFallingYChange =
-            new HooksInsn("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksInsn Hooks$netHandlerPlayServerSetRelativeYToZero =
-            new HooksInsn("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksInsn Hooks$onItemRightClickPost = new HooksInsn("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksInsn Hooks$onItemRightClickPre = new HooksInsn("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksInsn Hooks$onItemUsePost = new HooksInsn("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksInsn Hooks$onItemUsePre = new HooksInsn("onItemUsePre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksInsn Hooks$onPlayerStoppedUsingPost = new HooksInsn("onPlayerStoppedUsingPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityLivingBase));
-    private static final HooksInsn Hooks$onPlayerStoppedUsingPre = new HooksInsn("onPlayerStoppedUsingPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityLivingBase));
-    private static final HooksInsn Hooks$pushEntityPlayerSPOutOfBlocks = new HooksInsn("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
-    private static final HooksInsn Hooks$reverseXOffset = new HooksInsn("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-    private static final HooksInsn Hooks$reverseYOffset = new HooksInsn("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-    private static final HooksInsn Hooks$reverseZOffset = new HooksInsn("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-    private static final HooksInsn Hooks$runNameplateCorrection = new HooksInsn("runNameplateCorrection", new MethodDesc(VOID, BOOLEAN));
-    private static final HooksInsn Hooks$setListenerOrientationHook = new HooksInsn("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
-    private static final HooksInsn Hooks$setPooledMutableBlockPosToBelowEntity =
-            new HooksInsn("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
+    private static final HookInsn Hooks$netHandlerPlayServerGetPacketZ = new HookInsn("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
+    private static final HookInsn Hooks$netHandlerPlayServerGetRelativeY = new HookInsn("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HookInsn Hooks$netHandlerPlayServerHandleFallingYChange =
+            new HookInsn("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
+    private static final HookInsn Hooks$netHandlerPlayServerSetRelativeYToZero =
+            new HookInsn("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HookInsn Hooks$onItemRightClickPost = new HookInsn("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HookInsn Hooks$onItemRightClickPre = new HookInsn("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HookInsn Hooks$onItemUsePost = new HookInsn("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HookInsn Hooks$onItemUsePre = new HookInsn("onItemUsePre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HookInsn Hooks$onPlayerStoppedUsingPost = new HookInsn("onPlayerStoppedUsingPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityLivingBase));
+    private static final HookInsn Hooks$onPlayerStoppedUsingPre = new HookInsn("onPlayerStoppedUsingPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityLivingBase));
+    private static final HookInsn Hooks$pushEntityPlayerSPOutOfBlocks = new HookInsn("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
+    private static final HookInsn Hooks$reverseXOffset = new HookInsn("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HookInsn Hooks$reverseYOffset = new HookInsn("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HookInsn Hooks$reverseZOffset = new HookInsn("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HookInsn Hooks$runNameplateCorrection = new HookInsn("runNameplateCorrection", new MethodDesc(VOID, BOOLEAN));
+    private static final HookInsn Hooks$setListenerOrientationHook = new HookInsn("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
+    private static final HookInsn Hooks$setPooledMutableBlockPosToBelowEntity =
+            new HookInsn("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
     /*
         Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)
      */
@@ -578,7 +579,7 @@ public class Transformer implements IClassTransformer {
      * @param objectClassName The variable's class
      * @return The index of the new local variable
      */
-    private static int addLocalVar(MethodNode methodNode, ObjectCName objectClassName) {
+    private static int addLocalVar(MethodNode methodNode, ObjectName objectClassName) {
         LocalVariablesSorter localVariablesSorter = new LocalVariablesSorter(methodNode.access, methodNode.desc, methodNode);
         return localVariablesSorter.newLocal(Type.getObjectType(objectClassName.toString()));
     }

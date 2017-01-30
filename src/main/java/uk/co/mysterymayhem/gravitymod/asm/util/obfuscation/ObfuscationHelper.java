@@ -2,7 +2,8 @@ package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation;
 
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.PrimitiveClassName;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.MethodName;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.PrimitiveName;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -12,16 +13,16 @@ import java.util.Map;
  * Created by Mysteryem on 2016-09-21.
  */
 public class ObfuscationHelper {
-    public static final IClassProxy BOOLEAN = new PrimitiveClassName("Z");
-    public static final IClassProxy CHAR = new PrimitiveClassName("C");
-    public static final IClassProxy DOUBLE = new PrimitiveClassName("D");
-    public static final IClassProxy FLOAT = new PrimitiveClassName("F");
-    public static final IDeobfAware INIT = new DeobfAwareString("<init>");
-    public static final IClassProxy INT = new PrimitiveClassName("I");
+    public static final IClassName BOOLEAN = new PrimitiveName("Z");
+    public static final IClassName CHAR = new PrimitiveName("C");
+    public static final IClassName DOUBLE = new PrimitiveName("D");
+    public static final IClassName FLOAT = new PrimitiveName("F");
+    public static final IDeobfAware INIT = new MethodName("<init>");
+    public static final IClassName INT = new PrimitiveName("I");
     public static final boolean IS_DEV_ENVIRONMENT = (Boolean)Launch.blackboard.get("fml.deobfuscatedEnvironment");
-    public static final IClassProxy LONG = new PrimitiveClassName("J");
-    public static final IClassProxy SHORT = new PrimitiveClassName("S");
-    public static final IClassProxy VOID = new PrimitiveClassName("V");
+    public static final IClassName LONG = new PrimitiveName("J");
+    public static final IClassName SHORT = new PrimitiveName("S");
+    public static final IClassName VOID = new PrimitiveName("V");
     public static final Map<String, String> deobfNameLookup = new HashMap<>();
 
     static {

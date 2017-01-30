@@ -10,19 +10,19 @@ import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.UnqualifiedName
  */
 public class MethodInsn extends MethodInsnNode implements IDeobfAwareInstruction {
 
-    public MethodInsn(int opcode, IClassProxy owner, IDeobfAware name, MethodDesc description) {
+    public MethodInsn(int opcode, IClassName owner, IDeobfAware name, MethodDesc description) {
         this(opcode, owner, name, description, false);
     }
 
-    public MethodInsn(int opcode, IClassProxy owner, IDeobfAware name, MethodDesc description, boolean ownerIsInterface) {
+    public MethodInsn(int opcode, IClassName owner, IDeobfAware name, MethodDesc description, boolean ownerIsInterface) {
         super(opcode, owner.toString(), name.toString(), description.toString(), ownerIsInterface);
     }
 
-    public MethodInsn(int opcode, IClassProxy owner, String name, MethodDesc description) {
+    public MethodInsn(int opcode, IClassName owner, String name, MethodDesc description) {
         this(opcode, owner, name, description, false);
     }
 
-    public MethodInsn(int opcode, IClassProxy owner, String name, MethodDesc description, boolean ownerIsInterface) {
+    public MethodInsn(int opcode, IClassName owner, String name, MethodDesc description, boolean ownerIsInterface) {
         super(opcode, owner.toString(), name, description.toString(), ownerIsInterface);
     }
 

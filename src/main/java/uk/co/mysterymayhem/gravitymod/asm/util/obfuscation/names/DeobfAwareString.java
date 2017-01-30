@@ -1,11 +1,14 @@
-package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation;
+package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names;
+
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.IDeobfAware;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.ObfuscationHelper;
 
 import java.util.Objects;
 
 /**
  * Created by Mysteryem on 2017-01-30.
  */
-public class DeobfAwareString implements IDeobfAware {
+public abstract class DeobfAwareString implements IDeobfAware {
 
     private final String deobf;
     private final String value;
@@ -34,10 +37,12 @@ public class DeobfAwareString implements IDeobfAware {
         return this.deobf;
     }
 
+    public boolean is(String input) {
+        return this.toString().equals(input);
+    }
+
     @Override
     public String toString() {
         return this.value;
     }
-
-
 }
