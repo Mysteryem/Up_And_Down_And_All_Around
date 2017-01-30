@@ -11,6 +11,13 @@ import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.objectweb.asm.util.TraceMethodVisitor;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.*;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.FieldInsn;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.HooksInsn;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.instructions.MethodInsn;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.FieldName;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.MethodName;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ObjectCName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -21,9 +28,9 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 import static org.objectweb.asm.Opcodes.*;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.*;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.DOUBLE;
-import static uk.co.mysterymayhem.gravitymod.asm.ObfuscationHelper.FLOAT;
+import static uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.ObfuscationHelper.*;
+import static uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.ObfuscationHelper.DOUBLE;
+import static uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.ObfuscationHelper.FLOAT;
 
 /**
  * Transformer class that uses ASM to patch vanilla Minecraft classes
@@ -560,7 +567,7 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
-    private static void logPatchStarting(ObfuscationHelper.DeobfAwareString deobfAwareString) {
+    private static void logPatchStarting(DeobfAwareString deobfAwareString) {
         logPatchStarting(deobfAwareString.getDeobf());
     }
 
@@ -576,7 +583,7 @@ public class Transformer implements IClassTransformer {
         return localVariablesSorter.newLocal(Type.getObjectType(objectClassName.toString()));
     }
 
-    private static void logPatchComplete(ObfuscationHelper.DeobfAwareString deobfAwareString) {
+    private static void logPatchComplete(DeobfAwareString deobfAwareString) {
         logPatchComplete(deobfAwareString.getDeobf());
     }
 
