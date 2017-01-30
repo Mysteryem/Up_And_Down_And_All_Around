@@ -23,13 +23,12 @@ import static org.lwjgl.opengl.GL11.GL_ALWAYS;
 public class VolumeParticle extends Particle {
 
     private static final int AGE_LIMIT = 20 * 60 * 10; // 10 minutes
-
-    private final TileGravityGenerator owner;
-    private final float red;
-    private final float green;
-    private final float blue;
     private final float alphaPowered;
     private final float alphaUnpowered;
+    private final float blue;
+    private final float green;
+    private final TileGravityGenerator owner;
+    private final float red;
     private int age = 0;
 
     public VolumeParticle(TileGravityGenerator owner) {
@@ -47,8 +46,8 @@ public class VolumeParticle extends Particle {
     }
 
     @Override
-    public void onUpdate() {
-        this.age++;
+    public int getFXLayer() {
+        return 3;
     }
 
     @Override
@@ -61,8 +60,8 @@ public class VolumeParticle extends Particle {
     }
 
     @Override
-    public int getFXLayer() {
-        return 3;
+    public void onUpdate() {
+        this.age++;
     }
 
     @Override
@@ -91,9 +90,9 @@ public class VolumeParticle extends Particle {
             GlStateManager.disableTexture2D();
 
 
-            double d0 = thePlayer.prevPosX + (thePlayer.posX - thePlayer.prevPosX) * (double) partialTicks;
-            double d1 = thePlayer.prevPosY + (thePlayer.posY - thePlayer.prevPosY) * (double) partialTicks;
-            double d2 = thePlayer.prevPosZ + (thePlayer.posZ - thePlayer.prevPosZ) * (double) partialTicks;
+            double d0 = thePlayer.prevPosX + (thePlayer.posX - thePlayer.prevPosX) * (double)partialTicks;
+            double d1 = thePlayer.prevPosY + (thePlayer.posY - thePlayer.prevPosY) * (double)partialTicks;
+            double d2 = thePlayer.prevPosZ + (thePlayer.posZ - thePlayer.prevPosZ) * (double)partialTicks;
 
 //        RenderGlobal.renderFilledBox(Block.FULL_BLOCK_AABB, this.red, this.green, this.blue, this.alpha);
 
@@ -105,7 +104,7 @@ public class VolumeParticle extends Particle {
                 // by using thePlayer.ticksExisted instead of this.age, all particles will use the same timer
                 float interp10 = (thePlayer.ticksExisted + partialTicks) % 40f; //0-9.9999 [0,10)
                 float div10 = interp10 * 0.025f; //0-0.999 [0,1)
-                float v = (float) (div10 * (Math.PI + Math.PI)); //[0,2PI)
+                float v = (float)(div10 * (Math.PI + Math.PI)); //[0,2PI)
                 float sin = MathHelper.sin(v); //0,1,0,-1,0 [-1,1]
                 alpha = this.alphaPowered + sin * 0.06f;
             }

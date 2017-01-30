@@ -14,21 +14,19 @@ public class CombinedPrePostModifier implements IPrePostModifier<EntityPlayerWit
 
     public static final ArrayList<CombinedPrePostModifier> COMBINED_REGISTRY = new ArrayList<>();
 
-    public static void reset() {
-        COMBINED_REGISTRY.clear();
-        ID = EnumPrePostModifier.values().length;
-        combinedModifierMap.clear();
-    }
-
-    public enum ProcessingOrder{
-        PRE_FIRST_SECOND_POST_FIRST_SECOND,
-        PRE_FIRST_SECOND_POST_SECOND_FIRST;
-
-        public static final ProcessingOrder DEFAULT = PRE_FIRST_SECOND_POST_SECOND_FIRST;
-    }
-
     private static int ID = EnumPrePostModifier.values().length;
     private static EnumMap<ProcessingOrder, TIntObjectHashMap<TIntObjectHashMap<CombinedPrePostModifier>>> combinedModifierMap = new EnumMap<>(ProcessingOrder.class);
+
+    private final IPrePostModifier<EntityPlayerWithGravity> first;
+    private final int id = ID++;
+    private final ProcessingOrder processingOrder;
+    private final IPrePostModifier<EntityPlayerWithGravity> second;
+
+    private CombinedPrePostModifier(IPrePostModifier<EntityPlayerWithGravity> first, IPrePostModifier<EntityPlayerWithGravity> second, ProcessingOrder processingOrder) {
+        this.first = first;
+        this.second = second;
+        this.processingOrder = processingOrder;
+    }
 
     public static CombinedPrePostModifier getModifierFor(IPrePostModifier<EntityPlayerWithGravity> first, IPrePostModifier<EntityPlayerWithGravity> second) {
         return getModifierFor(first, second, ProcessingOrder.DEFAULT);
@@ -62,26 +60,32 @@ public class CombinedPrePostModifier implements IPrePostModifier<EntityPlayerWit
         }
     }
 
-    private final int id = ID++;
-    private final ProcessingOrder processingOrder;
-    private final IPrePostModifier<EntityPlayerWithGravity> first;
-    private final IPrePostModifier<EntityPlayerWithGravity> second;
+    public static void reset() {
+        COMBINED_REGISTRY.clear();
+        ID = EnumPrePostModifier.values().length;
+        combinedModifierMap.clear();
+    }
 
-    private CombinedPrePostModifier(IPrePostModifier<EntityPlayerWithGravity> first, IPrePostModifier<EntityPlayerWithGravity> second, ProcessingOrder processingOrder) {
-        this.first = first;
-        this.second = second;
-        this.processingOrder = processingOrder;
+    public IPrePostModifier<EntityPlayerWithGravity> getFirst() {
+        return first;
+    }
+
+    public ProcessingOrder getProcessingOrder() {
+        return processingOrder;
+    }
+
+    public IPrePostModifier<EntityPlayerWithGravity> getSecond() {
+        return second;
     }
 
     @Override
-    public void preModify(EntityPlayerWithGravity thing) {
-        first.preModify(thing);
-        second.preModify(thing);
+    public int getUniqueID() {
+        return id;
     }
 
     @Override
     public void postModify(EntityPlayerWithGravity thing) {
-        switch (this.processingOrder){
+        switch (this.processingOrder) {
             case PRE_FIRST_SECOND_POST_FIRST_SECOND:
                 first.postModify(thing);
                 second.postModify(thing);
@@ -94,19 +98,15 @@ public class CombinedPrePostModifier implements IPrePostModifier<EntityPlayerWit
     }
 
     @Override
-    public int getUniqueID() {
-        return id;
+    public void preModify(EntityPlayerWithGravity thing) {
+        first.preModify(thing);
+        second.preModify(thing);
     }
 
-    public ProcessingOrder getProcessingOrder() {
-        return processingOrder;
-    }
+    public enum ProcessingOrder {
+        PRE_FIRST_SECOND_POST_FIRST_SECOND,
+        PRE_FIRST_SECOND_POST_SECOND_FIRST;
 
-    public IPrePostModifier<EntityPlayerWithGravity> getFirst() {
-        return first;
-    }
-
-    public IPrePostModifier<EntityPlayerWithGravity> getSecond() {
-        return second;
+        public static final ProcessingOrder DEFAULT = PRE_FIRST_SECOND_POST_SECOND_FIRST;
     }
 }

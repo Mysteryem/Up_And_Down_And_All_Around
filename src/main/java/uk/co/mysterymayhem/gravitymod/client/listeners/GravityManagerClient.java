@@ -22,34 +22,27 @@ import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChange
 
 /**
  * Used to control/record the gravity of all players
- *
+ * <p>
  * Created by Mysteryem on 2016-08-04.
  */
 @SideOnly(Side.CLIENT)
 public class GravityManagerClient extends GravityManagerCommon {
 
+    @Override
+    public EnumGravityDirection getGravityDirection(String playerName) {
+        if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
+            return this.getClientGravity();
+        }
+        return GravityDirectionCapability.getGravityDirection(playerName, FMLClientHandler.instance().getWorldClient());
+    }
+
     public EnumGravityDirection getClientGravity() {
         return GravityDirectionCapability.getGravityDirection(Minecraft.getMinecraft().thePlayer);
     }
 
-    //TODO: Try PlayerEvent.startTracking instead of EntityJoinWorldEvent
-    @SubscribeEvent
-    public void onEntityJoinWorld(EntityJoinWorldEvent event) {
-        if (event.getWorld().isRemote) {
-            Entity entity = event.getEntity();
-            if (entity instanceof EntityOtherPlayerMP) {
-                EntityPlayer player = (EntityPlayer)entity;
-                if (GravityMod.GENERAL_DEBUG) {
-                    GravityMod.logInfo("Requesting gravity data for %s", player.getName());
-                }
-                this.requestGravityDirectionFromServer(player.getName());
-            }
-        }
-    }
-
     @Override
     public void handlePacket(GravityChangeMessage message, MessageContext context) {
-        switch(message.getPacketType()) {
+        switch (message.getPacketType()) {
             case SINGLE:
                 if (GravityMod.GENERAL_DEBUG) {
                     GravityMod.logInfo("Received gravity data for %s", message.getStringData());
@@ -61,18 +54,6 @@ public class GravityManagerClient extends GravityManagerCommon {
                 break;
         }
 
-    }
-
-    private void requestGravityDirectionFromServer(String nameOfPlayerRequested) {
-        PacketHandler.INSTANCE.sendToServer(new GravityChangeMessage(nameOfPlayerRequested));
-    }
-
-    @Override
-    public EnumGravityDirection getGravityDirection(String playerName) {
-        if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
-            return this.getClientGravity();
-        }
-        return GravityDirectionCapability.getGravityDirection(playerName, FMLClientHandler.instance().getWorldClient());
     }
 
     private void setClientSideGravityDirection(String playerName, EnumGravityDirection direction, boolean noTimeout) {
@@ -97,5 +78,24 @@ public class GravityManagerClient extends GravityManagerCommon {
         else if (GravityMod.GENERAL_DEBUG) {
             GravityMod.logInfo("Server has told us to set the gravity direction of a player we're currently not tracking. Ignoring the request.");
         }
+    }
+
+    //TODO: Try PlayerEvent.startTracking instead of EntityJoinWorldEvent
+    @SubscribeEvent
+    public void onEntityJoinWorld(EntityJoinWorldEvent event) {
+        if (event.getWorld().isRemote) {
+            Entity entity = event.getEntity();
+            if (entity instanceof EntityOtherPlayerMP) {
+                EntityPlayer player = (EntityPlayer)entity;
+                if (GravityMod.GENERAL_DEBUG) {
+                    GravityMod.logInfo("Requesting gravity data for %s", player.getName());
+                }
+                this.requestGravityDirectionFromServer(player.getName());
+            }
+        }
+    }
+
+    private void requestGravityDirectionFromServer(String nameOfPlayerRequested) {
+        PacketHandler.INSTANCE.sendToServer(new GravityChangeMessage(nameOfPlayerRequested));
     }
 }

@@ -19,11 +19,30 @@ import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModEntityClassWrapper;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
+import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
 /**
  * Created by Mysteryem on 2016-11-09.
  */
 public class EntityFloatingItem extends EntityItem {
+
+    // The EntityItem pickup delay is set to infinite so that this entity will not combine with other <? extends EntityItem>s
+    private int actualPickupDelay;
+
+    public EntityFloatingItem(World worldIn, double x, double y, double z, ItemStack stack) {
+        super(worldIn, x, y, z, stack);
+        this.motionY = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D));
+        this.setNoGravity(true);
+        super.setInfinitePickupDelay();
+    }
+
+
+    @UsedReflexively
+    public EntityFloatingItem(World worldIn) {
+        super(worldIn);
+        this.setNoGravity(true);
+        super.setInfinitePickupDelay();
+    }
 
     // Provides Veinminer compatibility before their code gets fixed
     // I think it's safe to spawn the extra item.
@@ -50,91 +69,6 @@ public class EntityFloatingItem extends EntityItem {
         }
     }
 
-    // Using setDead to spawn the item instead of an item pickup listener so that machines and more can cause the dust item to spawn
-    @Override
-    public void setDead() {
-        // Only spawn the new item if setDead wasn't called due to the entity despawning
-
-        if (!this.worldObj.isRemote
-                && ReflectionLambdas.get_EntityItem$age.applyAsInt(this) < this.lifespan
-                && ReflectionLambdas.get_EntityItem$health.applyAsInt(this) > 0
-                && this.getEntityItem() != null
-                /*&& stack.stackSize <= 0*/) {
-            World world;
-            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
-//                newItem.setNoPickupDelay();
-//            newItem.lifespan = 20 * 10;
-            newItem.motionX *= 0.1;
-            newItem.motionY *= 0.1;
-            newItem.motionZ *= 0.1;
-            newItem.setEntityInvulnerable(true);
-            world.spawnEntityInWorld(newItem);
-//            this.worldObj.playEvent(2003, new BlockPos(this), 0);
-        }
-        super.setDead();
-    }
-
-    public static final String NAME = "itemfloating";
-
-    // The EntityItem pickup delay is set to infinite so that this entity will not combine with other <? extends EntityItem>s
-    private int actualPickupDelay;
-
-
-    public EntityFloatingItem(World worldIn, double x, double y, double z) {
-        super(worldIn, x, y, z);
-        this.setNoGravity(true);
-        super.setInfinitePickupDelay();
-    }
-
-    public EntityFloatingItem(World worldIn, double x, double y, double z, ItemStack stack) {
-        super(worldIn, x, y, z, stack);
-        this.motionY = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D));
-        this.setNoGravity(true);
-        super.setInfinitePickupDelay();
-    }
-
-    public EntityFloatingItem(World worldIn) {
-        super(worldIn);
-        this.setNoGravity(true);
-        super.setInfinitePickupDelay();
-    }
-
-    @Override
-    public void setDefaultPickupDelay() {
-        this.actualPickupDelay = 10;
-    }
-
-    @Override
-    public void setNoPickupDelay() {
-        this.actualPickupDelay = 0;
-    }
-
-    @Override
-    public void setInfinitePickupDelay() {
-        this.actualPickupDelay = 32767;
-    }
-
-    @Override
-    public void setPickupDelay(int ticks) {
-        this.actualPickupDelay = ticks;
-    }
-
-    @Override
-    public boolean cannotPickup() {
-        return this.actualPickupDelay > 0;
-    }
-
-    @Override
-    public void onCollideWithPlayer(EntityPlayer entityIn) {
-        if (!this.worldObj.isRemote) {
-            if (!this.cannotPickup()) {
-                super.setNoPickupDelay();
-                super.onCollideWithPlayer(entityIn);
-                super.setInfinitePickupDelay();
-            }
-        }
-    }
-
     @Override
     public void onUpdate() {
         if (this.firstUpdate) {
@@ -150,8 +84,7 @@ public class EntityFloatingItem extends EntityItem {
                 double d2 = this.posZ;
 
 
-                for (double d11 = 0.0D; d11 < (Math.PI * 2D); d11 += 0.15707963267948966D)
-                {
+                for (double d11 = 0.0D; d11 < (Math.PI * 2D); d11 += 0.15707963267948966D) {
                     world.spawnParticle(EnumParticleTypes.SPELL_WITCH, d0, d1 - 0.4D, d2, Math.cos(d11) * -5.0D + this.motionX, 0.0D, Math.sin(d11) * -5.0D + this.motionZ);
                     world.spawnParticle(EnumParticleTypes.SPELL_WITCH, d0, d1 - 0.4D, d2, Math.cos(d11) * -7.0D + this.motionX, 0.0D, Math.sin(d11) * -7.0D + this.motionZ);
                 }
@@ -179,8 +112,7 @@ public class EntityFloatingItem extends EntityItem {
 
         super.onUpdate();
 
-        if (this.actualPickupDelay > 0 && this.actualPickupDelay != 32767)
-        {
+        if (this.actualPickupDelay > 0 && this.actualPickupDelay != 32767) {
             --this.actualPickupDelay;
         }
 
@@ -206,7 +138,7 @@ public class EntityFloatingItem extends EntityItem {
             squareLength = minMovementSquared;
         }
         if (squareLength < minMovementSquared) {
-            motionVec = motionVec.scale(MathHelper.sqrt_double(minMovementSquared/squareLength));
+            motionVec = motionVec.scale(MathHelper.sqrt_double(minMovementSquared / squareLength));
         }
         double maxSpeed = 0.1;
         this.motionX = motionVec.xCoord;
@@ -222,14 +154,75 @@ public class EntityFloatingItem extends EntityItem {
             // Smoke trail effect
 //            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, this.posY-0.3, this.posZ, f-this.motionX+f*this.rand.nextFloat(), f-this.motionY+f*this.rand.nextFloat(), f-this.motionZ+f*this.rand.nextFloat());
 
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX+randParticleMotion(), 0.1-this.motionY+randParticleMotion(), -this.motionZ+randParticleMotion());
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX+randParticleMotion(), 0.1-this.motionY+randParticleMotion(), -this.motionZ+randParticleMotion());
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX+randParticleMotion(), 0.1-this.motionY+randParticleMotion(), -this.motionZ+randParticleMotion());
+            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + randParticleMotion(), 0.1 - this.motionY + randParticleMotion(), -this.motionZ + randParticleMotion());
+            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + randParticleMotion(), 0.1 - this.motionY + randParticleMotion(), -this.motionZ + randParticleMotion());
+            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + randParticleMotion(), 0.1 - this.motionY + randParticleMotion(), -this.motionZ + randParticleMotion());
         }
     }
 
     private float randParticleMotion() {
-        return (this.rand.nextFloat()-0.5f)*1f;
+        return (this.rand.nextFloat() - 0.5f) * 1f;
+    }
+
+    @Override
+    public void onCollideWithPlayer(EntityPlayer entityIn) {
+        if (!this.worldObj.isRemote) {
+            if (!this.cannotPickup()) {
+                super.setNoPickupDelay();
+                super.onCollideWithPlayer(entityIn);
+                super.setInfinitePickupDelay();
+            }
+        }
+    }
+
+    @Override
+    public boolean cannotPickup() {
+        return this.actualPickupDelay > 0;
+    }
+
+    @Override
+    public void setDefaultPickupDelay() {
+        this.actualPickupDelay = 10;
+    }
+
+    @Override
+    public void setNoPickupDelay() {
+        this.actualPickupDelay = 0;
+    }
+
+    @Override
+    public void setInfinitePickupDelay() {
+        this.actualPickupDelay = 32767;
+    }
+
+    @Override
+    public void setPickupDelay(int ticks) {
+        this.actualPickupDelay = ticks;
+    }
+
+    // Won't replace with an item pickup listener, it's possible that
+    // Using setDead to spawn the item instead of an item pickup listener so that machines and more can cause the dust item to spawn
+    @Override
+    public void setDead() {
+        // Only spawn the new item if setDead wasn't called due to the entity despawning
+
+        if (!this.worldObj.isRemote
+                && ReflectionLambdas.get_EntityItem$age.applyAsInt(this) < this.lifespan
+                && ReflectionLambdas.get_EntityItem$health.applyAsInt(this) > 0
+                && this.getEntityItem() != null
+                /*&& stack.stackSize <= 0*/) {
+            World world;
+            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
+//                newItem.setNoPickupDelay();
+//            newItem.lifespan = 20 * 10;
+            newItem.motionX *= 0.1;
+            newItem.motionY *= 0.1;
+            newItem.motionZ *= 0.1;
+            newItem.setEntityInvulnerable(true);
+            world.spawnEntityInWorld(newItem);
+//            this.worldObj.playEvent(2003, new BlockPos(this), 0);
+        }
+        super.setDead();
     }
 
     @Override
@@ -279,8 +272,7 @@ public class EntityFloatingItem extends EntityItem {
     private void playBounceSound(BlockPos pos, Block blockIn) {
         SoundType soundtype = blockIn.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
 
-        if (!blockIn.getDefaultState().getMaterial().isLiquid())
-        {
+        if (!blockIn.getDefaultState().getMaterial().isLiquid()) {
             this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
         }
     }
@@ -288,8 +280,7 @@ public class EntityFloatingItem extends EntityItem {
     //Similar to this.playStepSound
     private void playBounceSoundSnowCheck(BlockPos pos, Block blockIn) {
 
-        if (this.worldObj.getBlockState(pos.up()).getBlock() == Blocks.SNOW_LAYER)
-        {
+        if (this.worldObj.getBlockState(pos.up()).getBlock() == Blocks.SNOW_LAYER) {
             SoundType soundtype = Blocks.SNOW_LAYER.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
             this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
         }
@@ -302,11 +293,6 @@ public class EntityFloatingItem extends EntityItem {
      * Created by Mysteryem on 2016-12-13.
      */
     public static class Wrapper implements IGravityModEntityClassWrapper<EntityFloatingItem> {
-
-        @Override
-        public String getName() {
-            return "itemfloating";
-        }
 
         @Override
         public Class<EntityFloatingItem> getEntityClass() {
@@ -327,6 +313,11 @@ public class EntityFloatingItem extends EntityItem {
         @Override
         public boolean sendsVelocityUpdates() {
             return true;
+        }
+
+        @Override
+        public String getName() {
+            return "itemfloating";
         }
 
     }

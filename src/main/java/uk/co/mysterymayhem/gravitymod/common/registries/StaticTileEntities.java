@@ -7,6 +7,7 @@ import uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator.TileWrapper
  */
 public class StaticTileEntities {
     public static final TileWrapper GRAVITY_GENERATOR;
+
     static {
         if (ModTileEntities.STATIC_SETUP_ALLOWED) {
             GRAVITY_GENERATOR = ModTileEntities.tileGravityGenerator;

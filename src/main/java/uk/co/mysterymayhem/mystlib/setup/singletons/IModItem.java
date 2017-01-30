@@ -12,15 +12,20 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 /**
  * It may be frowned upon, but this is so I can have some item classes that extend Item and some that extend ItemArmor
  * whilst still having common default code for both of them.
- *
+ * <p>
  * Created by Mysteryem on 2016-11-05.
  */
 public interface IModItem<T extends Item & IModItem<T>> extends IModObject {
     @Override
     @SideOnly(Side.CLIENT)
-    default void preInitClient(){
+    default void preInitClient() {
         T cast = this.getItem();
         ModelLoader.setCustomModelResourceLocation((Item)this, 0, new ModelResourceLocation(cast.getRegistryName(), "inventory"));
+    }
+
+    @SuppressWarnings("unchecked")
+    default T getItem() {
+        return (T)this;
     }
 
     @Override
@@ -34,10 +39,5 @@ public interface IModItem<T extends Item & IModItem<T>> extends IModObject {
         }
         GameRegistry.register(cast);
         IModObject.super.preInit();
-    }
-
-    @SuppressWarnings("unchecked")
-    default T getItem() {
-        return (T)this;
     }
 }

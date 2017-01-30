@@ -21,20 +21,6 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePost
  */
 public class ModCompatConfigCheckPacketHandler implements IMessageHandler<ModCompatConfigCheckMessage, ModCompatConfigCheckMessage> {
 
-    private static IPrePostModifier<EntityPlayerWithGravity> getModifierFromID(int id) {
-        EnumPrePostModifier[] enumValues = EnumPrePostModifier.values();
-        int numEnumModifiers = enumValues.length;
-        if (id < numEnumModifiers) {
-            return enumValues[id];
-        }
-        else {
-            return CombinedPrePostModifier.COMBINED_REGISTRY.get(id - numEnumModifiers);
-        }
-    }
-
-    public ModCompatConfigCheckPacketHandler() {
-    }
-
     @Override
     public ModCompatConfigCheckMessage onMessage(final ModCompatConfigCheckMessage message, final MessageContext ctx) {
         // 'break;' within the switch leads to 'return null;' and nothing else
@@ -45,7 +31,7 @@ public class ModCompatConfigCheckPacketHandler implements IMessageHandler<ModCom
                         GravityMod.logInfo("Server has different config hashcode to me. Requesting data from server");
                         return new ModCompatConfigCheckMessage(EnumConfigPacketType.CLIENT_TO_SERVER_WRONG_CLIENT_SIDE_HASH);
                     }
-                    else if (GravityMod.GENERAL_DEBUG){
+                    else if (GravityMod.GENERAL_DEBUG) {
                         GravityMod.logInfo("Server has the same hashcode as me, everything is ok");
                     }
                 }
@@ -149,5 +135,16 @@ public class ModCompatConfigCheckPacketHandler implements IMessageHandler<ModCom
                 break;
         }
         return null;
+    }
+
+    private static IPrePostModifier<EntityPlayerWithGravity> getModifierFromID(int id) {
+        EnumPrePostModifier[] enumValues = EnumPrePostModifier.values();
+        int numEnumModifiers = enumValues.length;
+        if (id < numEnumModifiers) {
+            return enumValues[id];
+        }
+        else {
+            return CombinedPrePostModifier.COMBINED_REGISTRY.get(id - numEnumModifiers);
+        }
     }
 }

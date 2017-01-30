@@ -5,9 +5,9 @@ package uk.co.mysterymayhem.mystlib.reflection.lambda.extrafunction;
  */
 @FunctionalInterface
 public interface ToShortFunction<T> {
-    short applyAsShort(T value);
-
     default ShortSupplier bind(T instance) {
         return () -> this.applyAsShort(instance);
     }
+
+    short applyAsShort(T value);
 }

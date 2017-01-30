@@ -28,20 +28,18 @@ import java.util.ArrayList;
 @SideOnly(Side.CLIENT)
 public class GUIContainerGravityGenerator extends GuiContainer {
     private static final ResourceLocation TEXTURE = new ResourceLocation(GravityMod.MOD_ID, "textures/gui/container/gravitygenerator.png");
-
-    private final ContainerGravityGenerator containerGravityGenerator;
-
-    private final ArrayList<GuiLabel> labels = new ArrayList<>();
-    private final int startingTileYHeight;
-    private final int startingTileXWidth;
-    private final int startingTileZWidth;
-    private int tileYHeight;
-    private int tileXWidth;
-    private int tileZWidth;
-    private final int buttonLeftStart;
-    private static final String directionLangPrefix = "mysttmtgravitymod.";
     private static final int TEXT_LEFT_START = 8;
+    private static final String directionLangPrefix = "mysttmtgravitymod.";
+    private final int buttonLeftStart;
+    private final ContainerGravityGenerator containerGravityGenerator;
+    private final ArrayList<GuiLabel> labels = new ArrayList<>();
+    private final int startingTileXWidth;
+    private final int startingTileYHeight;
+    private final int startingTileZWidth;
     private final int valueLeftStart;
+    private int tileXWidth;
+    private int tileYHeight;
+    private int tileZWidth;
 
     public GUIContainerGravityGenerator(ContainerGravityGenerator inventorySlotsIn) {
         super(inventorySlotsIn);
@@ -111,7 +109,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
             boolean isFirstButton = i % 2 == 0;
             String text = isFirstButton ? "+" : "-";
             int buttonWidth = isFirstButton ? firstButtonWidth : secondButtonWidth;
-            this.addButton(new GuiButton(i, this.guiLeft + buttonLeftStart + (i % 2) * (firstButtonWidth + 2), this.guiTop + buttonTopStart + (i/2) * (buttonHeight + 4), buttonWidth, buttonHeight, text));
+            this.addButton(new GuiButton(i, this.guiLeft + buttonLeftStart + (i % 2) * (firstButtonWidth + 2), this.guiTop + buttonTopStart + (i / 2) * (buttonHeight + 4), buttonWidth, buttonHeight, text));
         }
 //        GuiButton textButton = new GuiButton(0, this.guiLeft + buttonLeftStart, this.guiTop + 35, 20, 18, "+");
 //
@@ -165,9 +163,52 @@ public class GUIContainerGravityGenerator extends GuiContainer {
     }
 
     @Override
+    public void onGuiClosed() {
+        boolean xChanged = this.startingTileXWidth != this.tileXWidth;
+        boolean yChanged = this.startingTileYHeight != this.tileYHeight;
+        boolean zChanged = this.startingTileZWidth != this.tileZWidth;
+        if (xChanged || yChanged || zChanged) {
+            PacketHandler.INSTANCE.sendToServer(new MessageGravityGenerator(this.containerGravityGenerator.getTileGravityGenerator(), TileGravityGenerator.widthToRadius(this.tileXWidth), this.tileYHeight, TileGravityGenerator.widthToRadius(this.tileZWidth), xChanged, yChanged, zChanged));
+        }
+        super.onGuiClosed();
+    }
+
+    @Override
+    protected void actionPerformed(GuiButton button) throws IOException {
+        switch (button.id) {
+            case 0:
+                this.tileYHeight = TileGravityGenerator.clampHeight(this.tileYHeight + 1);
+                break;
+            case 1:
+                this.tileYHeight = TileGravityGenerator.clampHeight(this.tileYHeight - 1);
+                break;
+            case 2:
+                this.tileXWidth = TileGravityGenerator.clampWidth(this.tileXWidth + 2);
+                break;
+            case 3:
+                this.tileXWidth = TileGravityGenerator.clampWidth(this.tileXWidth - 2);
+                break;
+            case 4:
+                this.tileZWidth = TileGravityGenerator.clampWidth(this.tileZWidth + 2);
+                break;
+            case 5:
+                this.tileZWidth = TileGravityGenerator.clampWidth(this.tileZWidth - 2);
+                break;
+            default:
+                break;
+        }
+    }
+
+//    @Override
+//    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+//        super.drawScreen(mouseX, mouseY, partialTicks);
+//
+//    }
+
+    @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE);
-        GlStateManager.color(1,1,1,1);
+        GlStateManager.color(1, 1, 1, 1);
         this.drawTexturedModalRect(this.guiLeft, this.guiTop, 0, 0, this.xSize, this.ySize);
 
         Minecraft mc = Minecraft.getMinecraft();
@@ -221,14 +262,14 @@ public class GUIContainerGravityGenerator extends GuiContainer {
         EnumGravityDirection negative = positive.getOpposite();
         text = I18n.format("gui.gravitygenerator.widthtext", I18n.format(directionLangPrefix + positive.getName()), I18n.format(directionLangPrefix + negative.getName())) + " (X)";
         maxTextWidth = Math.max(maxTextWidth, this.fontRendererObj.getStringWidth(text));
-        textTop+= fontHeight + 4;
+        textTop += fontHeight + 4;
         fontRenderer.drawString(text, textLeft, textTop, colour);
 
         positive = direction.getRelativePositiveZ();
         negative = positive.getOpposite();
         text = I18n.format("gui.gravitygenerator.widthtext", I18n.format(directionLangPrefix + positive.getName()), I18n.format(directionLangPrefix + negative.getName())) + " (Z)";
         maxTextWidth = Math.max(maxTextWidth, this.fontRendererObj.getStringWidth(text));
-        textTop+= fontHeight + 4;
+        textTop += fontHeight + 4;
         fontRenderer.drawString(text, textLeft, textTop, colour);
 
         colour = 0xFFFFFF;
@@ -238,59 +279,16 @@ public class GUIContainerGravityGenerator extends GuiContainer {
         int valueTextMaxWidth = fontRenderer.getStringWidth(text);
         fontRenderer.drawStringWithShadow(text, textLeft, textTop, colour);
 
-        textTop+= fontHeight + 4;
+        textTop += fontHeight + 4;
         text = "" + this.tileXWidth;
         valueTextMaxWidth = Math.max(valueTextMaxWidth, fontRenderer.getStringWidth(text));
         fontRenderer.drawStringWithShadow(text, textLeft, textTop, colour);
 
-        textTop+= fontHeight + 4;
+        textTop += fontHeight + 4;
         text = "" + this.tileZWidth;
         valueTextMaxWidth = Math.max(valueTextMaxWidth, fontRenderer.getStringWidth(text));
         fontRenderer.drawStringWithShadow(text, textLeft, textTop, colour);
 
 //        this.fontRendererObj.drawString("Some text", 0, 14, 0x303030);
-    }
-
-//    @Override
-//    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-//        super.drawScreen(mouseX, mouseY, partialTicks);
-//
-//    }
-
-    @Override
-    protected void actionPerformed(GuiButton button) throws IOException {
-        switch (button.id) {
-            case 0:
-                this.tileYHeight = TileGravityGenerator.clampHeight(this.tileYHeight + 1);
-                break;
-            case 1:
-                this.tileYHeight = TileGravityGenerator.clampHeight(this.tileYHeight - 1);
-                break;
-            case 2:
-                this.tileXWidth = TileGravityGenerator.clampWidth(this.tileXWidth + 2);
-                break;
-            case 3:
-                this.tileXWidth = TileGravityGenerator.clampWidth(this.tileXWidth - 2);
-                break;
-            case 4:
-                this.tileZWidth = TileGravityGenerator.clampWidth(this.tileZWidth + 2);
-                break;
-            case 5:
-                this.tileZWidth = TileGravityGenerator.clampWidth(this.tileZWidth - 2);
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onGuiClosed() {
-        boolean xChanged = this.startingTileXWidth != this.tileXWidth;
-        boolean yChanged = this.startingTileYHeight != this.tileYHeight;
-        boolean zChanged = this.startingTileZWidth != this.tileZWidth;
-        if (xChanged || yChanged || zChanged) {
-            PacketHandler.INSTANCE.sendToServer(new MessageGravityGenerator(this.containerGravityGenerator.getTileGravityGenerator(), TileGravityGenerator.widthToRadius(this.tileXWidth), this.tileYHeight, TileGravityGenerator.widthToRadius(this.tileZWidth), xChanged, yChanged, zChanged));
-        }
-        super.onGuiClosed();
     }
 }

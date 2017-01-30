@@ -19,48 +19,8 @@ import java.nio.file.Path;
  * Created by Mysteryem on 2016-10-23.
  */
 public class ConfigHandler {
-    public enum EnumItemStackUseCompat {
-        BLOCK(
-                "modCompat.onUseOnBlock",
-
-                "Adding an item to this list will apply the compatibility when the item is right clicked on a block.\n" +
-                "\tSpecifically when the item's \"onItemUse\" method is called from within ItemStack::onItemUse.\n"
-        ),
-        GENERAL(
-                "modCompat.onUseGeneral",
-
-                "Adding an item to this list will apply the compatibility when the item is right clicked on air, or on\n" +
-                        "\ta block that doesn't open a chest/machine GUI or otherwise change state, such as right clicking \n" +
-                        "\ton a vanilla lever. Specifically when the item's \"onItemRightClick\" method is called from\n" +
-                        "\twithin ItemStack::useItemRightClick.\n\n" +
-
-                        "The Tinkers' Construct Rapier makes the player jump upwards and backwards\n" +
-                        "\tslightly when right clicked. We want the player to jump upwards relative to their view of the\n" +
-                        "\tworld, so we will need at least use relative Y motion for this compatibility. We also want the\n" +
-                        "\tplayer to jump backwards relative to their view of the world. The rapier uses the player's\n" +
-                        "\tpitch and yaw rotations to calculate the backwards direction and modifies X and Z motion\n" +
-                        "\taccordingly, so we need them to be relative too.\n",
-
-                "tconstruct:rapier,relativeMotionAll:relativeRotation"
-        ),
-
-        STOPPED_USING(
-                "modCompat.onStoppedUsing",
-                "Adding an item to this list will apply the compatibility when a player stops 'using' an item. For bows,\n" +
-                        "\tthis is when you release right click to fire an arrow.\n",
-                "tconstruct:longsword,relativeMotionAll:relativeRotation");
-
-        private final String configString;
-        private final String[] defaults;
-        private final String comment;
-
-        EnumItemStackUseCompat(String configString, String comment, String... defaults) {
-            this.configString = configString;
-            this.comment = comment;
-            this.defaults = defaults;
-        }
-    }
-
+    private static final String CONFIG_DIRECTORY_NAME = "UpAndDownAndAllAround";
+    private static final String GENERAL_CONFIG = "config.cfg";
     private static final String MAIN_COMMENT =
             "Up And Down changes how player motion is used to move the player. Some items may move the player in\n" +
                     "\tunexpected ways when used. If that's the case, try adding them to one of the below lists. The\n" +
@@ -92,28 +52,23 @@ public class ConfigHandler {
                     "\tvalues 0 and 4.\n" +
                     "'tconstruct:longsword,relativeMotionAll:relativeRotation' - Adds a relative X, Y and Z motion modifier\n" +
                     "\tcombined with a relative rotation modifier to all damage values of Tinkers' Construct Longswords.";
-
-    private static final String CONFIG_DIRECTORY_NAME = "UpAndDownAndAllAround";
     private static final String MOD_COMPATIBILITY_CONFIG_FILE_NAME = "modCompat.cfg";
-    private static final String GENERAL_CONFIG = "config.cfg";
-
-    private static Configuration modCompatibilityConfig;
-    private static Configuration generalConfig;
-
     public static double animationRotationSpeed = 1d;
+    public static float baseGravitonPearlStrength = 0.05f;
+    public static boolean destabilisedGravityDustDissipatesWhenDropped = true;
+    public static double gravitonPearlRange = 10;
+    public static int gravityDustAmountDropped = 5;
+    public static boolean gravityDustChanceOncePerBrokenBlock = false;
+    public static float gravityDustDropChance = 1f / 40f;
+    public static int gravityGeneratorMaxHeight = 11; // Min value 1
+    public static int gravityGeneratorMaxRadius = 5; // Width = (x*2 + 1) // Min value 0
+    public static int numNormalEnablersWeakEnablersCountsAs = 4;
+    public static int numNormalGravityEnablersRequiredForNormalGravity = 4;
+    public static int numWeakGravityEnablersRequiredForWeakGravity = 1;
     public static float oppositeDirectionFallDistanceMultiplier = 0f;
     public static float otherDirectionFallDistanceMultiplier = 0.5f;
-    public static float baseGravitonPearlStrength = 0.05f;
-    public static double gravitonPearlRange = 10;
-    public static float gravityDustDropChance = 1f/40f;
-    public static boolean gravityDustChanceOncePerBrokenBlock = false;
-    public static int numWeakGravityEnablersRequiredForWeakGravity = 1;
-    public static int numNormalGravityEnablersRequiredForNormalGravity = 4;
-    public static int numNormalEnablersWeakEnablersCountsAs = 4;
-    public static int gravityDustAmountDropped = 5;
-    public static int gravityGeneratorMaxRadius = 5; // Width = (x*2 + 1) // Min value 0
-    public static int gravityGeneratorMaxHeight = 11; // Min value 1
-    public static boolean destabilisedGravityDustDissipatesWhenDropped = true;
+    private static Configuration generalConfig;
+    private static Configuration modCompatibilityConfig;
 
     public static void loadConfig(FMLPreInitializationEvent event) {
         File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();
@@ -364,6 +319,48 @@ public class ConfigHandler {
                     continue toNextEntry;
             }
             ItemStackUseListener.addPrePostModifier(modID, itemName, modifier, compatType, damageValues);
+        }
+    }
+
+    public enum EnumItemStackUseCompat {
+        BLOCK(
+                "modCompat.onUseOnBlock",
+
+                "Adding an item to this list will apply the compatibility when the item is right clicked on a block.\n" +
+                        "\tSpecifically when the item's \"onItemUse\" method is called from within ItemStack::onItemUse.\n"
+        ),
+        GENERAL(
+                "modCompat.onUseGeneral",
+
+                "Adding an item to this list will apply the compatibility when the item is right clicked on air, or on\n" +
+                        "\ta block that doesn't open a chest/machine GUI or otherwise change state, such as right clicking \n" +
+                        "\ton a vanilla lever. Specifically when the item's \"onItemRightClick\" method is called from\n" +
+                        "\twithin ItemStack::useItemRightClick.\n\n" +
+
+                        "The Tinkers' Construct Rapier makes the player jump upwards and backwards\n" +
+                        "\tslightly when right clicked. We want the player to jump upwards relative to their view of the\n" +
+                        "\tworld, so we will need at least use relative Y motion for this compatibility. We also want the\n" +
+                        "\tplayer to jump backwards relative to their view of the world. The rapier uses the player's\n" +
+                        "\tpitch and yaw rotations to calculate the backwards direction and modifies X and Z motion\n" +
+                        "\taccordingly, so we need them to be relative too.\n",
+
+                "tconstruct:rapier,relativeMotionAll:relativeRotation"
+        ),
+
+        STOPPED_USING(
+                "modCompat.onStoppedUsing",
+                "Adding an item to this list will apply the compatibility when a player stops 'using' an item. For bows,\n" +
+                        "\tthis is when you release right click to fire an arrow.\n",
+                "tconstruct:longsword,relativeMotionAll:relativeRotation");
+
+        private final String comment;
+        private final String configString;
+        private final String[] defaults;
+
+        EnumItemStackUseCompat(String configString, String comment, String... defaults) {
+            this.configString = configString;
+            this.comment = comment;
+            this.defaults = defaults;
         }
     }
 }

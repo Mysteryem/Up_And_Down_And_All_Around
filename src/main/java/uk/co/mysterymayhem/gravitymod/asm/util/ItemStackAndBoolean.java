@@ -7,8 +7,8 @@ import net.minecraft.item.ItemStack;
  * Created by Mysteryem on 2016-10-23.
  */
 public class ItemStackAndBoolean {
-    public final ItemStack stack;
     public final boolean isRemote;
+    public final ItemStack stack;
 
     public ItemStackAndBoolean(ItemStack stack, boolean isRemote) {
         this.stack = stack;

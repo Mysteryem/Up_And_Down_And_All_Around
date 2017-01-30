@@ -15,7 +15,8 @@ import java.util.function.ToIntFunction;
  */
 public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFunction<IBlockState>, IntFunction<IBlockState> {
 
-    // Used to call this.block.getDefaultState() when creating an IBlockState from meta
+    public static final IProperty<?>[] EMPTY_PROPERTY_ARRAY = new IProperty<?>[0];
+    // Used when calling this.block.getDefaultState() when creating an IBlockState from meta
     protected final BLOCK block;
     protected final IProperty<?>[] metaProperties;
     protected final IProperty<?>[] allProperties;
@@ -26,16 +27,8 @@ public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFu
         this.allProperties = allProperties;
     }
 
-    public BLOCK getBlock() {
-        return this.block;
-    }
-
-    public IProperty<?>[] getMetaProperties() {
-        return this.metaProperties;
-    }
-
-    public IProperty<?>[] getAllProperties() {
-        return this.allProperties;
+    public static <BLOCK extends Block> AbstractMetaMapper<BLOCK> get(BLOCK block, IProperty<?>... metaProperties) {
+        return get(block, metaProperties, metaProperties);
     }
 
     private static <BLOCK extends Block> AbstractMetaMapper<BLOCK> get(BLOCK block, IProperty<?>[] metaProperties, IProperty<?>[] allProperties) {
@@ -49,12 +42,6 @@ public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFu
         }
     }
 
-    public static final IProperty<?>[] EMPTY_PROPERTY_ARRAY = new IProperty<?>[0];
-
-    public static <BLOCK extends Block> AbstractMetaMapper<BLOCK> get(BLOCK block, IProperty<?>... metaProperties) {
-        return get(block, metaProperties, metaProperties);
-    }
-
     public static <BLOCK extends Block> AbstractMetaMapper<BLOCK> get(BLOCK block, MetaHelper helper) {
         ArrayList<IProperty<?>> orderedMetaProperties = helper.orderedMetaProperties;
         HashSet<IProperty<?>> allProperties = helper.allProperties;
@@ -65,16 +52,28 @@ public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFu
         return new BlockStateContainer(this.getBlock(), this.allProperties);
     }
 
+    public BLOCK getBlock() {
+        return this.block;
+    }
+
+    public IProperty<?>[] getAllProperties() {
+        return this.allProperties;
+    }
+
+    public IProperty<?>[] getMetaProperties() {
+        return this.metaProperties;
+    }
+
     public static class MetaHelper {
         private final ArrayList<IProperty<?>> orderedMetaProperties = new ArrayList<>();
         private final HashSet<IProperty<?>> allProperties = new HashSet<>();
 
-        public MetaHelper addMeta(IProperty<?>... metaProperties) {
-            for (IProperty<?> property : metaProperties) {
-                orderedMetaProperties.add(property);
-            }
-            allProperties.addAll(orderedMetaProperties);
-            return this;
+        public static MetaHelper newHelper() {
+            return new MetaHelper();
+        }
+
+        public static MetaHelper with(IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+            return new MetaHelper().addMeta(metaProperties).addNonMeta(nonMetaProperties);
         }
 
         public MetaHelper addNonMeta(IProperty<?>... nonMetaProperties) {
@@ -84,8 +83,12 @@ public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFu
             return this;
         }
 
-        public static MetaHelper newHelper(){
-            return new MetaHelper();
+        public MetaHelper addMeta(IProperty<?>... metaProperties) {
+            for (IProperty<?> property : metaProperties) {
+                orderedMetaProperties.add(property);
+            }
+            allProperties.addAll(orderedMetaProperties);
+            return this;
         }
 
         public static MetaHelper withMeta(IProperty<?>... metaProperties) {
@@ -94,10 +97,6 @@ public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFu
 
         public static MetaHelper withNonMeta(IProperty<?>... nonMetaProperties) {
             return new MetaHelper().addNonMeta(nonMetaProperties);
-        }
-
-        public static MetaHelper with(IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-            return new MetaHelper().addMeta(metaProperties).addNonMeta(nonMetaProperties);
         }
 
     }

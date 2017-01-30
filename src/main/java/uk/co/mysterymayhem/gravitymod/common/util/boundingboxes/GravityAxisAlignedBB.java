@@ -12,11 +12,6 @@ import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGrav
 public class GravityAxisAlignedBB extends AxisAlignedBB {
     private final IGravityDirectionCapability gravityCapability;
 
-    public GravityAxisAlignedBB(IGravityDirectionCapability gravityCapability, double x1, double y1, double z1, double x2, double y2, double z2) {
-        super(x1, y1, z1, x2, y2, z2);
-        this.gravityCapability = gravityCapability;
-    }
-
     public GravityAxisAlignedBB(GravityAxisAlignedBB other, double x1, double y1, double z1, double x2, double y2, double z2) {
         super(x1, y1, z1, x2, y2, z2);
         this.gravityCapability = other.gravityCapability;
@@ -56,8 +51,43 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
         this(gravityCapability, axisAlignedBB.minX, axisAlignedBB.minY, axisAlignedBB.minZ, axisAlignedBB.maxX, axisAlignedBB.maxY, axisAlignedBB.maxZ);
     }
 
+    public GravityAxisAlignedBB(IGravityDirectionCapability gravityCapability, double x1, double y1, double z1, double x2, double y2, double z2) {
+        super(x1, y1, z1, x2, y2, z2);
+        this.gravityCapability = gravityCapability;
+    }
+
     public GravityAxisAlignedBB(GravityAxisAlignedBB other, AxisAlignedBB axisAlignedBB) {
         this(other.gravityCapability, axisAlignedBB.minX, axisAlignedBB.minY, axisAlignedBB.minZ, axisAlignedBB.maxX, axisAlignedBB.maxY, axisAlignedBB.maxZ);
+    }
+
+    public static double getRelativeBottom(AxisAlignedBB bb) {
+        if (bb instanceof GravityAxisAlignedBB) {
+            return ((GravityAxisAlignedBB)bb).getRelativeBottom();
+        }
+        return bb.minY;
+    }
+
+    @SuppressWarnings("SuspiciousNameCombination")
+    public double getRelativeBottom() {
+        switch (this.getDirection()) {
+            case UP:
+                return -this.maxY;
+            case DOWN:
+                return this.minY;
+            case SOUTH:
+                return -this.maxZ;
+            case WEST:
+                return this.minX;
+            case NORTH:
+                return this.minZ;
+//                case EAST:
+            default:
+                return -this.maxX;
+        }
+    }
+
+    public EnumGravityDirection getDirection() {
+        return this.gravityCapability.getDirection();
     }
 
     @Override
@@ -84,14 +114,33 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
         return new GravityAxisAlignedBB(this, super.offset(d[0], d[1], d[2]));
     }
 
-    public GravityAxisAlignedBB offsetSuper(double x, double y, double z) {
-        return new GravityAxisAlignedBB(this, super.offset(x, y, z));
-    }
-
     // Do I need to gravity adjust these?
     @Override
     public double calculateXOffset(AxisAlignedBB other, double offsetX) {
         return offsetFromArray(this.getDirection().adjustXYZValues(1, 0, 0), other, offsetX);
+    }
+
+    private double offsetFromArray(double[] adjusted, AxisAlignedBB other, double offset) {
+        switch ((int)adjusted[0]) {
+            case -1:
+                return -super.calculateXOffset(other, -offset);
+            case 0:
+                switch ((int)adjusted[1]) {
+                    case -1:
+                        return -super.calculateYOffset(other, -offset);
+                    case 0:
+                        switch ((int)adjusted[2]) {
+                            case -1:
+                                return -super.calculateZOffset(other, -offset);
+                            default://case 0:
+                                return super.calculateZOffset(other, offset);
+                        }
+                    default:
+                        return super.calculateYOffset(other, offset);
+                }
+            default:
+                return super.calculateXOffset(other, offset);
+        }
     }
 
     // Do I need to gravity adjust these?
@@ -106,65 +155,25 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
         return offsetFromArray(this.getDirection().adjustXYZValues(0, 0, 1), other, offsetZ);
     }
 
-    public double superCalculateXOffset(AxisAlignedBB other, double offsetX) {
-        return super.calculateXOffset(other, offsetX);
-    }
-
-    public double superCalculateYOffset(AxisAlignedBB other, double offsetY) {
-        return super.calculateYOffset(other, offsetY);
-    }
-
-    public double superCalculateZOffset(AxisAlignedBB other, double offsetZ) {
-        return super.calculateZOffset(other, offsetZ);
-    }
-
-    public static double getRelativeBottom(AxisAlignedBB bb) {
-        if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getRelativeBottom();
-        }
-        return bb.minY;
-    }
-
-    @SuppressWarnings("SuspiciousNameCombination")
-    public double getRelativeBottom() {
-        switch(this.getDirection()){
+    public GravityAxisAlignedBB expandUp(double y) {
+        switch (this.gravityCapability.getDirection()) {
             case UP:
-                return -this.maxY;
-            case DOWN:
-                return this.minY;
+                return new GravityAxisAlignedBB(this, this.minX, this.minY - y, this.minZ, this.maxX, this.maxY, this.maxZ);
             case SOUTH:
-                return -this.maxZ;
+                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ - y, this.maxX, this.maxY, this.maxZ);
             case WEST:
-                return this.minX;
+                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ, this.maxX + y, this.maxY, this.maxZ);
             case NORTH:
-                return this.minZ;
-//                case EAST:
-            default:
-                return -this.maxX;
+                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ + y);
+            case EAST:
+                return new GravityAxisAlignedBB(this, this.minX - y, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
+            default://case DOWN:
+                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ, this.maxX, this.maxY + y, this.maxZ);
         }
     }
 
-    private double offsetFromArray(double[] adjusted, AxisAlignedBB other, double offset) {
-        switch ((int) adjusted[0]) {
-            case -1:
-                return -super.calculateXOffset(other, -offset);
-            case 0:
-                switch ((int) adjusted[1]) {
-                    case -1:
-                        return -super.calculateYOffset(other, -offset);
-                    case 0:
-                        switch ((int) adjusted[2]) {
-                            case -1:
-                                return -super.calculateZOffset(other, -offset);
-                            default://case 0:
-                                return super.calculateZOffset(other, offset);
-                        }
-                    default:
-                        return super.calculateYOffset(other, offset);
-                }
-            default:
-                return super.calculateXOffset(other, offset);
-        }
+    public IGravityDirectionCapability getCapability() {
+        return this.gravityCapability;
     }
 
     public Vec3d getOrigin() {
@@ -188,37 +197,28 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
         return (this.minX + this.maxX) / 2d;
     }
 
-    private double getCentreY() {
-        return (this.minY + this.maxY) / 2d;
-    }
-
     private double getCentreZ() {
         return (this.minZ + this.maxZ) / 2d;
     }
 
-    public GravityAxisAlignedBB expandUp(double y) {
-        switch (this.gravityCapability.getDirection()) {
-            case UP:
-                return new GravityAxisAlignedBB(this, this.minX, this.minY - y, this.minZ, this.maxX, this.maxY, this.maxZ);
-            case SOUTH:
-                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ - y, this.maxX, this.maxY, this.maxZ);
-            case WEST:
-                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ, this.maxX + y, this.maxY, this.maxZ);
-            case NORTH:
-                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ + y);
-            case EAST:
-                return new GravityAxisAlignedBB(this, this.minX - y, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
-            default://case DOWN:
-                return new GravityAxisAlignedBB(this, this.minX, this.minY, this.minZ, this.maxX, this.maxY + y, this.maxZ);
-        }
+    private double getCentreY() {
+        return (this.minY + this.maxY) / 2d;
     }
 
-    public EnumGravityDirection getDirection() {
-        return this.gravityCapability.getDirection();
+    public GravityAxisAlignedBB offsetSuper(double x, double y, double z) {
+        return new GravityAxisAlignedBB(this, super.offset(x, y, z));
     }
 
-    public IGravityDirectionCapability getCapability() {
-        return this.gravityCapability;
+    public double superCalculateXOffset(AxisAlignedBB other, double offsetX) {
+        return super.calculateXOffset(other, offsetX);
+    }
+
+    public double superCalculateYOffset(AxisAlignedBB other, double offsetY) {
+        return super.calculateYOffset(other, offsetY);
+    }
+
+    public double superCalculateZOffset(AxisAlignedBB other, double offsetZ) {
+        return super.calculateZOffset(other, offsetZ);
     }
 
     public AxisAlignedBB toVanilla() {

@@ -9,12 +9,12 @@ public abstract class AbstractGuiProvider<S extends Container> implements IModGU
     private int modGUIID = -1;
 
     @Override
-    public void setModGUIID(int modGUIID) {
-        this.modGUIID = modGUIID;
+    public int getModGUIID() {
+        return modGUIID;
     }
 
     @Override
-    public int getModGUIID() {
-        return modGUIID;
+    public void setModGUIID(int modGUIID) {
+        this.modGUIID = modGUIID;
     }
 }

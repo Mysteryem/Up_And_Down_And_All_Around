@@ -14,9 +14,6 @@ public class ModBlocks extends AbstractBlockRegistry<IGravityModBlock<?>, ArrayL
 
     static boolean REGISTRY_SETUP_ALLOWED = false;
 
-//    static BlockGravityGenerator WEAK_GRAVITY_GENERATOR;
-//    static BlockGravityGenerator NORMAL_GRAVITY_GENERATOR;
-//    static BlockGravityGenerator STRONG_GRAVITY_GENERATOR;
     static BlockGravityGenerator gravityGenerator;
     static BlockLiquidAntiMass liquidAntiMass;
     static BlockRestabilisedGravityDust restabilisedGravityDust_Block;
@@ -27,12 +24,9 @@ public class ModBlocks extends AbstractBlockRegistry<IGravityModBlock<?>, ArrayL
 
     @Override
     protected void addToCollection(ArrayList<IGravityModBlock<?>> modObjects) {
-        modObjects.add(gravityGenerator                 = new BlockGravityGenerator());
-        modObjects.add(liquidAntiMass                   = new BlockLiquidAntiMass());
-        modObjects.add(restabilisedGravityDust_Block    = new BlockRestabilisedGravityDust());
-//        modObjects.add(WEAK_GRAVITY_GENERATOR = new BlockGravityGenerator(EnumGravityTier.WEAK));
-//        modObjects.add(NORMAL_GRAVITY_GENERATOR = new BlockGravityGenerator(EnumGravityTier.NORMAL));
-//        modObjects.add(STRONG_GRAVITY_GENERATOR = new BlockGravityGenerator(EnumGravityTier.STRONG));
+        modObjects.add(gravityGenerator = new BlockGravityGenerator());
+        modObjects.add(liquidAntiMass = new BlockLiquidAntiMass());
+        modObjects.add(restabilisedGravityDust_Block = new BlockRestabilisedGravityDust());
         REGISTRY_SETUP_ALLOWED = true;
     }
 

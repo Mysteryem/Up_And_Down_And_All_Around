@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.EnumRarity;
@@ -22,6 +21,40 @@ import java.util.List;
  */
 public class ItemUltimateGravityController extends ItemAbstractGravityController {
     private static final String NAME = "ultimategravitycontroller";
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.ultimategravitycontroller"));
+        super.addInformation(stack, playerIn, tooltip, advanced);
+    }
+
+    @Override
+    public boolean affectsPlayer(EntityPlayerMP player) {
+        return GravityManagerCommon.playerIsAffectedByStrongGravity(player);
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public int getPriority(EntityPlayerMP target) {
+        return GravityPriorityRegistry.ULTIMATE_GRAVITY_CONTROLLER;
+    }
+
+    @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_STRONG;
+    }
+
+    // Enchantment glow
+    @SideOnly(Side.CLIENT)
+    @Override
+    public boolean hasEffect(ItemStack stack) {
+        return true;
+    }
 
     @Override
     public void postInit() {
@@ -74,39 +107,5 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
                     'S', StaticItems.SPACETIME_ANOMALY
             ));
         }
-    }
-
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
-    // Enchantment glow
-    @SideOnly(Side.CLIENT)
-    @Override
-    public boolean hasEffect(ItemStack stack) {
-        return true;
-    }
-
-    @Override
-    public boolean affectsPlayer(EntityPlayerMP player) {
-        return GravityManagerCommon.playerIsAffectedByStrongGravity(player);
-    }
-
-    @Override
-    public int getPriority(Entity target) {
-        return GravityPriorityRegistry.ULTIMATE_GRAVITY_CONTROLLER;
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.ultimategravitycontroller"));
-        super.addInformation(stack, playerIn, tooltip, advanced);
-    }
-
-    @Override
-    public EnumRarity getRarity(ItemStack stack) {
-        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_STRONG;
     }
 }

@@ -20,6 +20,11 @@ public class FMLLoadingPlugin implements IFMLLoadingPlugin {
     }
 
     @Override
+    public String getAccessTransformerClass() {
+        return null;
+    }
+
+    @Override
     public String getModContainerClass() {
         return null;
 //        return GravityMod.class.getName();
@@ -33,10 +38,5 @@ public class FMLLoadingPlugin implements IFMLLoadingPlugin {
     @Override
     public void injectData(Map<String, Object> data) {
         // nothing to do here
-    }
-
-    @Override
-    public String getAccessTransformerClass() {
-        return null;
     }
 }

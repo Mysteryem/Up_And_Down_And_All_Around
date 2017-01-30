@@ -16,16 +16,16 @@ public abstract class AbstractIFMLStagedRegistry<SINGLETON extends IFMLStaged, C
         this.modObjects = modObjects;
     }
 
-    public COLLECTION getCollection() {
-        return this.modObjects;
-    }
-
-    protected abstract void addToCollection(COLLECTION modObjects);
-
     @Override
     public void preInit() {
         this.addToCollection(this.getCollection());
         this.modObjects.forEach(IFMLStaged::preInit);
+    }
+
+    protected abstract void addToCollection(COLLECTION modObjects);
+
+    public COLLECTION getCollection() {
+        return this.modObjects;
     }
 
     @Override

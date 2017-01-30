@@ -27,36 +27,29 @@ import java.util.List;
  * Created by Mysteryem on 2016-11-02.
  */
 public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCreativeTabIcon> {
+    private static final int ENTITY_LIFETIME_SECONDS = 30;
+    private static final int ENTITY_LIFETIME_TICKS = ENTITY_LIFETIME_SECONDS * 20;
     private static final String NAME = "creativetabicon";
     private static final NBTTagCompound fireworkTag = new NBTTagCompound();
+
     static {
         NBTTagList nbtTagList = new NBTTagList();
         NBTTagCompound explosionTag = new NBTTagCompound();
         explosionTag.setBoolean("Flicker", true);
         explosionTag.setBoolean("Trail", true);
         explosionTag.setByte("Type", (byte)0);
-        explosionTag.setIntArray("Colors", new int[]{3145970,16713728,6215936});
-        explosionTag.setIntArray("FadeColors", new int[]{857279,16734553,7012185});
+        explosionTag.setIntArray("Colors", new int[]{3145970, 16713728, 6215936});
+        explosionTag.setIntArray("FadeColors", new int[]{857279, 16734553, 7012185});
         nbtTagList.appendTag(explosionTag);
         fireworkTag.setTag("Explosions", nbtTagList);
     }
-    private Entity currentServerEntity = null;
+
     private Entity currentClientEntity = null;
+    private Entity currentServerEntity = null;
 
     public ItemCreativeTabIcon() {
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
-    }
-
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
-    // Don't set the creative tab
-    @Override
-    public CreativeTabs getModCreativeTab() {
-        return null;
     }
 
     @SideOnly(Side.CLIENT)
@@ -77,9 +70,6 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
     public boolean hasCustomEntity(ItemStack stack) {
         return true;
     }
-
-    private static final int ENTITY_LIFETIME_SECONDS = 30;
-    private static final int ENTITY_LIFETIME_TICKS = ENTITY_LIFETIME_SECONDS * 20;
 
     // Returns null so the original entity is used
     @Override
@@ -163,7 +153,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
             squareLength = minMovementSquared;
         }
         if (squareLength < minMovementSquared) {
-            motionVec = motionVec.scale(MathHelper.sqrt_double(minMovementSquared/squareLength));
+            motionVec = motionVec.scale(MathHelper.sqrt_double(minMovementSquared / squareLength));
         }
         entityItem.motionX = motionVec.xCoord;
         entityItem.motionY = motionVec.yCoord;
@@ -179,5 +169,16 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
         }
 
         return true;
+    }
+
+    // Don't set the creative tab
+    @Override
+    public CreativeTabs getModCreativeTab() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 }

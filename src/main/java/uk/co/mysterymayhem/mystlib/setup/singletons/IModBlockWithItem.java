@@ -16,15 +16,17 @@ public interface IModBlockWithItem<T extends Block & IModBlockWithItem<T, U>, U 
 
     @Override
     @SideOnly(Side.CLIENT)
-    default void preInitClient(){
+    default void preInitClient() {
         U itemBlock = this.getItem();
         if (itemBlock != null) {
             ModelLoader.setCustomModelResourceLocation(itemBlock, 0, new ModelResourceLocation(itemBlock.getRegistryName(), "inventory"));
         }
     }
 
+    U getItem();
+
     @Override
-    default void preInit(){
+    default void preInit() {
         IModBlock.super.preInit();
         CreativeTabs creativeTab = this.getModCreativeTab();
         U item = this.getItem();
@@ -35,8 +37,6 @@ public interface IModBlockWithItem<T extends Block & IModBlockWithItem<T, U>, U 
             this.registerItemForBlock();
         }
     }
-
-    U getItem();
 
     default void registerItemForBlock() {
         InternalReflectionLambdas.callStatic_Item$registerItemBlock.accept(this.getBlock(), this.getItem());

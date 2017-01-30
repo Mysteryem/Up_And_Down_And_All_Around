@@ -7,12 +7,15 @@ import java.util.Objects;
  */
 @FunctionalInterface
 public interface ObjShortConsumer<T> {
-    void accept(T t, short value);
-
     default ObjShortConsumer<T> andThen(ObjShortConsumer<? super T> after) {
         Objects.requireNonNull(after);
-        return (t, v) -> { accept(t, v); after.accept(t, v); };
+        return (t, v) -> {
+            accept(t, v);
+            after.accept(t, v);
+        };
     }
+
+    void accept(T t, short value);
 
     default ShortConsumer bind(T instance) {
         return (s) -> this.accept(instance, s);

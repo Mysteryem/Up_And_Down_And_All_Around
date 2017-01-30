@@ -33,17 +33,6 @@ import java.util.Random;
 public class ItemDestabilisedGravityDust extends Item implements IGravityModItem<ItemDestabilisedGravityDust> {
     private static final boolean DESTROYED_WHEN_DROPPED = ConfigHandler.destabilisedGravityDustDissipatesWhenDropped;
 
-    @Override
-    public String getName() {
-        return "destabilisedgravitydust";
-    }
-
-    // We have a custom entity that dies instantly and spawns some particles
-    @Override
-    public boolean hasCustomEntity(ItemStack stack) {
-        return true;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
@@ -52,9 +41,10 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
         }
     }
 
+    // We have a custom entity that dies instantly and spawns some particles
     @Override
-    public void postInit() {
-        GameRegistry.addSmelting(StaticItems.GRAVITY_DUST, new ItemStack(this), 0f);
+    public boolean hasCustomEntity(ItemStack stack) {
+        return true;
     }
 
     @Override
@@ -70,7 +60,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             dissipationEntity.prevPosX = location.prevPosX;
             dissipationEntity.prevPosY = location.prevPosY;
             dissipationEntity.prevPosZ = location.prevPosZ;
-            dissipationEntity.originalStackSize = ((EntityItem) location).getEntityItem().stackSize;
+            dissipationEntity.originalStackSize = ((EntityItem)location).getEntityItem().stackSize;
 
             return dissipationEntity;
         }
@@ -79,34 +69,24 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
         }
     }
 
+    @Override
+    public String getName() {
+        return "destabilisedgravitydust";
+    }
+
+    @Override
+    public void postInit() {
+        GameRegistry.addSmelting(StaticItems.GRAVITY_DUST, new ItemStack(this), 0f);
+    }
+
     public static class DissipationEntity extends Entity implements IEntityAdditionalSpawnData {
 
+        public static final String SIZE_KEY = "size";
         private int originalStackSize = 1;
 
         @UsedReflexively
         public DissipationEntity(World worldIn) {
             super(worldIn);
-        }
-
-        @Override
-        protected void entityInit() {/**/}
-
-        public static final String SIZE_KEY = "size";
-
-        @Override
-        protected void readEntityFromNBT(NBTTagCompound compound) {
-            if (compound.hasKey(SIZE_KEY, Constants.NBT.TAG_INT)) {
-                this.originalStackSize = compound.getInteger(SIZE_KEY);
-            }
-        }
-
-        @Override
-        protected void writeEntityToNBT(NBTTagCompound compound) {
-            compound.setInteger(SIZE_KEY, this.originalStackSize);
-        }
-
-        public void setOriginalStackSize(int originalStackSize) {
-            this.originalStackSize = originalStackSize;
         }
 
         @Override
@@ -151,6 +131,10 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             this.setDead();
         }
 
+        public void setOriginalStackSize(int originalStackSize) {
+            this.originalStackSize = originalStackSize;
+        }
+
         @Override
         public void writeSpawnData(ByteBuf buffer) {
             buffer.writeInt(this.originalStackSize);
@@ -161,16 +145,31 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             this.originalStackSize = additionalData.readInt();
         }
 
-        public static class Wrapper implements IGravityModEntityClassWrapper<DissipationEntity> {
+        @Override
+        protected void entityInit() {/**/}
 
-            @Override
-            public String getName() {
-                return "antimassdissipation";
+        @Override
+        protected void readEntityFromNBT(NBTTagCompound compound) {
+            if (compound.hasKey(SIZE_KEY, Constants.NBT.TAG_INT)) {
+                this.originalStackSize = compound.getInteger(SIZE_KEY);
             }
+        }
+
+        @Override
+        protected void writeEntityToNBT(NBTTagCompound compound) {
+            compound.setInteger(SIZE_KEY, this.originalStackSize);
+        }
+
+        public static class Wrapper implements IGravityModEntityClassWrapper<DissipationEntity> {
 
             @Override
             public Class<DissipationEntity> getEntityClass() {
                 return DissipationEntity.class;
+            }
+
+            @Override
+            public String getName() {
+                return "antimassdissipation";
             }
 
             @Override
@@ -194,6 +193,8 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             public IRenderFactory<? super DissipationEntity> getRenderFactory() {
                 return RenderNothing::new;
             }
+
+
         }
     }
 }

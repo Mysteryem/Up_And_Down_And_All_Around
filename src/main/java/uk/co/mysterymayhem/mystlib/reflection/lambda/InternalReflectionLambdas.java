@@ -10,10 +10,11 @@ import java.util.function.BiConsumer;
  * Created by Mysteryem on 2016-12-31.
  */
 public final class InternalReflectionLambdas {
-    public static final @SuppressWarnings("unchecked")
-    BiConsumer<Block, Item> callStatic_Item$registerItemBlock
+    @SuppressWarnings("unchecked")
+    public static final BiConsumer<Block, Item> callStatic_Item$registerItemBlock
             = LambdaBuilder.buildStaticMethodLambda(BiConsumer.class, Item.class, MethodType.methodType(void.class, Block.class, Item.class), "func_179214_a", "registerItemBlock");
 
     // No instantiation
-    private InternalReflectionLambdas(){}
+    private InternalReflectionLambdas() {
+    }
 }

@@ -43,6 +43,45 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
         return "liquidantimass";
     }
 
+    @Override
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock) {/**/}
+
+    @Override
+    public void onBlockAdded(World world, BlockPos pos, IBlockState state) {/**/}
+
+    @Override
+    public void postInit() {
+        // Recipe whereby the input bucket (as a part of the lava bucket) becomes the output bucket
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + ShapelessVoidOneBucket.class.getSimpleName().toLowerCase(Locale.ENGLISH), ShapelessVoidOneBucket.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        GameRegistry.addRecipe(new ShapelessVoidOneBucket(
+                StaticItems.LIQUID_ANTI_MASS_BUCKET,
+                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
+                        new ItemStack(Items.LAVA_BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
+        // Recipe whereby an extra bucket is used in the input, which will become a returned bucket
+        GameRegistry.addRecipe(new ShapelessRecipes(
+                StaticItems.LIQUID_ANTI_MASS_BUCKET,
+                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
+                        new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void preInitClient() {
+        IGravityModBlock.super.preInitClient();
+        ModelLoader.setCustomStateMapper(this, new StateMapperBase() {
+            protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
+                ResourceLocation registryName = BlockLiquidAntiMass.this.getRegistryName();
+                return new ModelResourceLocation(registryName.toString());
+            }
+        });
+    }
+
+    @Override
+    public void randomTick(World worldIn, BlockPos pos, IBlockState state, Random random) {/**/}
+
+    @Override
+    public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {/**/}
+
     private static class ShapelessVoidOneBucket extends ShapelessRecipes {
 
         public ShapelessVoidOneBucket(ItemStack output, List<ItemStack> inputList) {
@@ -62,50 +101,4 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
             return remainingItems;
         }
     }
-
-    public ItemStack getBucket() {
-        return StaticItems.LIQUID_ANTI_MASS_BUCKET;
-//        return UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, this.definedFluid);
-    }
-
-    @Override
-    public void postInit() {
-        // Recipe whereby the input bucket (as a part of the lava bucket) becomes the output bucket
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ShapelessVoidOneBucket.class.getSimpleName().toLowerCase(Locale.ENGLISH), ShapelessVoidOneBucket.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ShapelessVoidOneBucket(
-                this.getBucket(),
-                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
-                        new ItemStack(Items.LAVA_BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
-        // Recipe whereby an extra bucket is used in the input, which will become a returned bucket
-        GameRegistry.addRecipe(new ShapelessRecipes(
-                this.getBucket(),
-                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
-                        new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void preInitClient() {
-        IGravityModBlock.super.preInitClient();
-        ModelLoader.setCustomStateMapper(this, new StateMapperBase()
-        {
-            protected ModelResourceLocation getModelResourceLocation(IBlockState state)
-            {
-                ResourceLocation registryName = BlockLiquidAntiMass.this.getRegistryName();
-                return new ModelResourceLocation(registryName.toString());
-            }
-        });
-    }
-
-    @Override
-    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock) {/**/}
-
-    @Override
-    public void onBlockAdded(World world, BlockPos pos, IBlockState state) {/**/}
-
-    @Override
-    public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {/**/}
-
-    @Override
-    public void randomTick(World worldIn, BlockPos pos, IBlockState state, Random random) {/**/}
 }

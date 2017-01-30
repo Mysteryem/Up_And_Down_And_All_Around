@@ -11,19 +11,20 @@ import net.minecraftforge.fml.relauncher.Side;
  * The events are used internally to provide compatibility with items from other mods that may require
  * a player's motion/rotation to be in a specific state before being used. The relevant 'Post' event is then used to
  * put the state back to normal.
- *
+ * <p>
  * I would not advise using them as they may change unexpectedly to suit my needs.
- *
+ * <p>
  * Created by Mysteryem on 2016-10-23.
  */
 public class ItemStackUseEvent extends LivingEvent {
 
+    public final TickEvent.Phase phase;
     public final Side side;
     public final ItemStack stack;
-    public final TickEvent.Phase phase;
 
     /**
      * Will throw an NPE if player is null
+     *
      * @param itemStack
      * @param entityLivingBase
      * @param phase
@@ -36,28 +37,28 @@ public class ItemStackUseEvent extends LivingEvent {
     }
 
     /**
-     * Fired around onItemUse
+     * Fired around onPlayerStoppedUsing
      */
-    public static class OnUseOnBlock extends ItemStackUseEvent {
-        OnUseOnBlock(ItemStack itemStack, EntityLivingBase entityLivingBase, TickEvent.Phase phase, boolean isClientSide) {
+    public static class OnStoppedUsing extends ItemStackUseEvent {
+        OnStoppedUsing(ItemStack itemStack, EntityLivingBase entityLivingBase, TickEvent.Phase phase, boolean isClientSide) {
             super(itemStack, entityLivingBase, phase, isClientSide);
         }
 
         /**
-         * Fired immediately before onItemUse
+         * Fired immediately after onPlayerStoppedUsing
          */
-        public static class Pre extends OnUseOnBlock {
-            public Pre(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
-                super(itemStack, entityLivingBase, TickEvent.Phase.START, isClientSide);
+        public static class Post extends OnStoppedUsing {
+            public Post(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
+                super(itemStack, entityLivingBase, TickEvent.Phase.END, isClientSide);
             }
         }
 
         /**
-         * Fired immediately after onItemUse
+         * Fired immediately before onPlayerStoppedUsing
          */
-        public static class Post extends OnUseOnBlock {
-            public Post(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
-                super(itemStack, entityLivingBase, TickEvent.Phase.END, isClientSide);
+        public static class Pre extends OnStoppedUsing {
+            public Pre(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
+                super(itemStack, entityLivingBase, TickEvent.Phase.START, isClientSide);
             }
         }
     }
@@ -71,15 +72,6 @@ public class ItemStackUseEvent extends LivingEvent {
         }
 
         /**
-         * Fired immediately before onItemRightClick
-         */
-        public static class Pre extends OnUseGeneral {
-            public Pre(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
-                super(itemStack, entityLivingBase, TickEvent.Phase.START, isClientSide);
-            }
-        }
-
-        /**
          * Fired immediately after onItemRightClick
          */
         public static class Post extends OnUseGeneral {
@@ -87,31 +79,40 @@ public class ItemStackUseEvent extends LivingEvent {
                 super(itemStack, entityLivingBase, TickEvent.Phase.END, isClientSide);
             }
         }
-    }
-
-    /**
-     * Fired around onPlayerStoppedUsing
-     */
-    public static class OnStoppedUsing extends ItemStackUseEvent {
-        OnStoppedUsing(ItemStack itemStack, EntityLivingBase entityLivingBase, TickEvent.Phase phase, boolean isClientSide) {
-            super(itemStack, entityLivingBase, phase, isClientSide);
-        }
 
         /**
-         * Fired immediately before onPlayerStoppedUsing
+         * Fired immediately before onItemRightClick
          */
-        public static class Pre extends OnStoppedUsing {
+        public static class Pre extends OnUseGeneral {
             public Pre(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
                 super(itemStack, entityLivingBase, TickEvent.Phase.START, isClientSide);
             }
         }
+    }
+
+    /**
+     * Fired around onItemUse
+     */
+    public static class OnUseOnBlock extends ItemStackUseEvent {
+        OnUseOnBlock(ItemStack itemStack, EntityLivingBase entityLivingBase, TickEvent.Phase phase, boolean isClientSide) {
+            super(itemStack, entityLivingBase, phase, isClientSide);
+        }
 
         /**
-         * Fired immediately after onPlayerStoppedUsing
+         * Fired immediately after onItemUse
          */
-        public static class Post extends OnStoppedUsing {
+        public static class Post extends OnUseOnBlock {
             public Post(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
                 super(itemStack, entityLivingBase, TickEvent.Phase.END, isClientSide);
+            }
+        }
+
+        /**
+         * Fired immediately before onItemUse
+         */
+        public static class Pre extends OnUseOnBlock {
+            public Pre(ItemStack itemStack, EntityLivingBase entityLivingBase, boolean isClientSide) {
+                super(itemStack, entityLivingBase, TickEvent.Phase.START, isClientSide);
             }
         }
     }

@@ -9,13 +9,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
+import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
 /**
  * Created by Mysteryem on 2017-01-10.
  */
 public class MessageGravityGenerator implements IMessage {
-    private int newYHeight;
     private int newXRadius;
+    private int newYHeight;
     private int newZRadius;
     private boolean sendX;
     private boolean sendY;
@@ -23,9 +24,9 @@ public class MessageGravityGenerator implements IMessage {
     private int tileX;
     private int tileY;
     private int tileZ;
-//    private byte updateMask;
 
-    public MessageGravityGenerator(){}
+    @UsedReflexively
+    public MessageGravityGenerator() {/**/}
 
     public MessageGravityGenerator(TileGravityGenerator tile, int xRadius, int yHeight, int zRadius, boolean sendX, boolean sendY, boolean sendZ) {
         BlockPos pos = tile.getPos();
@@ -115,29 +116,5 @@ public class MessageGravityGenerator implements IMessage {
                 }
             }
         }
-//        if (container instanceof ContainerGravityGenerator) {
-//            ContainerGravityGenerator containerGravityGenerator = (ContainerGravityGenerator)container;
-//            TileGravityGenerator tileGravityGenerator = containerGravityGenerator.getTileGravityGenerator();
-//            if (this.sendX) {
-//                tileGravityGenerator.setRelativeXRadius(this.newXRadius);
-//            }
-//            if (this.sendY) {
-//                tileGravityGenerator.setRelativeYHeight(this.newYHeight);
-//            }
-//            if (this.sendZ) {
-//                tileGravityGenerator.setRelativeZRadius(this.newZRadius);
-//            }
-//            SPacketUpdateTileEntity updatePacket = tileGravityGenerator.getUpdatePacket();
-//
-//            if (updatePacket != null) {
-//
-//            }
-//        }
-//        else if (container == null){
-//            GravityMod.logWarning("null server side container");
-//        }
-//        else {
-//            GravityMod.logWarning("open server side container is wrong type");
-//        }
     }
 }

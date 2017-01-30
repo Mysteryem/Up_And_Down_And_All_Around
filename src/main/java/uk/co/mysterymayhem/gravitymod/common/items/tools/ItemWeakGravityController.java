@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -22,14 +21,27 @@ import java.util.List;
  * Created by Mysteryem on 2016-11-11.
  */
 public class ItemWeakGravityController extends ItemAbstractGravityController {
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.weakgravitycontroller"));
+        ItemTooltipListener.addWeakGravityTooltip(tooltip, playerIn);
+        super.addInformation(stack, playerIn, tooltip, advanced);
+    }
+
+    @Override
+    public boolean affectsPlayer(EntityPlayerMP player) {
+        return GravityManagerCommon.playerIsAffectedByWeakGravity(player);
+    }
+
     @Override
     public String getName() {
         return "weakgravitycontroller";
     }
 
     @Override
-    public boolean affectsPlayer(EntityPlayerMP player) {
-        return GravityManagerCommon.playerIsAffectedByWeakGravity(player);
+    public int getPriority(EntityPlayerMP target) {
+        return GravityPriorityRegistry.WEAK_GRAVITY_CONTROLLER;
     }
 
     @Override
@@ -49,31 +61,5 @@ public class ItemWeakGravityController extends ItemAbstractGravityController {
                         'A', new ItemStack(StaticItems.GRAVITY_ANCHOR, 1, OreDictionary.WILDCARD_VALUE)));
             }
         }
-//        for (int inputMeta : ItemAbstractGravityController.LEGAL_METADATA) {
-//            EnumControllerVisibleState visibleState = EnumControllerVisibleState.getFromCombinedMeta(inputMeta);
-//            int outputMeta = getCombinedMetaFor(EnumControllerActiveDirection.NONE, visibleState.getOffState());
-//
-//            GameRegistry.addRecipe(new ShapedOreRecipe(
-//                    new ItemStack(this, 1, outputMeta),
-//                    "ILI",
-//                    "LAL",
-//                    "ILI",
-//                    'I', StaticItems.GRAVITY_INGOT,
-//                    'L', Blocks.LEVER,
-//                    'A', new ItemStack(StaticItems.GRAVITY_ANCHOR, 1, OreDictionary.WILDCARD_VALUE)));
-//        }
-    }
-
-    @Override
-    public int getPriority(Entity target) {
-        return GravityPriorityRegistry.WEAK_GRAVITY_CONTROLLER;
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.weakgravitycontroller"));
-        ItemTooltipListener.addWeakGravityTooltip(tooltip, playerIn);
-        super.addInformation(stack, playerIn, tooltip, advanced);
     }
 }

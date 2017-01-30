@@ -13,8 +13,6 @@ import java.util.List;
  */
 public abstract class AbstractGUIHandlerRegistry<SINGLETON extends IModGUIProvider<?>, COLLECTION extends List<SINGLETON>> extends AbstractModObjectRegistry<SINGLETON, COLLECTION> implements IGuiHandler {
 
-    public abstract Object getModInstance();
-
     public AbstractGUIHandlerRegistry(COLLECTION serverSide) {
         super(serverSide);
     }
@@ -31,9 +29,7 @@ public abstract class AbstractGUIHandlerRegistry<SINGLETON extends IModGUIProvid
         }
     }
 
-    private boolean indexInRange(int index) {
-        return index < this.getCollection().size() && index >= 0;
-    }
+    public abstract Object getModInstance();
 
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
@@ -41,6 +37,10 @@ public abstract class AbstractGUIHandlerRegistry<SINGLETON extends IModGUIProvid
             return this.getCollection().get(ID).getServerSide(player, world, x, y, z);
         }
         return null;
+    }
+
+    private boolean indexInRange(int index) {
+        return index < this.getCollection().size() && index >= 0;
     }
 
     @Override

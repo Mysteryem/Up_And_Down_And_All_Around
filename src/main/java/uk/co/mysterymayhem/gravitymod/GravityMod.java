@@ -36,35 +36,53 @@ public class GravityMod {
     public static final String DEPENDENCIES_LIST = "required-after:Forge@[12.18.2.2107,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
 
-    public static final EnumRarity RARITY_WEAK = EnumHelper.addRarity("WEAK_GRAVITY",TextFormatting.WHITE, "Weak Strength");
+    public static final EnumRarity RARITY_WEAK = EnumHelper.addRarity("WEAK_GRAVITY", TextFormatting.WHITE, "Weak Strength");
     public static final EnumRarity RARITY_NORMAL = EnumHelper.addRarity("NORMAL_GRAVITY", TextFormatting.DARK_PURPLE, "Normal Strength");
     public static final EnumRarity RARITY_STRONG = EnumHelper.addRarity("STRONG_GRAVITY", TextFormatting.BLUE, "Strong Strength");
 
-    static {
-        FluidRegistry.enableUniversalBucket();
-    }
-
     public static final boolean GENERAL_DEBUG = false;
-
-    public static void logInfo(String formattableString, Object... objects) {
-        FMLLog.info("[UpAndDownAndAllAround] " + formattableString, objects);
-    }
-
-    public static void logWarning(String formattableString, Object... objects) {
-        FMLLog.warning("[UpAndDownAndAllAround] " + formattableString, objects);
-    }
-
-    private static int currentEntityID = 0;
-
-    public static int getNextEntityID() {
-        return currentEntityID++;
-    }
 
     @Mod.Instance(GravityMod.MOD_ID)
     public static GravityMod INSTANCE;
 
     @SidedProxy(clientSide = "uk.co.mysterymayhem.gravitymod.ClientProxy", serverSide = "uk.co.mysterymayhem.gravitymod.CommonProxy")
     public static CommonProxy proxy;
+
+    private static int currentEntityID = 0;
+
+    static {
+        FluidRegistry.enableUniversalBucket();
+    }
+
+    public static int getNextEntityID() {
+        return currentEntityID++;
+    }
+
+    public static void logWarning(String formattableString, Object... objects) {
+        FMLLog.warning("[UpAndDownAndAllAround] " + formattableString, objects);
+    }
+
+    @EventHandler
+    public void init(FMLInitializationEvent event) {
+        // Register listeners, blocks etc.
+        proxy.init();
+    }
+
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        ConfigHandler.processLateConfig();
+        ConfigHandler.processModCompatConfig();
+        ItemStackUseListener.makeHash();
+        ItemStackUseListener.buildPacketData();
+        if (GravityMod.GENERAL_DEBUG) {
+            GravityMod.logInfo("HashCode: " + ItemStackUseListener.getHashCode());
+        }
+        proxy.postInit();
+    }
+
+    public static void logInfo(String formattableString, Object... objects) {
+        FMLLog.info("[UpAndDownAndAllAround] " + formattableString, objects);
+    }
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -84,25 +102,6 @@ public class GravityMod {
 //                        " the player in the wrong direction, such as Blood.");
 
         proxy.preInit();
-    }
-
-    @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
-        // Register listeners, blocks etc.
-        proxy.init();
-    }
-
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        ConfigHandler.processLateConfig();
-        ConfigHandler.processModCompatConfig();
-        ItemStackUseListener.makeHash();
-        ItemStackUseListener.buildPacketData();
-        if (GravityMod.GENERAL_DEBUG) {
-            GravityMod.logInfo("HashCode: " + ItemStackUseListener.getHashCode());
-        }
-        proxy.postInit();
     }
 
 }

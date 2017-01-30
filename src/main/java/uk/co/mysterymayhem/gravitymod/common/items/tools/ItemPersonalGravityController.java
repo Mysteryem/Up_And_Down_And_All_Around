@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.items.tools;
 
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.EnumRarity;
@@ -21,9 +20,32 @@ import java.util.List;
  * Created by Mysteryem on 2016-11-12.
  */
 public class ItemPersonalGravityController extends ItemAbstractGravityController {
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.personalgravitycontroller"));
+        ItemTooltipListener.addNormalGravityTooltip(tooltip, playerIn);
+        super.addInformation(stack, playerIn, tooltip, advanced);
+    }
+
     @Override
     public boolean affectsPlayer(EntityPlayerMP player) {
         return GravityManagerCommon.playerIsAffectedByNormalGravity(player);
+    }
+
+    @Override
+    public String getName() {
+        return "personalgravitycontroller";
+    }
+
+    @Override
+    public int getPriority(EntityPlayerMP target) {
+        return GravityPriorityRegistry.PERSONAL_GRAVITY_CONTROLLER;
+    }
+
+    @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
     }
 
     @Override
@@ -41,28 +63,5 @@ public class ItemPersonalGravityController extends ItemAbstractGravityController
                     'P', StaticItems.GRAVITY_PEARL,
                     'W', new ItemStack(StaticItems.WEAK_GRAVITY_CONTROLLER, 1, inputMeta));
         }
-    }
-
-    @Override
-    public String getName() {
-        return "personalgravitycontroller";
-    }
-
-    @Override
-    public int getPriority(Entity target) {
-        return GravityPriorityRegistry.PERSONAL_GRAVITY_CONTROLLER;
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.personalgravitycontroller"));
-        ItemTooltipListener.addNormalGravityTooltip(tooltip, playerIn);
-        super.addInformation(stack, playerIn, tooltip, advanced);
-    }
-
-    @Override
-    public EnumRarity getRarity(ItemStack stack) {
-        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
     }
 }

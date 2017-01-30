@@ -32,19 +32,17 @@ public class RenderGravityEntityItem extends RenderEntityItem {
             ItemStack itemstack = itemIn.getEntityItem();
             Item item = itemstack.getItem();
 
-            if (item == null)
-            {
+            if (item == null) {
                 return 0;
             }
-            else
-            {
+            else {
                 boolean is3d = bakedModel.isGui3d();
                 int modelCount = this.getModelCount(itemstack);
                 float yOffset = 0.25F;
                 float upwardsBobTranslation = this.shouldBob() ? MathHelper.sin(((float)itemIn.getAge() + partialTicks) / 10.0F + itemIn.hoverStart) * 0.1F + 0.1F : 0;
                 float scaleYCameraTransformation = bakedModel.getItemCameraTransforms().getTransform(ItemCameraTransforms.TransformType.GROUND).scale.y;
 
-                EnumGravityDirection direction = ((EntityGravityItem) itemIn).getDirection();
+                EnumGravityDirection direction = ((EntityGravityItem)itemIn).getDirection();
                 double[] d = direction.adjustXYZValues(0, upwardsBobTranslation, 0);
 
                 // Replacement line
@@ -52,8 +50,7 @@ public class RenderGravityEntityItem extends RenderEntityItem {
                 //orig line
 //                GlStateManager.translate(xPos, yPos + upwardsBobTranslation + 0.25F * scaleYCameraTransformation, zPos);
 
-                if (is3d || this.renderManager.options != null)
-                {
+                if (is3d || this.renderManager.options != null) {
                     float itemSpinYaw = (((float)itemIn.getAge() + partialTicks) / 20.0F + itemIn.hoverStart) * (180F / (float)Math.PI);
 
                     // Added line

@@ -12,37 +12,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * Created by Mysteryem on 2016-12-08.
  */
 public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
-    Class<T> getEntityClass();
-
-    /**
-     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
-     *
-     * Default for living mobs: 80.
-     *
-     * @return
-     */
-    int getTrackingRange();
-
-    /**
-     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
-     *
-     * Default for living mobs: 3.
-     *
-     * @return
-     */
-    int getUpdateFrequency();
-
-    /**
-     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
-     *
-     * Default for living mobs: true.
-     *
-     * @return
-     */
-    boolean sendsVelocityUpdates();
-
-    int getUniqueID();
-
     @Override
     default void preInit() {
         EntityRegistry.registerModEntity(
@@ -55,6 +24,37 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
                 this.sendsVelocityUpdates());
         IModObject.super.preInit();
     }
+
+    Class<T> getEntityClass();
+
+    int getUniqueID();
+
+    /**
+     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
+     * <p>
+     * Default for living mobs: 80.
+     *
+     * @return
+     */
+    int getTrackingRange();
+
+    /**
+     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
+     * <p>
+     * Default for living mobs: 3.
+     *
+     * @return
+     */
+    int getUpdateFrequency();
+
+    /**
+     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
+     * <p>
+     * Default for living mobs: true.
+     *
+     * @return
+     */
+    boolean sendsVelocityUpdates();
 
     @Override
     @SideOnly(Side.CLIENT)

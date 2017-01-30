@@ -37,146 +37,46 @@ public class LambdaBuilder {
     // implement in a lambda is public.
     private static final MethodHandles.Lookup TRUSTED_LOOKUP = LookupHelper.getTrustedLookup();
 
-    private static boolean isValidInstanceMethod(MethodHandle handle) {
+    public static <I> I buildFieldGetter(Class<I> functionalInterface, Field field) {
         try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_invokeInterface
-                    || referenceKind == MethodHandleInfo.REF_invokeSpecial
-                    || referenceKind == MethodHandleInfo.REF_invokeVirtual;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
+            MethodHandle getter = TRUSTED_LOOKUP.unreflectGetter(field);
+
+            if (Modifier.isStatic(field.getModifiers())) {
+                return LambdaBuilder.buildStaticFieldGetter(functionalInterface, getter);
+            }
+            else {
+                return LambdaBuilder.buildInstanceFieldGetter(functionalInterface, getter);
+            }
+        } catch (IllegalAccessException e) {
+            throw new LambdaBuildException(e);
         }
     }
 
-    private static boolean isValidStaticMethod(MethodHandle handle) {
+    public static <I> I buildFieldSetter(Class<I> functionalInterface, Field field) {
         try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_invokeStatic;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
+            MethodHandle getter = TRUSTED_LOOKUP.unreflectSetter(field);
+
+            if (Modifier.isStatic(field.getModifiers())) {
+                return LambdaBuilder.buildStaticFieldSetter(functionalInterface, getter);
+            }
+            else {
+                return LambdaBuilder.buildInstanceFieldSetter(functionalInterface, getter);
+            }
+        } catch (IllegalAccessException e) {
+            throw new LambdaBuildException(e);
         }
     }
 
-    private static boolean isValidINVOKESPECIAL(MethodHandle handle) {
-        try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_invokeSpecial;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
-        }
+    public static <I_GET, I_Set> GetterSetterTuple<I_GET, I_Set> buildGetterSetterTuple(Class<I_GET> functionalInterfaceGetter, Class<I_Set> functionalInterfaceSetter, Field field) {
+        return new GetterSetterTuple<>(
+                LambdaBuilder.buildFieldGetter(functionalInterfaceGetter, field),
+                LambdaBuilder.buildFieldSetter(functionalInterfaceSetter, field),
+                field,
+                true);
     }
 
-    private static boolean isValidGETSTATIC(MethodHandle handle) {
-        try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_getStatic;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
-        }
-    }
-
-    private static boolean isValidPUTSTATIC(MethodHandle handle) {
-        try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_putStatic;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
-        }
-    }
-
-    private static boolean isValidGETFIELD(MethodHandle handle) {
-        try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_getField;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
-        }
-    }
-
-    private static boolean isValidPUTFIELD(MethodHandle handle) {
-        try {
-            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
-            int referenceKind = methodHandleInfo.getReferenceKind();
-            return referenceKind == MethodHandleInfo.REF_putField;
-        } catch (Exception e) {
-            //likely case is that it's not a direct methodhandle (which we can't use anyway)
-            return false;
-        }
-    }
-
-    private static String informativeToStringOutput(MethodHandle methodHandle) {
-        try {
-            return TRUSTED_LOOKUP.revealDirect(methodHandle).toString();
-        } catch (Exception e) {
-            return "Non-direct MethodHandle: " + methodHandle;
-        }
-    }
-
-    private static void validateGetFieldMethodHandle(MethodHandle methodHandle) {
-        if (!isValidGETFIELD(methodHandle)) {
-            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid GETFIELD methodhandle");
-        }
-    }
-
-    private static void validatePutFieldMethodHandle(MethodHandle methodHandle) {
-        if (!isValidPUTFIELD(methodHandle)) {
-            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid PUTFIELD methodhandle");
-        }
-    }
-
-    private static void validateGetStaticMethodHandle(MethodHandle methodHandle) {
-        if (!isValidGETSTATIC(methodHandle)) {
-            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid GETSTATIC methodhandle");
-        }
-    }
-
-    private static void validatePutStaticMethodHandle(MethodHandle methodHandle) {
-        if (!isValidPUTSTATIC(methodHandle)) {
-            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid PUTSTATIC methodhandle");
-        }
-    }
-
-    private static void validateInstanceMethodHandle(MethodHandle methodHandle) {
-        if (!isValidInstanceMethod(methodHandle)) {
-            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid instance methodhandle");
-        }
-
-        MethodType methodType = methodHandle.type();
-        // First argument is the class of the instance the method is called on
-        if (methodType.parameterCount() < 1) {
-            throw new LambdaBuildException("The first argument of MethodHandles used for creating instance method" +
-                    " lambdas must have their first parameter equal the class the method is from");
-        }
-    }
-
-    private static void validateInstanceMethod(Method method) {
-        if (Modifier.isStatic(method.getModifiers())) {
-            throw new LambdaBuildException(method + " is not an instance method");
-        }
-    }
-
-    private static void validateStaticMethodHandle(MethodHandle methodHandle) {
-        if (!isValidStaticMethod(methodHandle)) {
-            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid static methodhandle");
-        }
-    }
-
-    private static void validateStaticMethod(Method method) {
-        if (!Modifier.isStatic(method.getModifiers())) {
-            throw new LambdaBuildException(method + " is not a static method");
-        }
+    public static <I> I buildInstanceFieldGetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        return LambdaBuilder.buildFieldLambda(functionalInterface, findInstanceFieldGetterHandle(declaringClass, fieldType, fieldNames));
     }
 
     @SuppressWarnings("unchecked")
@@ -218,84 +118,94 @@ public class LambdaBuilder {
 
         try {
             // Can't use invokeExact because the cast to INTERFACE is a cast to Object. invokeExact needs an exact cast that matches the MethodHandle
-            return (I) metafactory.getTarget().invoke();
+            return (I)metafactory.getTarget().invoke();
         } catch (Throwable throwable) {
             throw new LambdaBuildException("Creating instance of lambda failed", throwable);
         }
     }
 
-    public static <I> I buildInstanceFieldGetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        return LambdaBuilder.buildFieldLambda(functionalInterface, findInstanceFieldGetterHandle(declaringClass, fieldType, fieldNames));
+    private static MethodHandle findInstanceFieldGetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        ReflectiveOperationException mostRecentException = null;
+
+        for (String fieldName : fieldNames) {
+            try {
+                return TRUSTED_LOOKUP.findGetter(declaringClass, fieldName, fieldType);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                mostRecentException = e;
+            }
+        }
+        String extraInfo = String.format("Failed to find getter handle for instance field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
+        throw new LambdaBuildException(extraInfo, mostRecentException);
+    }
+
+    private static Method findFunctionalInterfaceMethod(Class<?> clazz) {
+        if (!clazz.isInterface()) {
+            throw new LambdaBuildException(clazz + " is not a functional interface (not an interface)");
+        }
+
+        Method[] methods = clazz.getMethods();
+
+        Method functionalMethod = null;
+
+        for (Method method : methods) {
+            if (Modifier.isAbstract(method.getModifiers())) {
+                if (functionalMethod != null) {
+                    throw new LambdaBuildException(clazz + " is not a functional interface (has more than one abstract method)");
+                }
+                else {
+                    functionalMethod = method;
+                }
+            }
+        }
+
+        if (functionalMethod == null) {
+            throw new LambdaBuildException(clazz + " is not a functional interface (has no abstract methods)");
+        }
+
+        return functionalMethod;
     }
 
     public static <I> I buildInstanceFieldSetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
         return LambdaBuilder.buildFieldLambda(functionalInterface, findInstanceFieldSetterHandle(declaringClass, fieldType, fieldNames));
     }
 
-    public static <I> I buildStaticFieldGetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        return LambdaBuilder.buildFieldLambda(functionalInterface, findStaticFieldGetterHandle(declaringClass, fieldType, fieldNames));
+    private static MethodHandle findInstanceFieldSetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        ReflectiveOperationException mostRecentException = null;
+
+        for (String fieldName : fieldNames) {
+            try {
+                return TRUSTED_LOOKUP.findSetter(declaringClass, fieldName, fieldType);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                mostRecentException = e;
+            }
+        }
+        String extraInfo = String.format("Failed to find setter handle for instance field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
+        throw new LambdaBuildException(extraInfo, mostRecentException);
     }
 
-    public static <I> I buildStaticFieldSetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        return LambdaBuilder.buildFieldLambda(functionalInterface, findStaticFieldSetterHandle(declaringClass, fieldType, fieldNames));
-    }
+    /**
+     * Produces a Lambda that takes takes an object instance as the first parameter of its functional method
+     *
+     * @param functionalInterface Class object of a FunctionalInterface (or any interface class with a single abstract method)
+     * @param method              The method the lambda should call on it's passed object
+     * @param <I>
+     * @return
+     */
+    public static <I> I buildInstanceMethodLambda(Class<I> functionalInterface, Method method) {
+        validateInstanceMethod(method);
 
-    public static <I> I buildFieldGetter(Class<I> functionalInterface, Field field) {
         try {
-            MethodHandle getter = TRUSTED_LOOKUP.unreflectGetter(field);
-
-            if (Modifier.isStatic(field.getModifiers())) {
-                return LambdaBuilder.buildStaticFieldGetter(functionalInterface, getter);
-            }
-            else {
-                return LambdaBuilder.buildInstanceFieldGetter(functionalInterface, getter);
-            }
+            MethodHandle methodHandle = TRUSTED_LOOKUP.unreflect(method);
+            return LambdaBuilder.buildInstanceMethodLambda(functionalInterface, methodHandle);
         } catch (IllegalAccessException e) {
             throw new LambdaBuildException(e);
         }
     }
 
-    public static <I> I buildFieldSetter(Class<I> functionalInterface, Field field) {
-        try {
-            MethodHandle getter = TRUSTED_LOOKUP.unreflectSetter(field);
-
-            if (Modifier.isStatic(field.getModifiers())) {
-                return LambdaBuilder.buildStaticFieldSetter(functionalInterface, getter);
-            }
-            else {
-                return LambdaBuilder.buildInstanceFieldSetter(functionalInterface, getter);
-            }
-        } catch (IllegalAccessException e) {
-            throw new LambdaBuildException(e);
+    private static void validateInstanceMethod(Method method) {
+        if (Modifier.isStatic(method.getModifiers())) {
+            throw new LambdaBuildException(method + " is not an instance method");
         }
-    }
-
-    public static <I_GET, I_Set> GetterSetterTuple<I_GET, I_Set> buildGetterSetterTuple(Class<I_GET> functionalInterfaceGetter, Class<I_Set> functionalInterfaceSetter, Field field) {
-        return new GetterSetterTuple<>(
-                LambdaBuilder.buildFieldGetter(functionalInterfaceGetter, field),
-                LambdaBuilder.buildFieldSetter(functionalInterfaceSetter, field),
-                field,
-                true);
-    }
-
-    private static <I> I buildInstanceFieldGetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
-        validateGetFieldMethodHandle(fieldHandle);
-        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
-    }
-
-    private static <I> I buildInstanceFieldSetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
-        validatePutFieldMethodHandle(fieldHandle);
-        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
-    }
-
-    private static <I> I buildStaticFieldGetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
-        validateGetStaticMethodHandle(fieldHandle);
-        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
-    }
-
-    private static <I> I buildStaticFieldSetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
-        validatePutStaticMethodHandle(fieldHandle);
-        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
     }
 
     @SuppressWarnings("unchecked")
@@ -351,28 +261,67 @@ public class LambdaBuilder {
         try {
             // Can't use invokeExact because the cast to INTERFACE is a cast to Object. invokeExact needs an exact cast
             // that matches the MethodHandle
-            return (I) metafactory.getTarget().invoke();
+            return (I)metafactory.getTarget().invoke();
         } catch (Throwable throwable) {
             throw new LambdaBuildException("Creating instance of lambda failed", throwable);
         }
     }
 
-    /**
-     * Produces a Lambda that takes takes an object instance as the first parameter of its functional method
-     *
-     * @param functionalInterface Class object of a FunctionalInterface (or any interface class with a single abstract method)
-     * @param method                   The method the lambda should call on it's passed object
-     * @param <I>
-     * @return
-     */
-    public static <I> I buildInstanceMethodLambda(Class<I> functionalInterface, Method method) {
-        validateInstanceMethod(method);
+    private static void validateInstanceMethodHandle(MethodHandle methodHandle) {
+        if (!isValidInstanceMethod(methodHandle)) {
+            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid instance methodhandle");
+        }
 
+        MethodType methodType = methodHandle.type();
+        // First argument is the class of the instance the method is called on
+        if (methodType.parameterCount() < 1) {
+            throw new LambdaBuildException("The first argument of MethodHandles used for creating instance method" +
+                    " lambdas must have their first parameter equal the class the method is from");
+        }
+    }
+
+    // TODO: Allow passing a different class to use for anonymous class' context that will be checked in addition to the other two classes, this will allow protected access that is otherwise impossible currently
+    private static Class<?> getContextForClassLoading(Method interfaceMethod, MethodHandle handleToCall) {
+        MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handleToCall);
+        Class<?> declaringClass = methodHandleInfo.getDeclaringClass();
+        Class<?> functionalInterface = interfaceMethod.getDeclaringClass();
         try {
-            MethodHandle methodHandle = TRUSTED_LOOKUP.unreflect(method);
-            return LambdaBuilder.buildInstanceMethodLambda(functionalInterface, methodHandle);
-        } catch (IllegalAccessException e) {
-            throw new LambdaBuildException(e);
+            Class.forName(functionalInterface.getName(), false, declaringClass.getClassLoader());
+            return declaringClass;
+        } catch (ClassNotFoundException e) {
+            Method methodToCall = methodHandleInfo.reflectAs(Method.class, TRUSTED_LOOKUP);
+            boolean accessible = Reflection.verifyMemberAccess(interfaceMethod.getDeclaringClass(), methodToCall.getDeclaringClass(), methodToCall, methodToCall.getModifiers());
+            if (accessible) {
+                return functionalInterface;
+            }
+            else {
+                throw new LambdaBuildException(
+                        "\n----------\n" +
+                                "The classloader for '" + declaringClass + "' cannot access '" + functionalInterface + "' so an anonymous class with private access cannot be created.\n"
+                                + "And '" + functionalInterface + "' cannot access '" + methodToCall + "' so the lambda cannot be created.\n" +
+                                "----------", e);
+            }
+        }
+    }
+
+    private static boolean isValidInstanceMethod(MethodHandle handle) {
+        try {
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_invokeInterface
+                    || referenceKind == MethodHandleInfo.REF_invokeSpecial
+                    || referenceKind == MethodHandleInfo.REF_invokeVirtual;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
+        }
+    }
+
+    private static String informativeToStringOutput(MethodHandle methodHandle) {
+        try {
+            return TRUSTED_LOOKUP.revealDirect(methodHandle).toString();
+        } catch (Exception e) {
+            return "Non-direct MethodHandle: " + methodHandle;
         }
     }
 
@@ -380,10 +329,10 @@ public class LambdaBuilder {
      * Produces a Lambda that takes takes an object instance as the first parameter of its functional method and runs a method, specified by class, method type and name
      *
      * @param functionalInterface Class object of a FunctionalInterface (or any interface class with a single abstract method).
-     * @param instanceClass            Class object of the object instance that the method that will be called is from.
-     * @param methodDescriptor         MethodType that matches the method .
+     * @param instanceClass       Class object of the object instance that the method that will be called is from.
+     * @param methodDescriptor    MethodType that matches the method .
      * @param methodNames
-     * @param <I>              awdd.
+     * @param <I>                 awdd.
      * @return adaw.
      */
     public static <I> I buildInstanceMethodLambda(
@@ -393,76 +342,79 @@ public class LambdaBuilder {
         return LambdaBuilder.buildInstanceMethodLambda(functionalInterface, foundHandle);
     }
 
+    private static MethodHandle findInstanceMethodHandle(Class<?> instanceClass, MethodType methodType, String... methodNames) {
+        ReflectiveOperationException mostRecentException = null;
+
+        for (String methodName : methodNames) {
+            try {
+                return TRUSTED_LOOKUP.findVirtual(instanceClass, methodName, methodType);
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                mostRecentException = e;
+            }
+        }
+        String extraInfo = String.format("Failed to find handle for instance method %s in %s with descriptor matching %s", Arrays.toString(methodNames), instanceClass, methodType);
+        throw new LambdaBuildException(extraInfo, mostRecentException);
+    }
+
     public static <I> I buildInstanceMethodLambda(
             Class<I> functionalInterface, Class<?> instanceClass, MethodType interfaceMethodType, MethodType instanceMethodType, String... methodNames) {
         MethodHandle foundHandle = findInstanceMethodHandle(instanceClass, interfaceMethodType, methodNames);
         return LambdaBuilder.buildInstanceMethodLambda(functionalInterface, foundHandle);
     }
 
-    /**
-     * Every call creates a new class, you should use getInstanceBinder instead to get an instance binder and use that to create bound lambda instances.
-     *
-     * @param functionalInterface
-     * @param method
-     * @param instance
-     * @param <T>
-     * @param <I>
-     * @return
-     * @throws LambdaBuildException
-     */
-    @Deprecated
-    private static <T, I> I buildBoundInstanceMethodLambda(Class<I> functionalInterface, Method method, T instance) {
-        InstanceBinder<T, I> instanceBoundMethodLambdaFactory = getInstanceBinder(functionalInterface, method);
-        return instanceBoundMethodLambdaFactory.apply(instance);
+    public static <I> I buildStaticFieldGetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        return LambdaBuilder.buildFieldLambda(functionalInterface, findStaticFieldGetterHandle(declaringClass, fieldType, fieldNames));
     }
 
-    public static <T, I> InstanceBinder<T, I> getInstanceBinder(Class<I> functionalInterface, MethodHandle methodHandle) {
-        validateInstanceMethodHandle(methodHandle);
-        MethodType methodType = methodHandle.type();
-        Class<?> declaringClass = methodType.parameterArray()[0];
+    private static MethodHandle findStaticFieldGetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        ReflectiveOperationException mostRecentException = null;
 
-        Method interfaceMethod = findFunctionalInterfaceMethod(functionalInterface);
-
-        Class<?> contextForClassLoading = getContextForClassLoading(interfaceMethod, methodHandle);
-
-        CallSite metafactory;
-        try {
-            metafactory = LambdaMetafactory.metafactory(
-                    TRUSTED_LOOKUP.in(contextForClassLoading),
-                    interfaceMethod.getName(),
-                    MethodType.methodType(functionalInterface, declaringClass),
-                    MethodType.methodType(interfaceMethod.getReturnType(), interfaceMethod.getParameterTypes()),
-                    methodHandle,
-                    MethodType.methodType(methodType.returnType(), methodType.dropParameterTypes(0, 1).parameterArray())
-            );
-        } catch (LambdaConversionException e) {
-            throw new LambdaBuildException(e);
+        for (String fieldName : fieldNames) {
+            try {
+                return TRUSTED_LOOKUP.findStaticGetter(declaringClass, fieldName, fieldType);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                mostRecentException = e;
+            }
         }
-
-        return new InstanceBinder<>(metafactory.getTarget());
+        String extraInfo = String.format("Failed to find getter handle for static field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
+        throw new LambdaBuildException(extraInfo, mostRecentException);
     }
 
-    public static <T, I> InstanceBinder<T, I> getInstanceBinder(Class<I> functionalInterface, Method method) {
-        validateInstanceMethod(method);
+    public static <I> I buildStaticFieldSetter(Class<I> functionalInterface, Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        return LambdaBuilder.buildFieldLambda(functionalInterface, findStaticFieldSetterHandle(declaringClass, fieldType, fieldNames));
+    }
 
-        MethodHandle methodHandle;
-        try {
-            methodHandle = TRUSTED_LOOKUP.unreflect(method);
-        } catch (IllegalAccessException e) {
-            throw new LambdaBuildException(e);
+    private static MethodHandle findStaticFieldSetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
+        ReflectiveOperationException mostRecentException = null;
+
+        for (String fieldName : fieldNames) {
+            try {
+                return TRUSTED_LOOKUP.findStaticSetter(declaringClass, fieldName, fieldType);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                mostRecentException = e;
+            }
         }
-
-        return getInstanceBinder(functionalInterface, methodHandle);
-    }
-
-    public static <T, I> InstanceBinder<T, I> getInstanceBinder(Class<I> functionalInterface, Class<? extends T> declaringClass, MethodType methodDescriptor, String... methodNames) {
-        MethodHandle instanceMethodHandle = findInstanceMethodHandle(declaringClass, methodDescriptor, methodNames);
-        return getInstanceBinder(functionalInterface, instanceMethodHandle);
+        String extraInfo = String.format("Failed to find setter handle for static field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
+        throw new LambdaBuildException(extraInfo, mostRecentException);
     }
 
     public static <I> I buildStaticMethodLambda(Class<I> functionalInterface, Class<?> declaringClass, MethodType methodDescriptor, String... methodNames) {
         MethodHandle foundHandle = findStaticMethodHandle(declaringClass, methodDescriptor, methodNames);
         return LambdaBuilder.buildStaticMethodLambda(functionalInterface, foundHandle);
+    }
+
+    private static MethodHandle findStaticMethodHandle(Class<?> clazz, MethodType methodType, String... methodNames) {
+        ReflectiveOperationException mostRecentException = null;
+
+        for (String methodName : methodNames) {
+            try {
+                return TRUSTED_LOOKUP.findStatic(clazz, methodName, methodType);
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                mostRecentException = e;
+            }
+        }
+        String extraInfo = String.format("Failed to find handle for static method %s in %s with descriptor matching %s", Arrays.toString(methodNames), clazz, methodType);
+        throw new LambdaBuildException(extraInfo, mostRecentException);
     }
 
     public static <I> I buildStaticMethodLambda(Class<I> functionalInterface, MethodHandle methodHandle) {
@@ -498,9 +450,26 @@ public class LambdaBuilder {
 
         try {
             // Can't use invokeExact because the cast to T is a cast to Object. invokeExact needs an exact cast that matches the MethodHandle
-            return (I) metafactory.getTarget().invoke();
+            return (I)metafactory.getTarget().invoke();
         } catch (Throwable throwable) {
             throw new LambdaBuildException(throwable);
+        }
+    }
+
+    private static void validateStaticMethodHandle(MethodHandle methodHandle) {
+        if (!isValidStaticMethod(methodHandle)) {
+            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid static methodhandle");
+        }
+    }
+
+    private static boolean isValidStaticMethod(MethodHandle handle) {
+        try {
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_invokeStatic;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
         }
     }
 
@@ -517,6 +486,97 @@ public class LambdaBuilder {
         return LambdaBuilder.buildStaticMethodLambda(functionalInterface, methodHandle);
     }
 
+    private static void validateStaticMethod(Method method) {
+        if (!Modifier.isStatic(method.getModifiers())) {
+            throw new LambdaBuildException(method + " is not a static method");
+        }
+    }
+
+    public static <T, I> InstanceBinder<T, I> getInstanceBinder(Class<I> functionalInterface, Class<? extends T> declaringClass, MethodType methodDescriptor, String... methodNames) {
+        MethodHandle instanceMethodHandle = findInstanceMethodHandle(declaringClass, methodDescriptor, methodNames);
+        return getInstanceBinder(functionalInterface, instanceMethodHandle);
+    }
+
+    public static <T, I> InstanceBinder<T, I> getInstanceBinder(Class<I> functionalInterface, MethodHandle methodHandle) {
+        validateInstanceMethodHandle(methodHandle);
+        MethodType methodType = methodHandle.type();
+        Class<?> declaringClass = methodType.parameterArray()[0];
+
+        Method interfaceMethod = findFunctionalInterfaceMethod(functionalInterface);
+
+        Class<?> contextForClassLoading = getContextForClassLoading(interfaceMethod, methodHandle);
+
+        CallSite metafactory;
+        try {
+            metafactory = LambdaMetafactory.metafactory(
+                    TRUSTED_LOOKUP.in(contextForClassLoading),
+                    interfaceMethod.getName(),
+                    MethodType.methodType(functionalInterface, declaringClass),
+                    MethodType.methodType(interfaceMethod.getReturnType(), interfaceMethod.getParameterTypes()),
+                    methodHandle,
+                    MethodType.methodType(methodType.returnType(), methodType.dropParameterTypes(0, 1).parameterArray())
+            );
+        } catch (LambdaConversionException e) {
+            throw new LambdaBuildException(e);
+        }
+
+        return new InstanceBinder<>(metafactory.getTarget());
+    }
+
+    private static <I> I buildInstanceFieldGetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
+        validateGetFieldMethodHandle(fieldHandle);
+        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
+    }
+
+    private static <I> I buildInstanceFieldSetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
+        validatePutFieldMethodHandle(fieldHandle);
+        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
+    }
+
+    /**
+     * Every call creates a new class, you should use getInstanceBinder instead to get an instance binder and use that to create bound lambda instances.
+     *
+     * @param functionalInterface
+     * @param method
+     * @param instance
+     * @param <T>
+     * @param <I>
+     * @return
+     * @throws LambdaBuildException
+     */
+    @Deprecated
+    private static <T, I> I buildInstanceMethodBoundLambda(Class<I> functionalInterface, Method method, T instance) {
+        InstanceBinder<T, I> instanceBoundMethodLambdaFactory = getInstanceBinder(functionalInterface, method);
+        return instanceBoundMethodLambdaFactory.apply(instance);
+    }
+
+    public static <T, I> InstanceBinder<T, I> getInstanceBinder(Class<I> functionalInterface, Method method) {
+        validateInstanceMethod(method);
+
+        MethodHandle methodHandle;
+        try {
+            methodHandle = TRUSTED_LOOKUP.unreflect(method);
+        } catch (IllegalAccessException e) {
+            throw new LambdaBuildException(e);
+        }
+
+        return getInstanceBinder(functionalInterface, methodHandle);
+    }
+
+    private static <I> I buildStaticFieldGetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
+        validateGetStaticMethodHandle(fieldHandle);
+        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
+    }
+
+    private static <I> I buildStaticFieldSetter(Class<I> functionalInterface, MethodHandle fieldHandle) {
+        validatePutStaticMethodHandle(fieldHandle);
+        return LambdaBuilder.buildFieldLambda(functionalInterface, fieldHandle);
+    }
+
+    private static MethodHandle findInstanceMethodHandle(Object instance, MethodType methodType, String... methodNames) {
+        return findInstanceMethodHandle(instance.getClass(), methodType, methodNames);
+    }
+
 
 //    public static <T, I> InstanceBinder<T, I> bind(Object obj, Class<I> boundFInterfaceClass, MethodType methodType, String... methodNames) {
 //
@@ -530,170 +590,82 @@ public class LambdaBuilder {
 //
 //    }
 
-    private static Method findFunctionalInterfaceMethod(Class<?> clazz) {
-        if (!clazz.isInterface()) {
-            throw new LambdaBuildException(clazz + " is not a functional interface (not an interface)");
-        }
-
-        Method[] methods = clazz.getMethods();
-
-        Method functionalMethod = null;
-
-        for (Method method : methods) {
-            if (Modifier.isAbstract(method.getModifiers())) {
-                if (functionalMethod != null) {
-                    throw new LambdaBuildException(clazz + " is not a functional interface (has more than one abstract method)");
-                }
-                else {
-                    functionalMethod = method;
-                }
-            }
-        }
-
-        if (functionalMethod == null) {
-            throw new LambdaBuildException(clazz + " is not a functional interface (has no abstract methods)");
-        }
-
-        return functionalMethod;
-    }
-
-    private static MethodHandle findInstanceMethodHandle(Object instance, MethodType methodType, String... methodNames) {
-        return findInstanceMethodHandle(instance.getClass(), methodType, methodNames);
-    }
-
-    private static MethodHandle findInstanceMethodHandle(Class<?> instanceClass, MethodType methodType, String... methodNames) {
-        ReflectiveOperationException mostRecentException = null;
-
-        for (String methodName : methodNames) {
-            try {
-                return TRUSTED_LOOKUP.findVirtual(instanceClass, methodName, methodType);
-            } catch (NoSuchMethodException | IllegalAccessException e) {
-                mostRecentException = e;
-            }
-        }
-        String extraInfo = String.format("Failed to find handle for instance method %s in %s with descriptor matching %s", Arrays.toString(methodNames), instanceClass, methodType);
-        throw new LambdaBuildException(extraInfo, mostRecentException);
-    }
-
-    private static MethodHandle findStaticMethodHandle(Class<?> clazz, MethodType methodType, String... methodNames) {
-        ReflectiveOperationException mostRecentException = null;
-
-        for (String methodName : methodNames) {
-            try {
-                return TRUSTED_LOOKUP.findStatic(clazz, methodName, methodType);
-            } catch (NoSuchMethodException | IllegalAccessException e) {
-                mostRecentException = e;
-            }
-        }
-        String extraInfo = String.format("Failed to find handle for static method %s in %s with descriptor matching %s", Arrays.toString(methodNames), clazz, methodType);
-        throw new LambdaBuildException(extraInfo, mostRecentException);
-    }
-
-    private static MethodHandle findStaticFieldGetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        ReflectiveOperationException mostRecentException = null;
-
-        for (String fieldName : fieldNames) {
-            try {
-                return TRUSTED_LOOKUP.findStaticGetter(declaringClass, fieldName, fieldType);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                mostRecentException = e;
-            }
-        }
-        String extraInfo = String.format("Failed to find getter handle for static field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
-        throw new LambdaBuildException(extraInfo, mostRecentException);
-    }
-
-    private static MethodHandle findStaticFieldSetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        ReflectiveOperationException mostRecentException = null;
-
-        for (String fieldName : fieldNames) {
-            try {
-                return TRUSTED_LOOKUP.findStaticSetter(declaringClass, fieldName, fieldType);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                mostRecentException = e;
-            }
-        }
-        String extraInfo = String.format("Failed to find setter handle for static field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
-        throw new LambdaBuildException(extraInfo, mostRecentException);
-    }
-
-    private static MethodHandle findInstanceFieldGetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        ReflectiveOperationException mostRecentException = null;
-
-        for (String fieldName : fieldNames) {
-            try {
-                return TRUSTED_LOOKUP.findGetter(declaringClass, fieldName, fieldType);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                mostRecentException = e;
-            }
-        }
-        String extraInfo = String.format("Failed to find getter handle for instance field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
-        throw new LambdaBuildException(extraInfo, mostRecentException);
-    }
-
-    private static MethodHandle findInstanceFieldSetterHandle(Class<?> declaringClass, Class<?> fieldType, String... fieldNames) {
-        ReflectiveOperationException mostRecentException = null;
-
-        for (String fieldName : fieldNames) {
-            try {
-                return TRUSTED_LOOKUP.findSetter(declaringClass, fieldName, fieldType);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                mostRecentException = e;
-            }
-        }
-        String extraInfo = String.format("Failed to find setter handle for instance field %s in %s with type %s", Arrays.toString(fieldNames), declaringClass, fieldType);
-        throw new LambdaBuildException(extraInfo, mostRecentException);
-    }
-
-    /**
-     * Exception wrapper for dealing with exceptions thrown by build methods
-     */
-    @SuppressWarnings("WeakerAccess")
-    public static final class LambdaBuildException extends RuntimeException {
-        public LambdaBuildException() {
-        }
-
-        public LambdaBuildException(String msg) {
-            super(msg);
-        }
-
-        public LambdaBuildException(String msg, Throwable cause) {
-            super(msg, cause);
-        }
-
-        public LambdaBuildException(Throwable cause) {
-            super(cause);
-        }
-
-        public LambdaBuildException(String msg, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-            super(msg, cause, enableSuppression, writableStackTrace);
-        }
-
-        LambdaBuildException(LambdaConversionException lambdaConversionException) {
-            this("Conversion to lambda class failed", lambdaConversionException);
-        }
-    }
-
-    private static Class<?> getContextForClassLoading(Method interfaceMethod, MethodHandle handleToCall) {
-        MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handleToCall);
-        Class<?> declaringClass = methodHandleInfo.getDeclaringClass();
-        Class<?> functionalInterface = interfaceMethod.getDeclaringClass();
+    private static boolean isValidGETFIELD(MethodHandle handle) {
         try {
-            Class.forName(functionalInterface.getName(), false, declaringClass.getClassLoader());
-            return declaringClass;
-        } catch (ClassNotFoundException e) {
-            Method methodToCall = methodHandleInfo.reflectAs(Method.class, TRUSTED_LOOKUP);
-            boolean accessible = Reflection.verifyMemberAccess(interfaceMethod.getDeclaringClass(), methodToCall.getDeclaringClass(), methodToCall, methodToCall.getModifiers());
-            if (accessible) {
-                return functionalInterface;
-            }
-            else {
-                throw new LambdaBuildException(
-                        "\n----------\n" +
-                                "The classloader for '" + declaringClass + "' cannot access '" + functionalInterface + "' so an anonymous class with private access cannot be created.\n"
-                                + "And '" + functionalInterface + "' cannot access '" + methodToCall + "' so the lambda cannot be created.\n" +
-                                "----------", e);
-            }
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_getField;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
+        }
+    }
+
+    private static boolean isValidGETSTATIC(MethodHandle handle) {
+        try {
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_getStatic;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
+        }
+    }
+
+    private static boolean isValidINVOKESPECIAL(MethodHandle handle) {
+        try {
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_invokeSpecial;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
+        }
+    }
+
+    private static boolean isValidPUTFIELD(MethodHandle handle) {
+        try {
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_putField;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
+        }
+    }
+
+    private static boolean isValidPUTSTATIC(MethodHandle handle) {
+        try {
+            MethodHandleInfo methodHandleInfo = TRUSTED_LOOKUP.revealDirect(handle);
+            int referenceKind = methodHandleInfo.getReferenceKind();
+            return referenceKind == MethodHandleInfo.REF_putStatic;
+        } catch (Exception e) {
+            //likely case is that it's not a direct methodhandle (which we can't use anyway)
+            return false;
+        }
+    }
+
+    private static void validateGetFieldMethodHandle(MethodHandle methodHandle) {
+        if (!isValidGETFIELD(methodHandle)) {
+            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid GETFIELD methodhandle");
+        }
+    }
+
+    private static void validateGetStaticMethodHandle(MethodHandle methodHandle) {
+        if (!isValidGETSTATIC(methodHandle)) {
+            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid GETSTATIC methodhandle");
+        }
+    }
+
+    private static void validatePutFieldMethodHandle(MethodHandle methodHandle) {
+        if (!isValidPUTFIELD(methodHandle)) {
+            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid PUTFIELD methodhandle");
+        }
+    }
+
+    private static void validatePutStaticMethodHandle(MethodHandle methodHandle) {
+        if (!isValidPUTSTATIC(methodHandle)) {
+            throw new LambdaBuildException(informativeToStringOutput(methodHandle) + " is not a valid PUTSTATIC methodhandle");
         }
     }
 
@@ -709,24 +681,54 @@ public class LambdaBuilder {
             this.factory = factory;
         }
 
-        @Override
-        public INTERFACE apply(INSTANCE objectToBind) {
-            try {
-                return (INTERFACE) factory.invoke(objectToBind);
-            } catch (Throwable throwable) {
-                throw new RuntimeException(throwable);
-            }
-        }
-
         /**
          * Alias for this::apply.
-         *
+         * <p>
          * Creates a new instance of the lambda this InstanceBinder represents, with objectToBind as the constructor's argument
+         *
          * @param objectToBind
          * @return
          */
         public INTERFACE createBoundLambda(INSTANCE objectToBind) {
             return this.apply(objectToBind);
+        }
+
+        @Override
+        public INTERFACE apply(INSTANCE objectToBind) {
+            try {
+                return (INTERFACE)factory.invoke(objectToBind);
+            } catch (Throwable throwable) {
+                throw new RuntimeException(throwable);
+            }
+        }
+    }
+
+    /**
+     * Exception wrapper for dealing with exceptions thrown by build methods
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static final class LambdaBuildException extends RuntimeException {
+        public LambdaBuildException() {
+        }
+
+        public LambdaBuildException(String msg) {
+            super(msg);
+        }
+
+        public LambdaBuildException(Throwable cause) {
+            super(cause);
+        }
+
+        public LambdaBuildException(String msg, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+            super(msg, cause, enableSuppression, writableStackTrace);
+        }
+
+        LambdaBuildException(LambdaConversionException lambdaConversionException) {
+            this("Conversion to lambda class failed", lambdaConversionException);
+        }
+
+        public LambdaBuildException(String msg, Throwable cause) {
+            super(msg, cause);
         }
     }
 }

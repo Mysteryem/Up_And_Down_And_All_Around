@@ -35,6 +35,28 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
     public static final CreativeTabs UP_AND_DOWN_CREATIVE_TAB;
     //'fake' tab for JEI compat
     public static final CreativeTabs FAKE_TAB_FOR_CONTROLLERS;
+    @SuppressWarnings("WeakerAccess")
+    static ItemCreativeTabIcon creativeTabIcon;
+    static ItemPersonalGravityController personalGravityController;
+    static ItemWeakGravityController weakGravityController;
+    static ItemUltimateGravityController ultimateGravityController;
+    static ItemGravityBauble gravityBauble;
+    static ItemGravityAnchor gravityAnchor;
+    static ItemGravityIngot gravityIngot;
+    static ItemGravityPearl gravityPearl;
+    static ItemGravityDust gravityDust;
+    static ItemSpacetimeAnomaly spacetimeAnomaly;
+    static ItemArmourPaste armourPaste;
+    static ItemGravityBoots gravityBoots;
+    static ItemGravityChestplate gravityChestplate;
+    static ItemGravityHelmet gravityHelmet;
+    static ItemGravityLeggings gravityLeggings;
+    static ItemGravityFieldGoggles gravityFieldGoggles;
+    static ItemDestabilisedGravityDust destabilisedGravityDust;
+    static ItemRestabilisedGravityDust restabilisedGravityDust;
+    static ItemStack liquidAntiMassBucket;
+    static boolean STATIC_SETUP_ALLOWED = false;
+
     static {
         UP_AND_DOWN_CREATIVE_TAB = new CreativeTabs(GravityMod.MOD_ID) {
             @Override
@@ -66,29 +88,6 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
         CreativeTabs.CREATIVE_TAB_ARRAY = creativeTabArray;
     }
 
-    @SuppressWarnings("WeakerAccess")
-    static ItemCreativeTabIcon creativeTabIcon;
-    static ItemPersonalGravityController personalGravityController;
-    static ItemWeakGravityController weakGravityController;
-    static ItemUltimateGravityController ultimateGravityController;
-    static ItemGravityBauble gravityBauble;
-    static ItemGravityAnchor gravityAnchor;
-    static ItemGravityIngot gravityIngot;
-    static ItemGravityPearl gravityPearl;
-    static ItemGravityDust gravityDust;
-    static ItemSpacetimeAnomaly spacetimeAnomaly;
-    static ItemArmourPaste armourPaste;
-    static ItemGravityBoots gravityBoots;
-    static ItemGravityChestplate gravityChestplate;
-    static ItemGravityHelmet gravityHelmet;
-    static ItemGravityLeggings gravityLeggings;
-    static ItemGravityFieldGoggles gravityFieldGoggles;
-    static ItemDestabilisedGravityDust destabilisedGravityDust;
-    static ItemRestabilisedGravityDust restabilisedGravityDust;
-    static ItemStack liquidAntiMassBucket;
-
-    static boolean STATIC_SETUP_ALLOWED = false;
-
     public ModItems() {
         super(new ArrayList<>());
     }
@@ -96,24 +95,24 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
     @Override
     protected void addToCollection(ArrayList<IGravityModItem<?>> modObjects) {
         liquidAntiMassBucket = UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, LiquidAntiMass.INSTANCE);
-        modObjects.add(creativeTabIcon             = new ItemCreativeTabIcon());
-        modObjects.add(personalGravityController   = new ItemPersonalGravityController());
-        modObjects.add(weakGravityController       = new ItemWeakGravityController());
-        modObjects.add(ultimateGravityController   = new ItemUltimateGravityController());
-        modObjects.add(gravityBauble               = new ItemGravityBauble());
-        modObjects.add(gravityAnchor               = new ItemGravityAnchor());
-        modObjects.add(gravityIngot                = new ItemGravityIngot());
-        modObjects.add(gravityPearl                = new ItemGravityPearl());
-        modObjects.add(gravityDust                 = new ItemGravityDust());
-        modObjects.add(spacetimeAnomaly            = new ItemSpacetimeAnomaly());
-        modObjects.add(armourPaste                 = new ItemArmourPaste());
-        modObjects.add(gravityBoots                = new ItemGravityBoots());
-        modObjects.add(gravityChestplate           = new ItemGravityChestplate());
-        modObjects.add(gravityHelmet               = new ItemGravityHelmet());
-        modObjects.add(gravityLeggings             = new ItemGravityLeggings());
-        modObjects.add(gravityFieldGoggles         = new ItemGravityFieldGoggles());
-        modObjects.add(destabilisedGravityDust     = new ItemDestabilisedGravityDust());
-        modObjects.add(restabilisedGravityDust     = new ItemRestabilisedGravityDust());
+        modObjects.add(creativeTabIcon = new ItemCreativeTabIcon());
+        modObjects.add(personalGravityController = new ItemPersonalGravityController());
+        modObjects.add(weakGravityController = new ItemWeakGravityController());
+        modObjects.add(ultimateGravityController = new ItemUltimateGravityController());
+        modObjects.add(gravityBauble = new ItemGravityBauble());
+        modObjects.add(gravityAnchor = new ItemGravityAnchor());
+        modObjects.add(gravityIngot = new ItemGravityIngot());
+        modObjects.add(gravityPearl = new ItemGravityPearl());
+        modObjects.add(gravityDust = new ItemGravityDust());
+        modObjects.add(spacetimeAnomaly = new ItemSpacetimeAnomaly());
+        modObjects.add(armourPaste = new ItemArmourPaste());
+        modObjects.add(gravityBoots = new ItemGravityBoots());
+        modObjects.add(gravityChestplate = new ItemGravityChestplate());
+        modObjects.add(gravityHelmet = new ItemGravityHelmet());
+        modObjects.add(gravityLeggings = new ItemGravityLeggings());
+        modObjects.add(gravityFieldGoggles = new ItemGravityFieldGoggles());
+        modObjects.add(destabilisedGravityDust = new ItemDestabilisedGravityDust());
+        modObjects.add(restabilisedGravityDust = new ItemRestabilisedGravityDust());
         STATIC_SETUP_ALLOWED = true;
     }
 

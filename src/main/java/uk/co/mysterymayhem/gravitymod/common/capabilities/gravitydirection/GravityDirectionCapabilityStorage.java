@@ -19,7 +19,7 @@ class GravityDirectionCapabilityStorage implements Capability.IStorage<IGravityD
 
     @Override
     public void readNBT(Capability<IGravityDirectionCapability> capability, IGravityDirectionCapability instance, EnumFacing side, NBTBase nbt) {
-        EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(((NBTPrimitive) nbt).getInt());
+        EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(((NBTPrimitive)nbt).getInt());
         instance.setDirection(direction);
         instance.setDirectionNoTimeout(direction);
         instance.setPendingDirection(direction, Integer.MIN_VALUE + 1);

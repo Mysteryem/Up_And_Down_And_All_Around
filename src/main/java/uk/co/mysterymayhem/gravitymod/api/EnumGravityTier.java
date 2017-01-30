@@ -43,20 +43,20 @@ public enum EnumGravityTier implements IStringSerializable {
         }
     };
 
-    public abstract int getPriority(double percent);
-
-    public abstract boolean isPlayerAffected(EntityPlayerMP playerMP);
-
-    private final String internalPrefix;
     private final float[] colour;
+    private final String internalPrefix;
 
     EnumGravityTier(String internalPrefix, float[] colour) {
         this.internalPrefix = internalPrefix;
         this.colour = colour;
     }
 
-    public String getInternalPrefix() {
-        return internalPrefix;
+    public abstract int getPriority(double percent);
+
+    public abstract boolean isPlayerAffected(EntityPlayerMP playerMP);
+
+    public float[] getColour() {
+        return colour;
     }
 
     @Override
@@ -64,7 +64,7 @@ public enum EnumGravityTier implements IStringSerializable {
         return this.getInternalPrefix();
     }
 
-    public float[] getColour() {
-        return colour;
+    public String getInternalPrefix() {
+        return internalPrefix;
     }
 }

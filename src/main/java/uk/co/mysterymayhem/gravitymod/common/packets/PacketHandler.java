@@ -15,22 +15,25 @@ import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChange
  * Created by Mysteryem on 2016-10-26.
  */
 public class PacketHandler {
+    public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(GravityMod.MOD_ID);
+
     private static int packetID = 0;
 
-    public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(GravityMod.MOD_ID);
+    public static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Class<REQ> requestMessageType, Side processingSide) {
+        INSTANCE.registerMessage(messageHandler, requestMessageType, nextID(), processingSide);
+    }
 
     private static int nextID() {
         return packetID++;
     }
 
     public static void registerMessages() {
-        INSTANCE.registerMessage(GravityChangePacketHandler.class, GravityChangeMessage.class, nextID(), Side.CLIENT);
-        INSTANCE.registerMessage(GravityChangePacketHandler.class, GravityChangeMessage.class, nextID(), Side.SERVER);
-        INSTANCE.registerMessage(ModCompatConfigCheckPacketHandler.class, ModCompatConfigCheckMessage.class, nextID(), Side.CLIENT);
-        INSTANCE.registerMessage(ModCompatConfigCheckPacketHandler.class, ModCompatConfigCheckMessage.class, nextID(), Side.SERVER);
-    }
+        GravityChangePacketHandler gravityChangePacketHandler = new GravityChangePacketHandler();
+        ModCompatConfigCheckPacketHandler modCompatConfigCheckPacketHandler = new ModCompatConfigCheckPacketHandler();
 
-    public static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Class<REQ> requestMessageType, Side processingSide) {
-        INSTANCE.registerMessage(messageHandler, requestMessageType, nextID(), processingSide);
+        INSTANCE.registerMessage(gravityChangePacketHandler, GravityChangeMessage.class, nextID(), Side.CLIENT);
+        INSTANCE.registerMessage(gravityChangePacketHandler, GravityChangeMessage.class, nextID(), Side.SERVER);
+        INSTANCE.registerMessage(modCompatConfigCheckPacketHandler, ModCompatConfigCheckMessage.class, nextID(), Side.CLIENT);
+        INSTANCE.registerMessage(modCompatConfigCheckPacketHandler, ModCompatConfigCheckMessage.class, nextID(), Side.SERVER);
     }
 }

@@ -25,17 +25,17 @@ public class ItemGravityIngot extends Item implements IGravityModItem<ItemGravit
     }
 
     @Override
-    public void preInit() {
-        ARMOUR_MATERIAL.customCraftingMaterial = this;
-        IGravityModItem.super.preInit();
-    }
-
-    @Override
     public void postInit() {
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 this,
                 "DID",
                 'D', StaticItems.DESTABILISED_GRAVITY_DUST,
                 'I', "ingotIron"));
+    }
+
+    @Override
+    public void preInit() {
+        ARMOUR_MATERIAL.customCraftingMaterial = this;
+        IGravityModItem.super.preInit();
     }
 }

@@ -7,12 +7,15 @@ import java.util.Objects;
  */
 @FunctionalInterface
 public interface ObjByteConsumer<T> {
-    void accept(T t, byte value);
-
     default ObjByteConsumer<T> andThen(ObjByteConsumer<? super T> after) {
         Objects.requireNonNull(after);
-        return (t, v) -> { this.accept(t, v); after.accept(t, v); };
+        return (t, v) -> {
+            this.accept(t, v);
+            after.accept(t, v);
+        };
     }
+
+    void accept(T t, byte value);
 
     default ByteConsumer bind(T instance) {
         return (b) -> this.accept(instance, b);

@@ -17,21 +17,6 @@ public class ModelGravityGoggles extends ModelBiped {
     public static final ModelGravityGoggles INSTANCE = new ModelGravityGoggles();
     private static final ItemStack STACK = new ItemStack(StaticItems.GRAVITY_FIELD_GOGGLES);
 
-    public ModelGravityGoggles() {
-//        this.textureHeight = 16;
-//        this.textureWidth = 16;
-////        this.bipedHead.isHidden = true;
-//        this.bipedLeftArm.isHidden = true;
-//        this.bipedBody.isHidden = true;
-//        this.bipedHeadwear.isHidden = true;
-//        this.bipedLeftLeg.isHidden = true;
-//        this.bipedRightArm.isHidden = true;
-//        this.bipedRightLeg.isHidden = true;
-//        this.bipedHead = new ModelRenderer(this, 0, 0);
-//        this.bipedHead.setRotationPoint(0.0F, 0.0F, 0.0F);
-//        this.bipedHead.addBox(-4.0F, -8.0F, -4.5F, 8, 3, 9, 0.6f);
-    }
-
     @Override
     public void render(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
         RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();

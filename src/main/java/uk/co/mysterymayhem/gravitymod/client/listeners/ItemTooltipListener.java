@@ -27,6 +27,64 @@ import java.util.List;
 @SideOnly(Side.CLIENT)
 public class ItemTooltipListener {
 
+    @SubscribeEvent
+    public void onTooltipDisplay(ItemTooltipEvent event) {
+        EntityPlayer player = event.getEntityPlayer();
+        if (player != null && !(player instanceof FakePlayer)) {
+            ItemStack itemStack = event.getItemStack();
+            if (itemStack != null) {
+                List<String> toolTips = event.getToolTip();
+                if (itemStack.getItem() instanceof IWeakGravityEnabler) {
+                    addWeakGravityTooltip(toolTips, player);
+                    addNormalGravityTooltip(toolTips, player);
+                }
+                else if (ItemArmourPaste.hasPasteTag(itemStack)) {
+                    toolTips.add(I18n.format("mouseovertext.mysttmtgravitymod.hasarmourpaste"));
+//                    toolTips.add("Affected by normal strength and stronger gravity");
+                    addNormalGravityTooltip(toolTips, player);
+                }
+            }
+        }
+    }
+
+    public static void addWeakGravityTooltip(@Nonnull List<String> toolTips, @Nonnull EntityPlayer player) {
+        int numWeakEnablersWorn = getNumWeakEnablersWorn(player);
+        int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
+        boolean enoughEquipped = numWeakEnablersWorn >= numRequired;
+        toolTips.add(I18n.format(
+                "mouseovertext.mysttmtgravitymod.weaktooltip",
+                enoughEquipped ? "f" : "c",
+                numWeakEnablersWorn,
+                numRequired));
+//        toolTips.add((enoughEquipped ? "§f" : "§c") + numWeakEnablersWorn + "§7/" + numRequired + " for §fweak§7 gravity");
+    }
+
+    public static void addNormalGravityTooltip(@Nonnull List<String> toolTips, @Nonnull EntityPlayer player) {
+        KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
+        int numWeakEnablerCountsAs = ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
+        boolean weakEnablersDontCount = numWeakEnablerCountsAs == 0;
+        if (!weakEnablersDontCount && Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+            toolTips.add(I18n.format(
+                    "mouseovertext.mysttmtgravitymod.normaltooltip.sneak",
+                    getNumWeakEnablersWorn(player),
+                    numWeakEnablerCountsAs,
+                    getNumNormalEnablersWorn(player)));
+//            toolTips.add("§f" + getNumWeakEnablersWorn(player) + " weak§7(x" + numWeakEnablerCountsAs + ") + §5" + getNumNormalEnablersWorn(player) + " normal§7");
+        }
+        else {
+            int combinedNormalEnablersWorn = getCombinedNormalEnablersWorn(player);
+            int numRequired = ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity;
+            boolean enoughEquipped = combinedNormalEnablersWorn >= numRequired;
+            toolTips.add(I18n.format(
+                    "mouseovertext.mysttmtgravitymod.normaltooltip",
+                    enoughEquipped ? "5" : "c",
+                    combinedNormalEnablersWorn,
+                    numRequired,
+                    weakEnablersDontCount ? "" : "(" + keyBindSneak.getDisplayName() + ")"));
+//            toolTips.add((enoughEquipped ? "§5" : "§c") + combinedNormalEnablersWorn + "§7/" + numRequired + " for §5normal§7 gravity (" + keyBindSneak.getDisplayName() + ")");
+        }
+    }
+
     private static int getNumWeakEnablersWorn(@Nonnull EntityPlayer player) {
         ItemStack[] armorInventory = player.inventory.armorInventory;
         int numWeakGravityEnablers = 0;
@@ -103,63 +161,5 @@ public class ItemTooltipListener {
 
         }
         return numNormalGravityEnablersIncludingWeakEnablers;
-    }
-
-    public static void addWeakGravityTooltip(@Nonnull List<String> toolTips, @Nonnull EntityPlayer player) {
-        int numWeakEnablersWorn = getNumWeakEnablersWorn(player);
-        int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
-        boolean enoughEquipped = numWeakEnablersWorn >= numRequired;
-        toolTips.add(I18n.format(
-                "mouseovertext.mysttmtgravitymod.weaktooltip",
-                enoughEquipped ? "f" : "c",
-                numWeakEnablersWorn,
-                numRequired));
-//        toolTips.add((enoughEquipped ? "§f" : "§c") + numWeakEnablersWorn + "§7/" + numRequired + " for §fweak§7 gravity");
-    }
-
-    public static void addNormalGravityTooltip(@Nonnull List<String> toolTips, @Nonnull EntityPlayer player) {
-        KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        int numWeakEnablerCountsAs = ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
-        boolean weakEnablersDontCount = numWeakEnablerCountsAs == 0;
-        if (!weakEnablersDontCount && Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
-            toolTips.add(I18n.format(
-                    "mouseovertext.mysttmtgravitymod.normaltooltip.sneak",
-                    getNumWeakEnablersWorn(player),
-                    numWeakEnablerCountsAs,
-                    getNumNormalEnablersWorn(player)));
-//            toolTips.add("§f" + getNumWeakEnablersWorn(player) + " weak§7(x" + numWeakEnablerCountsAs + ") + §5" + getNumNormalEnablersWorn(player) + " normal§7");
-        }
-        else {
-            int combinedNormalEnablersWorn = getCombinedNormalEnablersWorn(player);
-            int numRequired = ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity;
-            boolean enoughEquipped = combinedNormalEnablersWorn >= numRequired;
-            toolTips.add(I18n.format(
-                    "mouseovertext.mysttmtgravitymod.normaltooltip",
-                    enoughEquipped ? "5" : "c",
-                    combinedNormalEnablersWorn,
-                    numRequired,
-                    weakEnablersDontCount ? "" : "(" + keyBindSneak.getDisplayName() + ")"));
-//            toolTips.add((enoughEquipped ? "§5" : "§c") + combinedNormalEnablersWorn + "§7/" + numRequired + " for §5normal§7 gravity (" + keyBindSneak.getDisplayName() + ")");
-        }
-    }
-
-    @SubscribeEvent
-    public void onTooltipDisplay(ItemTooltipEvent event) {
-        EntityPlayer player = event.getEntityPlayer();
-        if (player != null && !(player instanceof FakePlayer)) {
-            ItemStack itemStack = event.getItemStack();
-            if (itemStack != null) {
-                List<String> toolTips = event.getToolTip();
-                if (itemStack.getItem() instanceof IWeakGravityEnabler) {
-                    addWeakGravityTooltip(toolTips, player);
-                    addNormalGravityTooltip(toolTips, player);
-                }
-                else if (ItemArmourPaste.hasPasteTag(itemStack)) {
-                    toolTips.add(I18n.format("mouseovertext.mysttmtgravitymod.hasarmourpaste"));
-//                    toolTips.add("Affected by normal strength and stronger gravity");
-                    addNormalGravityTooltip(toolTips, player);
-                }
-            }
-        }
     }
 }

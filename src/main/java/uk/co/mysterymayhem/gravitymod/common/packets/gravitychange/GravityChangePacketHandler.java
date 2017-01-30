@@ -13,9 +13,6 @@ import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.Gravi
  */
 public class GravityChangePacketHandler implements IMessageHandler<GravityChangeMessage, IMessage> {
 
-    public GravityChangePacketHandler() {
-    }
-
     @Override
     public IMessage onMessage(GravityChangeMessage message, MessageContext ctx) {
         if (message.getPacketType() == EnumChangePacketType.CLIENT_REQUEST_GRAVITY_OF_PLAYER) {

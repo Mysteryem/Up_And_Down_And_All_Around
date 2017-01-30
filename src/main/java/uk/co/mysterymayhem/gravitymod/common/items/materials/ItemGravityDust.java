@@ -37,14 +37,171 @@ import java.util.ListIterator;
  */
 public class ItemGravityDust extends Item implements IGravityModItem<ItemGravityDust> {
 
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydust.line1"));
+    }
+
+    // True so we can access the normally created EntityItem and disable its gravity
+    @Override
+    public boolean hasCustomEntity(ItemStack stack) {
+        return true;
+    }
+
+    // Returning null uses 'location', returning 'location' would cause the game to kill 'location' and add it to the
+    // world a second time, which would probably cause some issues
+    @Override
+    public Entity createEntity(World world, Entity location, ItemStack itemstack) {
+        if (location instanceof EntityItem) {
+            location.setNoGravity(true);
+            location.motionY -= 0.1;
+        }
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return "gravitydust";
+    }
+
     public static class BlockBreakListener {
 
-        private static final HashSet<String> ACCEPTABLE_DROPS_ORE_NAMES = new HashSet<>();
-        private static final HashSet<String> ACCEPTABLE_BLOCK_ORE_NAMES = new HashSet<>();
         private static final HashSet<Block> ACCEPTABLE_BLOCKS = new HashSet<>();
         private static final HashMap<Block, TIntHashSet> ACCEPTABLE_BLOCKS_WITH_META = new HashMap<>();
+        private static final HashSet<String> ACCEPTABLE_BLOCK_ORE_NAMES = new HashSet<>();
         private static final HashSet<Item> ACCEPTABLE_DROPS = new HashSet<>();
+        private static final HashSet<String> ACCEPTABLE_DROPS_ORE_NAMES = new HashSet<>();
         private static final HashMap<Item, TIntHashSet> ACCEPTABLE_DROPS_WITH_META = new HashMap<>();
+
+        public static void addBlocksFromConfig(String... configStrings) {
+            for (String configString : configStrings) {
+                String[] split = configString.split(":");
+                if (split.length != 2) {
+                    if (split.length == 3) {
+                        int meta;
+                        try {
+                            meta = Integer.parseInt(split[2]);
+                            if (!addBlockWithMeta(split[0], split[1], meta)) {
+                                GravityMod.logWarning("Could not find block for \"anti-mass.drops\" entry: %s", configString);
+                            }
+                        } catch (NumberFormatException ex) {
+                            GravityMod.logWarning("Invalid \"anti-mass.blocks\" entry: %s, could not parse \"%s\" as an integer", configString, split[2]);
+                        }
+                    }
+                    else {
+                        GravityMod.logWarning("Invalid \"anti-mass.blocks\" entry: %s", configString);
+                    }
+                }
+                else if (split[0].equals("ore")) {
+                    addBlockOreName(split[1]);
+                }
+                else {
+                    if (!addBlock(split[0], split[1])) {
+                        GravityMod.logWarning("Could not find block for \"anti-mass.drops\" entry: %s", configString);
+                    }
+                }
+            }
+        }
+
+        static boolean addBlockWithMeta(String modID, String blockName, int meta) {
+            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modID, blockName));
+            if (block == Blocks.AIR) {
+                return false;
+            }
+            addBlockWithMeta(block, meta);
+            return true;
+        }
+
+        static void addBlockOreName(String name) {
+            ACCEPTABLE_BLOCK_ORE_NAMES.add(name);
+        }
+
+        static boolean addBlock(String modID, String blockName) {
+            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modID, blockName));
+            // Default value is air, as opposed to null
+            if (block == Blocks.AIR) {
+                return false;
+            }
+            addBlock(block);
+            return true;
+        }
+
+        static void addBlockWithMeta(Block block, int meta) {
+            TIntHashSet tIntHashSet = ACCEPTABLE_BLOCKS_WITH_META.get(block);
+            if (tIntHashSet == null) {
+                tIntHashSet = new TIntHashSet();
+                ACCEPTABLE_BLOCKS_WITH_META.put(block, tIntHashSet);
+            }
+            tIntHashSet.add(meta);
+        }
+
+        static boolean addBlock(Block block) {
+            return ACCEPTABLE_BLOCKS.add(block);
+        }
+
+        public static void addDropsFromConfig(String... configStrings) {
+            for (String configString : configStrings) {
+                String[] split = configString.split(":");
+                if (split.length != 2) {
+                    if (split.length == 3) {
+                        int meta;
+                        try {
+                            meta = Integer.parseInt(split[2]);
+                            if (!addItemDropWithMeta(split[0], split[1], meta)) {
+                                GravityMod.logWarning("Could not find item/block for \"anti-mass.drops\" entry: %s", configString);
+                            }
+                        } catch (NumberFormatException ex) {
+                            GravityMod.logWarning("Invalid \"anti-mass.drops\" entry: %s, could not parse \"%s\" as an integer", configString, split[2]);
+                        }
+                    }
+                    else {
+                        GravityMod.logWarning("Invalid \"anti-mass.drops\" entry: %s", configString);
+                    }
+                }
+                else if (split[0].equals("ore")) {
+                    addDropsOreName(split[1]);
+                }
+                else {
+                    if (!addItemDrop(split[0], split[1])) {
+                        GravityMod.logWarning("Could not find item/block for \"anti-mass.drops\" entry: %s", configString);
+                    }
+                }
+            }
+        }
+
+        static boolean addItemDropWithMeta(String modID, String itemName, int meta) {
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modID, itemName));
+            // No default value/default value is null
+            if (item == null) {
+                return false;
+            }
+            addItemDropWithMeta(item, meta);
+            return true;
+        }
+
+        static void addDropsOreName(String name) {
+            ACCEPTABLE_DROPS_ORE_NAMES.add(name);
+        }
+
+        static boolean addItemDrop(String modID, String itemName) {
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modID, itemName));
+            // No default value/default value is null
+            return item != null && addItemDrop(item);
+        }
+
+        static void addItemDropWithMeta(Item item, int meta) {
+            TIntHashSet tIntHashSet = ACCEPTABLE_DROPS_WITH_META.get(item);
+            if (tIntHashSet == null) {
+                tIntHashSet = new TIntHashSet();
+                ACCEPTABLE_DROPS_WITH_META.put(item, tIntHashSet);
+            }
+            tIntHashSet.add(meta);
+        }
+
+        static boolean addItemDrop(Item item) {
+            return ACCEPTABLE_DROPS.add(item);
+        }
 
         @SubscribeEvent(priority = EventPriority.LOWEST)
         public void onBlockDropItems(BlockEvent.HarvestDropsEvent event) {
@@ -154,7 +311,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                         else {
                             // Item should drop as per normal (we'll let vanilla handle if the item drops or not)
                         }
-                        if (ConfigHandler.gravityDustChanceOncePerBrokenBlock){
+                        if (ConfigHandler.gravityDustChanceOncePerBrokenBlock) {
                             // Only one attempt allowed per block broken
                             return;
                         }
@@ -164,135 +321,6 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
             }
         }
 
-        public static void addDropsFromConfig(String... configStrings) {
-            for (String configString : configStrings) {
-                String[] split = configString.split(":");
-                if (split.length != 2) {
-                    if (split.length == 3) {
-                        int meta;
-                        try {
-                            meta = Integer.parseInt(split[2]);
-                            if (!addItemDropWithMeta(split[0], split[1], meta)) {
-                                GravityMod.logWarning("Could not find item/block for \"anti-mass.drops\" entry: %s", configString);
-                            }
-                        } catch (NumberFormatException ex) {
-                            GravityMod.logWarning("Invalid \"anti-mass.drops\" entry: %s, could not parse \"%s\" as an integer", configString, split[2]);
-                        }
-                    }
-                    else {
-                        GravityMod.logWarning("Invalid \"anti-mass.drops\" entry: %s", configString);
-                    }
-                }
-                else if (split[0].equals("ore")) {
-                    addDropsOreName(split[1]);
-                }
-                else {
-                    if(!addItemDrop(split[0], split[1])) {
-                        GravityMod.logWarning("Could not find item/block for \"anti-mass.drops\" entry: %s", configString);
-                    }
-                }
-            }
-        }
-
-        public static void addBlocksFromConfig(String... configStrings) {
-            for (String configString : configStrings) {
-                String[] split = configString.split(":");
-                if (split.length != 2) {
-                    if (split.length == 3) {
-                        int meta;
-                        try {
-                            meta = Integer.parseInt(split[2]);
-                            if (!addBlockWithMeta(split[0], split[1], meta)) {
-                                GravityMod.logWarning("Could not find block for \"anti-mass.drops\" entry: %s", configString);
-                            }
-                        } catch (NumberFormatException ex) {
-                            GravityMod.logWarning("Invalid \"anti-mass.blocks\" entry: %s, could not parse \"%s\" as an integer", configString, split[2]);
-                        }
-                    }
-                    else {
-                        GravityMod.logWarning("Invalid \"anti-mass.blocks\" entry: %s", configString);
-                    }
-                }
-                else if (split[0].equals("ore")) {
-                    addBlockOreName(split[1]);
-                }
-                else {
-                    if(!addBlock(split[0], split[1])) {
-                        GravityMod.logWarning("Could not find block for \"anti-mass.drops\" entry: %s", configString);
-                    }
-                }
-            }
-        }
-
-        static void addDropsOreName(String name) {
-            ACCEPTABLE_DROPS_ORE_NAMES.add(name);
-        }
-
-        static void addBlockOreName(String name) {
-            ACCEPTABLE_BLOCK_ORE_NAMES.add(name);
-        }
-
-        static boolean addBlock(Block block) {
-            return ACCEPTABLE_BLOCKS.add(block);
-        }
-
-        static void addBlockWithMeta(Block block, int meta) {
-            TIntHashSet tIntHashSet = ACCEPTABLE_BLOCKS_WITH_META.get(block);
-            if (tIntHashSet == null) {
-                tIntHashSet = new TIntHashSet();
-                ACCEPTABLE_BLOCKS_WITH_META.put(block, tIntHashSet);
-            }
-            tIntHashSet.add(meta);
-        }
-
-        static boolean addBlock(String modID, String blockName) {
-            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modID, blockName));
-            // Default value is air, as opposed to null
-            if (block == Blocks.AIR) {
-                return false;
-            }
-            addBlock(block);
-            return true;
-        }
-
-        static boolean addBlockWithMeta(String modID, String blockName, int meta) {
-            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modID, blockName));
-            if (block == Blocks.AIR) {
-                return false;
-            }
-            addBlockWithMeta(block, meta);
-            return true;
-        }
-
-        static boolean addItemDrop(Item item) {
-            return ACCEPTABLE_DROPS.add(item);
-        }
-
-        static boolean addItemDrop(String modID, String itemName) {
-            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modID, itemName));
-            // No default value/default value is null
-            return item != null && addItemDrop(item);
-        }
-
-        static boolean addItemDropWithMeta(String modID, String itemName, int meta) {
-            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modID, itemName));
-            // No default value/default value is null
-            if (item == null) {
-                return false;
-            }
-            addItemDropWithMeta(item, meta);
-            return true;
-        }
-
-        static void addItemDropWithMeta(Item item, int meta) {
-            TIntHashSet tIntHashSet = ACCEPTABLE_DROPS_WITH_META.get(item);
-            if (tIntHashSet == null) {
-                tIntHashSet = new TIntHashSet();
-                ACCEPTABLE_DROPS_WITH_META.put(item, tIntHashSet);
-            }
-            tIntHashSet.add(meta);
-        }
-
         /**
          * Spawns the given ItemStack as an EntityItem into the World at the given position
          */
@@ -300,41 +328,13 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
             if (!worldIn.isRemote && worldIn.getGameRules().getBoolean("doTileDrops") && !worldIn.restoringBlockSnapshots) // do not drop items while restoring blockstates, prevents item dupe
             {
                 float f = 0.5F;
-                double d0 = (double) (worldIn.rand.nextFloat() * f) + 0.25D;
-                double d1 = (double) (worldIn.rand.nextFloat() * f) + 0.25D;
-                double d2 = (double) (worldIn.rand.nextFloat() * f) + 0.25D;
-                EntityItem entityitem = new EntityFloatingItem(worldIn, (double) pos.getX() + d0, (double) pos.getY() + d1, (double) pos.getZ() + d2, stack);
+                double d0 = (double)(worldIn.rand.nextFloat() * f) + 0.25D;
+                double d1 = (double)(worldIn.rand.nextFloat() * f) + 0.25D;
+                double d2 = (double)(worldIn.rand.nextFloat() * f) + 0.25D;
+                EntityItem entityitem = new EntityFloatingItem(worldIn, (double)pos.getX() + d0, (double)pos.getY() + d1, (double)pos.getZ() + d2, stack);
                 entityitem.setDefaultPickupDelay();
                 worldIn.spawnEntityInWorld(entityitem);
             }
         }
-    }
-
-    @Override
-    public String getName() {
-        return "gravitydust";
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydust.line1"));
-    }
-
-    // True so we can access the normally created EntityItem and disable its gravity
-    @Override
-    public boolean hasCustomEntity(ItemStack stack) {
-        return true;
-    }
-
-    // Returning null uses 'location', returning 'location' would cause the game to kill 'location' and add it to the
-    // world a second time, which would probably cause some issues
-    @Override
-    public Entity createEntity(World world, Entity location, ItemStack itemstack) {
-        if (location instanceof EntityItem) {
-            location.setNoGravity(true);
-            location.motionY -= 0.1;
-        }
-        return null;
     }
 }

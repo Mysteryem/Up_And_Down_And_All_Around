@@ -7,12 +7,15 @@ import java.util.Objects;
  */
 @FunctionalInterface
 public interface ObjCharConsumer<T> {
-    void accept(T t, char value);
-
     default ObjCharConsumer<T> andThen(ObjCharConsumer<? super T> after) {
         Objects.requireNonNull(after);
-        return (t, v) -> { accept(t, v); after.accept(t, v); };
+        return (t, v) -> {
+            accept(t, v);
+            after.accept(t, v);
+        };
     }
+
+    void accept(T t, char value);
 
     default CharConsumer bind(T instance) {
         return (c) -> this.accept(instance, c);

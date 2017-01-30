@@ -34,7 +34,7 @@ public class PlayerCameraListener {
 
         Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
         if (renderViewEntity instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer) renderViewEntity;
+            EntityPlayer player = (EntityPlayer)renderViewEntity;
             IGravityDirectionCapability capability = GravityDirectionCapability.getGravityCapability(player);
             EnumGravityDirection gravityDirection = capability.getDirection();
 
@@ -116,7 +116,7 @@ public class PlayerCameraListener {
                 double multiplierZeroToOne = numerator / denominator;
                 double multiplierOneToZero = 1 - multiplierZeroToOne;
 
-                transitionRollAmount = (float) (rotationAngle * multiplierOneToZero);
+                transitionRollAmount = (float)(rotationAngle * multiplierOneToZero);
                 Vec3d eyePosChangeVector = capability.getEyePosChangeVector();
                 xTranslation = eyePosChangeVector.xCoord * multiplierOneToZero;
                 yTranslation = eyePosChangeVector.yCoord * multiplierOneToZero;
@@ -128,17 +128,17 @@ public class PlayerCameraListener {
 
             // Read these in reverse order
             // 5: Rotate by the relative player's pitch, this, combined with the camera transformation set the correct camera pitch
-            GlStateManager.rotate((float) relativeInterpolatedPitch, 1, 0, 0);
+            GlStateManager.rotate((float)relativeInterpolatedPitch, 1, 0, 0);
             // 4: Rotate by the relative player's yaw, this, combined with the camera transformation sets the correct camera yaw
-            GlStateManager.rotate((float) relativeInterpolatedYaw, 0, 1, 0);
+            GlStateManager.rotate((float)relativeInterpolatedYaw, 0, 1, 0);
 
             // 3: Now that our look direction is effectively 0 yaw and 0 pitch, perform the rotation specific for this gravity
             gravityDirection.runCameraTransformation();
 
             // 2: Undo the absolute yaw rotation of the player
-            GlStateManager.rotate((float) -interpolatedYaw, 0, 1, 0);
+            GlStateManager.rotate((float)-interpolatedYaw, 0, 1, 0);
             // 1: Undo the absolute pitch rotation of the player
-            GlStateManager.rotate((float) -interpolatedPitch, 1, 0, 0);
+            GlStateManager.rotate((float)-interpolatedPitch, 1, 0, 0);
 
             //If using the event's roll, the rotation calls that use event.getRoll() need to be un-commented
 //            event.setRoll(event.getRoll() + transitionRollAmount);

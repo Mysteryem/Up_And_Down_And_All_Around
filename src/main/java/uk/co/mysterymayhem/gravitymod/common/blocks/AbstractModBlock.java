@@ -23,12 +23,16 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITEM>, ITEM extends Item> extends Block implements IGravityModBlockWithItem<BLOCK, ITEM> {
 
-    protected final ITEM item;
-    protected final AbstractMetaMapper<AbstractModBlock<BLOCK, ITEM>> metaConverter;
     // hiding the field in Block.class on purpose
     protected final BlockStateContainer blockState;
+    protected final ITEM item;
+    protected final AbstractMetaMapper<AbstractModBlock<BLOCK, ITEM>> metaConverter;
 
     // I heard you like constructors
+
+    public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+        this(itemFunction, blockMaterialIn, blockMapColorIn, MetaHelper.with(metaProperties, nonMetaProperties));
+    }
 
     public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material blockMaterialIn, MapColor blockMapColorIn, MetaHelper metaHelper) {
         super(blockMaterialIn, blockMapColorIn);
@@ -36,6 +40,16 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
         this.metaConverter = AbstractMetaMapper.get(this, metaHelper);
         this.blockState = this.metaConverter.createBlockState();
         this.setDefaultState(this.getBlockState().getBaseState());
+    }
+
+    @Override
+    @Nonnull
+    public BlockStateContainer getBlockState() {
+        return this.blockState;
+    }
+
+    public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+        this(itemFunction, materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
     }
 
     public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material materialIn, MetaHelper metaHelper) {
@@ -46,12 +60,20 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
         this.setDefaultState(this.getBlockState().getBaseState());
     }
 
+    public AbstractModBlock(Supplier<ITEM> itemSupplier, Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+        this(itemSupplier, blockMaterialIn, blockMapColorIn, MetaHelper.with(metaProperties, nonMetaProperties));
+    }
+
     public AbstractModBlock(Supplier<ITEM> itemSupplier, Material blockMaterialIn, MapColor blockMapColorIn, MetaHelper metaHelper) {
         super(blockMaterialIn, blockMapColorIn);
         this.item = itemSupplier.get();
         this.metaConverter = AbstractMetaMapper.get(this, metaHelper);
         this.blockState = this.metaConverter.createBlockState();
         this.setDefaultState(this.getBlockState().getBaseState());
+    }
+
+    public AbstractModBlock(Supplier<ITEM> itemSupplier, Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+        this(itemSupplier, materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
     }
 
     public AbstractModBlock(Supplier<ITEM> itemSupplier, Material materialIn, MetaHelper metaHelper) {
@@ -62,6 +84,10 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
         this.setDefaultState(this.getBlockState().getBaseState());
     }
 
+    public AbstractModBlock(Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+        this(blockMaterialIn, blockMapColorIn, MetaHelper.with(metaProperties, nonMetaProperties));
+    }
+
     public AbstractModBlock(Material blockMaterialIn, MapColor blockMapColorIn, MetaHelper metaHelper) {
         super(blockMaterialIn, blockMapColorIn);
         this.item = this.createItem(this.getBlock());
@@ -70,36 +96,16 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
         this.setDefaultState(this.getBlockState().getBaseState());
     }
 
+    public AbstractModBlock(Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
+        this(materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
+    }
+
     public AbstractModBlock(Material materialIn, MetaHelper metaHelper) {
         super(materialIn);
         this.item = this.createItem(this.getBlock());
         this.metaConverter = AbstractMetaMapper.get(this, metaHelper);
         this.blockState = this.metaConverter.createBlockState();
         this.setDefaultState(this.getBlockState().getBaseState());
-    }
-
-    public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-        this(itemFunction, blockMaterialIn, blockMapColorIn, MetaHelper.with(metaProperties, nonMetaProperties));
-    }
-
-    public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-        this(itemFunction, materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
-    }
-
-    public AbstractModBlock(Supplier<ITEM> itemSupplier, Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-        this(itemSupplier, blockMaterialIn, blockMapColorIn, MetaHelper.with(metaProperties, nonMetaProperties));
-    }
-
-    public AbstractModBlock(Supplier<ITEM> itemSupplier, Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-        this(itemSupplier, materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
-    }
-
-    public AbstractModBlock(Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-        this(blockMaterialIn, blockMapColorIn, MetaHelper.with(metaProperties, nonMetaProperties));
-    }
-
-    public AbstractModBlock(Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
-        this(materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
     }
 
     public AbstractModBlock(Function<AbstractModBlock<BLOCK, ITEM>, ITEM> itemFunction, Material blockMaterialIn, MapColor blockMapColorIn, IProperty<?>... metaProperties) {
@@ -128,8 +134,46 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
 
     @Override
     @Nonnull
-    public BLOCK setLightOpacity(int opacity) {
-        super.setLightOpacity(opacity);
+    public BLOCK disableStats() {
+        super.disableStats();
+        return this.getBlock();
+    }
+
+    @Override
+    public ITEM getItem() {
+        return this.item;
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return this.metaConverter.applyAsInt(state);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    @Nonnull
+    public IBlockState getStateFromMeta(int meta) {
+        return this.metaConverter.apply(meta);
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setBlockUnbreakable() {
+        super.setBlockUnbreakable();
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setCreativeTab(@Nonnull CreativeTabs tab) {
+        super.setCreativeTab(tab);
+        return this.getBlock();
+    }
+
+    @Override
+    @Nonnull
+    public BLOCK setHardness(float hardness) {
+        super.setHardness(hardness);
         return this.getBlock();
     }
 
@@ -142,29 +186,8 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
 
     @Override
     @Nonnull
-    public BLOCK setBlockUnbreakable() {
-        super.setBlockUnbreakable();
-        return this.getBlock();
-    }
-
-    @Override
-    @Nonnull
-    public BLOCK setTickRandomly(boolean shouldTick) {
-        super.setTickRandomly(shouldTick);
-        return this.getBlock();
-    }
-
-    @Override
-    @Nonnull
-    public BLOCK setUnlocalizedName(@Nonnull String name) {
-        super.setUnlocalizedName(name);
-        return this.getBlock();
-    }
-
-    @Override
-    @Nonnull
-    public BLOCK setHardness(float hardness) {
-        super.setHardness(hardness);
+    public BLOCK setLightOpacity(int opacity) {
+        super.setLightOpacity(opacity);
         return this.getBlock();
     }
 
@@ -184,38 +207,15 @@ public abstract class AbstractModBlock<BLOCK extends AbstractModBlock<BLOCK, ITE
 
     @Override
     @Nonnull
-    public BLOCK disableStats() {
-        super.disableStats();
+    public BLOCK setTickRandomly(boolean shouldTick) {
+        super.setTickRandomly(shouldTick);
         return this.getBlock();
     }
 
     @Override
     @Nonnull
-    public BLOCK setCreativeTab(@Nonnull CreativeTabs tab) {
-        super.setCreativeTab(tab);
+    public BLOCK setUnlocalizedName(@Nonnull String name) {
+        super.setUnlocalizedName(name);
         return this.getBlock();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    @Nonnull
-    public IBlockState getStateFromMeta(int meta) {
-        return this.metaConverter.apply(meta);
-    }
-
-    @Override
-    public int getMetaFromState(IBlockState state) {
-        return this.metaConverter.applyAsInt(state);
-    }
-
-    @Override
-    @Nonnull
-    public BlockStateContainer getBlockState() {
-        return this.blockState;
-    }
-
-    @Override
-    public ITEM getItem() {
-        return this.item;
     }
 }

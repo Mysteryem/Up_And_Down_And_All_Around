@@ -10,7 +10,6 @@ import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.IGrav
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 /**
  * General API class that other mods should use if they intend to interact with the mod (also used internally)
@@ -20,41 +19,21 @@ import java.util.Objects;
 public class API {
 
     /**
-     * Call this every tick that a player should have the gravity direction you specify.
-     * At the beginning of the player's next tick, the highest priority 'prepared gravity transition' will be chosen.
-     * @param newGravity The gravity direction the player should have during the next tick.
-     * @param player The player to apply the gravity to.
-     * @param priority The priority of this 'prepared gravity transition'
-     */
-    public static void setPlayerGravity(@Nonnull EnumGravityDirection newGravity, @Nonnull EntityPlayerMP player, int priority) {
-        GravityMod.proxy.getGravityManager().prepareGravityTransition(newGravity, player, priority);
-    }
-
-    /**
      * Forcefully set a new gravity direction for a player this tick, this wall fire (post) the relevant events, perform client sync etc.
      * Even if the player in question currently has a timeout preventing normal changes to their gravity, this will bypass it
+     *
      * @param newGravity New gravity direction for the player.
-     * @param player Server player whose gravity you want to change.
-     * @param noTimeout False to set a default timeout, preventing normal changes to gravity.
-     *                  True to specifically set a zero timeout, normal changes will be able to take place immediately.
+     * @param player     Server player whose gravity you want to change.
+     * @param noTimeout  False to set a default timeout, preventing normal changes to gravity.
+     *                   True to specifically set a zero timeout, normal changes will be able to take place immediately.
      */
     public static void forceSetPlayerGravity(@Nonnull EnumGravityDirection newGravity, @Nonnull EntityPlayerMP player, boolean noTimeout) {
         GravityMod.proxy.getGravityManager().doGravityTransition(newGravity, player, noTimeout);
     }
 
-
-
-    /**
-     * Get the gravity direction capability for a specific player
-     * @param player The player whose gravity direction capability you are after
-     * @return The specified player's gravity direction capability
-     */
-    public static IGravityDirectionCapability getGravityDirectionCapability(@Nonnull EntityPlayer player) {
-        return GravityDirectionCapability.getGravityCapability(player);
-    }
-
     /**
      * Get the current gravity direction of a player.
+     *
      * @param player Player to look up, must not be NULL, can be either a client or server player.
      * @return The gravity direction of the player.
      * (will return DOWN if the player does not have the GravityCapability, e.g., while the EntityPlayer object is constructing)
@@ -64,7 +43,18 @@ public class API {
     }
 
     /**
+     * Get the gravity direction capability for a specific player
+     *
+     * @param player The player whose gravity direction capability you are after
+     * @return The specified player's gravity direction capability
+     */
+    public static IGravityDirectionCapability getGravityDirectionCapability(@Nonnull EntityPlayer player) {
+        return GravityDirectionCapability.getGravityCapability(player);
+    }
+
+    /**
      * Get the current gravity direction of a player.
+     *
      * @param player Player to look up, can be either a client or server player.
      * @return The gravity direction of the player.
      * (will return DOWN if the player does not have the GravityCapability, e.g., while the EntityPlayer object is
@@ -81,6 +71,7 @@ public class API {
      * Get the eye height the player would have if their gravity direction was currently DOWN.
      * This mod overrides getEyeHeight() so a ton of vanilla stuff works/mostly works. You can use this method to get
      * what getEyeHeight() would normally return if it hadn't been overwritten.
+     *
      * @param entityLivingBase Player whose 'standard' eye height you want
      * @return The player's eye height as if their current gravity direction is DOWN.
      */
@@ -93,5 +84,17 @@ public class API {
             // This probably shouldn't ever happen
             return entityLivingBase.getEyeHeight();
         }
+    }
+
+    /**
+     * Call this every tick that a player should have the gravity direction you specify.
+     * At the beginning of the player's next tick, the highest priority 'prepared gravity transition' will be chosen.
+     *
+     * @param newGravity The gravity direction the player should have during the next tick.
+     * @param player     The player to apply the gravity to.
+     * @param priority   The priority of this 'prepared gravity transition'
+     */
+    public static void setPlayerGravity(@Nonnull EnumGravityDirection newGravity, @Nonnull EntityPlayerMP player, int priority) {
+        GravityMod.proxy.getGravityManager().prepareGravityTransition(newGravity, player, priority);
     }
 }

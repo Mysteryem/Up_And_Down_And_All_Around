@@ -55,6 +55,254 @@ public class Transformer implements IClassTransformer {
     //      setPosition (method pretty much entirely replaced)
     private static final String classToReplace = "net/minecraft/entity/player/EntityPlayer";
     private static final String classReplacement = "uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity";
+    /*
+        Mojang method names
+    */
+    private static final MethodName AxisAlignedBB$calculateXOffset_name = new MethodName("calculateXOffset", "func_72316_a");
+    private static final MethodName AxisAlignedBB$calculateYOffset_name = new MethodName("calculateYOffset", "func_72323_b");
+    private static final MethodName AxisAlignedBB$calculateZOffset_name = new MethodName("calculateZOffset", "func_72322_c");
+    // () arguments
+    private static final MethodName BlockPos$down_NO_ARGS_name = new MethodName("down", "func_177977_b");
+    private static final MethodName BlockPos$getY_name = new MethodName("getY", "func_177956_o");
+    private static final MethodName BlockPos$up_INT_ARG_name = new MethodName("up", "func_177981_b");
+    private static final MethodName BlockPos$up_NO_ARGS_name = new MethodName("up", "func_177984_a");
+    // (DDD) arguments
+    private static final MethodName BlockPos$PooledMutableBlockPos$retain_name = new MethodName("retain", "func_185345_c");
+    // (DDD) arguments
+    private static final MethodName BlockPos$PooledMutableBlockPos$setPos_name = new MethodName("setPos", "func_189532_c");
+    private static final MethodName Entity$getEntityBoundingBox_name = new MethodName("getEntityBoundingBox", "func_174813_aQ");
+    private static final MethodName Entity$getEyeHeight_name = new MethodName("getEyeHeight", "func_70047_e");
+    private static final MethodName Entity$getForward_name = new MethodName("getForward", "func_189651_aD");
+    private static final MethodName Entity$getLookVec_name = new MethodName("getLookVec", "func_70040_Z");
+    private static final MethodName Entity$isOffsetPositionInLiquid_name = new MethodName("isOffsetPositionInLiquid", "func_70038_c");
+    private static final MethodName Entity$moveEntity_name = new MethodName("moveEntity", "func_70091_d");
+    private static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
+    private static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
+    private static final MethodName EntityItem$combineItems_name = new MethodName("combineItems", "func_70289_a");
+    private static final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
+    private static final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
+    private static final MethodName EntityLivingBase$onLivingUpdate_name = new MethodName("onLivingUpdate", "func_70636_d");
+    private static final MethodName EntityLivingBase$updateDistance_name = new MethodName("updateDistance", "func_110146_f");
+    private static final MethodName EntityPlayer$getFoodStats_name = new MethodName("getFoodStats", "func_71024_bL");
+    private static final MethodName EntityPlayerMP$handleFalling_name = new MethodName("handleFalling", "func_71122_b");
+    // Method added by forge, so no obf name
+    private static final MethodName EntityPlayerSP$isHeadspaceFree_name = new MethodName("isHeadspaceFree");
+    private static final MethodName EntityPlayerSP$onUpdateWalkingPlayer_name = new MethodName("onUpdateWalkingPlayer", "func_175161_p");
+    private static final MethodName EntityPlayerSP$updateAutoJump_name = new MethodName("updateAutoJump", "func_189810_i");
+    private static final MethodName EntityRenderer$drawNameplate_name = new MethodName("drawNameplate", "func_189692_a");
+    private static final MethodName EntityRenderer$getMouseOver_name = new MethodName("getMouseOver", "func_78473_a");
+    private static final MethodName GlStateManager$disableLighting_name = new MethodName("disableLighting", "func_179140_f");
+    private static final MethodName INetHandlerPlayClient$handlePlayerPosLook_name = new MethodName("handlePlayerPosLook", "func_184330_a");
+    private static final MethodName INetHandlerPlayServer$processPlayer_name = new MethodName("processPlayer", "func_147347_a");
+    private static final MethodName INetHandlerPlayServer$processPlayerDigging_name = new MethodName("processPlayerDigging", "func_147345_a");
+    private static final MethodName Item$onRightClick_name = new MethodName("onItemRightClick", "func_77659_a");
+    private static final MethodName Item$onItemUse_name = new MethodName("onItemUse", "func_180614_a");
+    private static final MethodName Item$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77615_a");
+    private static final MethodName ItemStack$onItemUse_name = new MethodName("onItemUse", "func_179546_a");
+    private static final MethodName ItemStack$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77974_b");
+    private static final MethodName ItemStack$useItemRightClick_name = new MethodName("useItemRightClick", "func_77957_a");
+    private static final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
+    private static final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
+    private static final MethodName Vec3d$addVector_name = new MethodName("addVector", "func_72441_c");
+    private static final MethodName Vec3d$scale_name = new MethodName("scale", "func_186678_a");
+    private static final MethodName World$getEntitiesInAABBexcluding_name = new MethodName("getEntitiesInAABBexcluding", "func_175674_a");
+    /*
+        PaulsCode method names
+     */
+    private static final MethodName SoundSystem$setListenerOrientation_name = new MethodName("setListenerOrientation");
+    /*
+        Mojang field names
+     */
+    private static final FieldName AxisAlignedBB$maxY_name = new FieldName("maxY", "field_72337_e");
+    private static final FieldName AxisAlignedBB$minY_name = new FieldName("minY", "field_72338_b");
+    private static final FieldName Blocks$LADDER_name = new FieldName("LADDER", "field_150468_ap");
+    private static final FieldName Entity$posX_name = new FieldName("posX", "field_70165_t");
+    private static final FieldName Entity$posY_name = new FieldName("posY", "field_70163_u");
+    private static final FieldName Entity$posZ_name = new FieldName("posZ", "field_70161_v");
+    private static final FieldName Entity$prevPosX_name = new FieldName("prevPosX", "field_70169_q");
+    private static final FieldName Entity$prevPosZ_name = new FieldName("prevPosZ", "field_70166_s");
+    private static final FieldName Entity$prevRotationPitch_name = new FieldName("prevRotationPitch", "field_70127_C");
+    private static final FieldName Entity$prevRotationYaw_name = new FieldName("prevRotationYaw", "field_70126_B");
+    private static final FieldName Entity$rotationPitch_name = new FieldName("rotationPitch", "field_70125_A");
+    private static final FieldName Entity$rotationYaw_name = new FieldName("rotationYaw", "field_70177_z");
+    private static final FieldName EntityLivingBase$limbSwing_name = new FieldName("limbSwing", "field_184619_aG");
+    private static final FieldName EntityLivingBase$limbSwingAmount_name = new FieldName("limbSwingAmount", "field_70721_aZ");
+    private static final FieldName EntityLivingBase$prevRotationYawHead_name = new FieldName("prevRotationYawHead", "field_70758_at");
+    private static final FieldName EntityLivingBase$rotationYawHead_name = new FieldName("rotationYawHead", "field_70759_as");
+    private static final FieldName NetHandlerPlayServer$lastGoodX_name = new FieldName("lastGoodX", "field_184352_o");
+    //    private static final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
+//    private static final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
+    private static final FieldName NetHandlerPlayServer$playerEntity_name = new FieldName("playerEntity", "field_147369_b");
+    /*
+        Shared reference class names
+     */
+    private static final ObjectCName ActionResult = new ObjectCName("net/minecraft/util/ActionResult");
+    private static final ObjectCName AbstractClientPlayer = new ObjectCName("net/minecraft/client/entity/AbstractClientPlayer");
+    private static final ObjectCName AxisAlignedBB = new ObjectCName("net/minecraft/util/math/AxisAlignedBB");
+    private static final ObjectCName Block = new ObjectCName("net/minecraft/block/Block");
+    private static final ObjectCName BlockPos = new ObjectCName("net/minecraft/util/math/BlockPos");
+    private static final ObjectCName BlockPos$PooledMutableBlockPos = new ObjectCName("net/minecraft/util/math/BlockPos$PooledMutableBlockPos");
+    private static final ObjectCName Blocks = new ObjectCName("net/minecraft/init/Blocks");
+    private static final ObjectCName CPacketPlayer = new ObjectCName("net/minecraft/network/play/client/CPacketPlayer");
+    private static final ObjectCName Entity = new ObjectCName("net/minecraft/entity/Entity");
+    private static final ObjectCName EntityLivingBase = new ObjectCName("net/minecraft/entity/EntityLivingBase");
+    private static final ObjectCName EntityPlayer = new ObjectCName("net/minecraft/entity/player/EntityPlayer");
+    private static final ObjectCName EntityPlayerMP = new ObjectCName("net/minecraft/entity/player/EntityPlayerMP");
+    private static final ObjectCName EntityPlayerSP = new ObjectCName("net/minecraft/client/entity/EntityPlayerSP");
+    private static final ObjectCName EnumActionResult = new ObjectCName("net/minecraft/util/EnumActionResult");
+    private static final ObjectCName EnumFacing = new ObjectCName("net/minecraft/util/EnumFacing");
+    private static final ObjectCName EnumHand = new ObjectCName("net/minecraft/util/EnumHand");
+    private static final ObjectCName FoodStats = new ObjectCName("net/minecraft/util/FoodStats");
+    private static final ObjectCName Item = new ObjectCName("net/minecraft/item/Item");
+    private static final ObjectCName ItemStack = new ObjectCName("net/minecraft/item/ItemStack");
+    private static final ObjectCName NetHandlerPlayServer = new ObjectCName("net/minecraft/network/NetHandlerPlayServer");
+    private static final ObjectCName Vec3d = new ObjectCName("net/minecraft/util/math/Vec3d");
+    private static final ObjectCName World = new ObjectCName("net/minecraft/world/World");
+    private static final ObjectCName WorldClient = new ObjectCName("net/minecraft/client/multiplayer/WorldClient");
+    // Non-minecraft classes
+//    private static final ObjectClassName EntityFloatingItem = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/entities/EntityFloatingItem");
+    private static final ObjectCName EntityPlayerWithGravity = new ObjectCName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
+    private static final ObjectCName GravityAxisAlignedBB = new ObjectCName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
+    private static final ObjectCName ItemStackAndBoolean = new ObjectCName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
+    private static final ObjectCName List = new ObjectCName("java/util/List");
+    private static final ObjectCName Predicate = new ObjectCName("com/google/common/base/Predicate");
+    private static final ObjectCName SoundSystem = new ObjectCName("paulscode/sound/SoundSystem");
+    /*
+        Mojang field instructions
+     */
+    private static final FieldInsn AxisAlignedBB$maxY_GET = new FieldInsn(GETFIELD, AxisAlignedBB, AxisAlignedBB$maxY_name, DOUBLE);
+    private static final FieldInsn AxisAlignedBB$minY_GET = new FieldInsn(GETFIELD, AxisAlignedBB, AxisAlignedBB$minY_name, DOUBLE);
+    private static final FieldInsn Blocks$LADDER_GET = new FieldInsn(GETSTATIC, Blocks, Blocks$LADDER_name, Block);
+    private static final FieldInsn Entity$posX_GET = new FieldInsn(GETFIELD, Entity, Entity$posX_name, DOUBLE);
+    private static final FieldInsn EntityLivingBase$limbSwing_PUT = new FieldInsn(PUTFIELD, EntityLivingBase, EntityLivingBase$limbSwing_name, FLOAT);
+    private static final FieldInsn EntityLivingBase$limbSwingAmount_GET = new FieldInsn(GETFIELD, EntityLivingBase, EntityLivingBase$limbSwingAmount_name, FLOAT);
+    private static final FieldInsn EntityLivingBase$posX_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$posX_name, DOUBLE);
+    private static final FieldInsn EntityLivingBase$posY_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$posY_name, DOUBLE);
+    private static final FieldInsn EntityLivingBase$posZ_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$posZ_name, DOUBLE);
+    private static final FieldInsn EntityLivingBase$prevPosX_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$prevPosX_name, DOUBLE);
+    private static final FieldInsn EntityLivingBase$prevPosZ_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$prevPosZ_name, DOUBLE);
+    private static final FieldInsn EntityLivingBase$rotationPitch_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$rotationPitch_name, FLOAT);
+    private static final FieldInsn EntityLivingBase$rotationYaw_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$rotationYaw_name, FLOAT);
+    private static final FieldInsn EntityPlayer$posY_GET = new FieldInsn(GETFIELD, EntityPlayer, Entity$posY_name, DOUBLE);
+    private static final FieldInsn EntityPlayerMP$posY_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posY_name, DOUBLE);
+    private static final FieldInsn EntityPlayerMP$posZ_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posZ_name, DOUBLE);
+    private static final FieldInsn EntityPlayerSP$posX_GET = new FieldInsn(GETFIELD, EntityPlayerSP, Entity$posX_name, DOUBLE);
+    private static final FieldInsn EntityPlayerSP$posY_GET = new FieldInsn(GETFIELD, EntityPlayerSP, Entity$posY_name, DOUBLE);
+    private static final FieldInsn EntityPlayerSP$posZ_GET = new FieldInsn(GETFIELD, EntityPlayerSP, Entity$posZ_name, DOUBLE);
+    private static final FieldInsn EntityPlayerSP$rotationYaw_GET = new FieldInsn(GETFIELD, EntityPlayerSP, Entity$rotationYaw_name, FLOAT);
+    private static final FieldInsn NetHandlerPlayServer$lastGoodX_GET = new FieldInsn(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodX_name, DOUBLE);
+    //    private static final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
+//    private static final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
+    private static final FieldInsn NetHandlerPlayServer$playerEntity_GET = new FieldInsn(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$playerEntity_name, EntityPlayerMP);
+    /*
+        Mojang method instructions
+     */
+    // While there could be a constructor for MethodInstruction that doesn't require a MethodDesc, it is useful to
+    // visually split apart the arguments so it's easier to tell what each argument is
+    private static final MethodInsn AxisAlignedBB$INIT = new MethodInsn(INVOKESPECIAL, AxisAlignedBB, INIT, new MethodDesc(VOID, Vec3d, Vec3d));
+    private static final MethodInsn AxisAlignedBB$calculateXOffset = new MethodInsn(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateXOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
+    private static final MethodInsn AxisAlignedBB$calculateYOffset = new MethodInsn(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateYOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
+    private static final MethodInsn AxisAlignedBB$calculateZOffset = new MethodInsn(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateZOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
+    private static final MethodInsn BlockPos$down_NO_ARGS = new MethodInsn(INVOKEVIRTUAL, BlockPos, BlockPos$down_NO_ARGS_name, new MethodDesc(BlockPos));
+    private static final MethodInsn BlockPos$getY = new MethodInsn(INVOKEVIRTUAL, BlockPos, BlockPos$getY_name, new MethodDesc(INT));
+    private static final MethodInsn BlockPos$INIT = new MethodInsn(INVOKESPECIAL, BlockPos, INIT, new MethodDesc(VOID, INT, INT, INT));
+    private static final MethodInsn BlockPos$up_INT_ARG = new MethodInsn(INVOKEVIRTUAL, BlockPos, BlockPos$up_INT_ARG_name, new MethodDesc(BlockPos, INT));
+    private static final MethodInsn BlockPos$up_NO_ARGS = new MethodInsn(INVOKEVIRTUAL, BlockPos, BlockPos$up_NO_ARGS_name, new MethodDesc(BlockPos));
+    private static final MethodInsn BlockPos$PooledMutableBlockPos$setPos = new MethodInsn(
+            INVOKEVIRTUAL, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$setPos_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInsn BlockPos$PooledMutableBlockPos$retain = new MethodInsn(
+            INVOKESTATIC, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$retain_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInsn Entity$getEntityBoundingBox = new MethodInsn(INVOKEVIRTUAL, Entity, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
+    private static final MethodInsn EntityLivingBase$getLookVec = new MethodInsn(INVOKEVIRTUAL, EntityLivingBase, Entity$getLookVec_name, new MethodDesc(Vec3d));
+    private static final MethodInsn EntityLivingBase$isOffsetPositionInLiquid = new MethodInsn(
+            INVOKEVIRTUAL, EntityLivingBase, Entity$isOffsetPositionInLiquid_name, new MethodDesc(BOOLEAN, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInsn EntityPlayerMP$getEyeHeight = new MethodInsn(INVOKEVIRTUAL, EntityPlayerMP, Entity$getEyeHeight_name, new MethodDesc(FLOAT));
+    private static final MethodInsn EntityPlayerMP$handleFalling = new MethodInsn(INVOKEVIRTUAL, EntityPlayerMP, EntityPlayerMP$handleFalling_name, new MethodDesc(VOID, DOUBLE, BOOLEAN));
+    //    private static final MethodInstruction EntityPlayerMP$moveEntity = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInsn EntityPlayerSP$getEntityBoundingBox = new MethodInsn(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
+    private static final MethodInsn EntityPlayerSP$getForward = new MethodInsn(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
+    private static final MethodInsn EntityPlayer$getFoodStats = new MethodInsn(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
+    private static final MethodInsn Item$onItemRightClick = new MethodInsn(INVOKEVIRTUAL, Item, Item$onRightClick_name, new MethodDesc(ActionResult, ItemStack, World, EntityPlayer, EnumHand));
+    private static final MethodInsn Item$onItemUse = new MethodInsn(
+            INVOKEVIRTUAL, Item, Item$onItemUse_name, new MethodDesc(EnumActionResult, ItemStack, EntityPlayer, World, BlockPos, EnumHand, EnumFacing, FLOAT, FLOAT, FLOAT));
+    private static final MethodInsn Item$onPlayerStoppedUsing = new MethodInsn(INVOKEVIRTUAL, Item, Item$onPlayerStoppedUsing_name, new MethodDesc(VOID, ItemStack, World, EntityLivingBase, INT));
+    private static final MethodInsn Vec3d$addVector = new MethodInsn(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInsn Vec3d$scale = new MethodInsn(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
+    private static final MethodInsn WorldClient$getEntitiesInAABBexcluding = new MethodInsn(
+            INVOKEVIRTUAL, WorldClient, World$getEntitiesInAABBexcluding_name, new MethodDesc(List, Entity, AxisAlignedBB, Predicate));
+    /*
+        Up And Down And All Around asm hook method instructions
+     */
+    private static final HooksInsn Hooks$addAdjustedVector = new HooksInsn("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
+    private static final HooksInsn Hooks$adjustVec = new HooksInsn("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
+    //    private static final HooksMethodInstruction Hooks$adjustXYZ = new HooksMethodInstruction("adjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksInsn Hooks$constructNewGAABBFrom2Vec3d = new HooksInsn("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
+    private static final HooksInsn Hooks$getBlockPosAtTopOfPlayer = new HooksInsn("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
+    private static final HooksInsn Hooks$getBlockPostBelowEntity = new HooksInsn("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
+    private static final HooksInsn Hooks$getBottomOfEntity = new HooksInsn("getBottomOfEntity", new MethodDesc(Vec3d, Entity));
+    private static final HooksInsn Hooks$getImmutableBlockPosBelowEntity = new HooksInsn("getImmutableBlockPosBelowEntity", new MethodDesc(BlockPos, Entity));
+    private static final HooksInsn Hooks$getOriginRelativePosX = new HooksInsn("getOriginRelativePosX", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getOriginRelativePosY = new HooksInsn("getOriginRelativePosY", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getOriginRelativePosZ = new HooksInsn("getOriginRelativePosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getPrevRelativeYawHead = new HooksInsn("getPrevRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
+    private static final HooksInsn Hooks$getRelativeBottomOfBB = new HooksInsn("getRelativeBottomOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
+    private static final HooksInsn Hooks$getRelativeDownBlockPos = new HooksInsn("getRelativeDownBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
+    private static final HooksInsn Hooks$getRelativeLookVec = new HooksInsn("getRelativeLookVec", new MethodDesc(Vec3d, Entity));
+    private static final HooksInsn Hooks$getRelativePitch = new HooksInsn("getRelativePitch", new MethodDesc(FLOAT, Entity));
+    private static final HooksInsn Hooks$getRelativePrevPitch = new HooksInsn("getRelativePrevPitch", new MethodDesc(FLOAT, Entity));
+    private static final HooksInsn Hooks$getRelativePrevPosX = new HooksInsn("getRelativePrevPosX", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getRelativePrevPosZ = new HooksInsn("getRelativePrevPosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getRelativePrevYaw = new HooksInsn("getRelativePrevYaw", new MethodDesc(FLOAT, Entity));
+    private static final HooksInsn Hooks$getRelativePosX = new HooksInsn("getRelativePosX", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getRelativePosY = new HooksInsn("getRelativePosY", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getRelativePosZ = new HooksInsn("getRelativePosZ", new MethodDesc(DOUBLE, Entity));
+    private static final HooksInsn Hooks$getRelativeTopOfBB = new HooksInsn("getRelativeTopOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
+    private static final HooksInsn Hooks$getRelativeUpblockPos_INT_ARG = new HooksInsn("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, INT, Entity));
+    private static final HooksInsn Hooks$getRelativeUpblockPos_NO_ARGS = new HooksInsn("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
+    private static final HooksInsn Hooks$getRelativeYaw = new HooksInsn("getRelativeYaw", new MethodDesc(FLOAT, Entity));
+    private static final HooksInsn Hooks$getRelativeYawHead = new HooksInsn("getRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
+    private static final HooksInsn Hooks$getRelativeYOfBlockPos = new HooksInsn("getRelativeYOfBlockPos", new MethodDesc(INT, BlockPos, Entity));
+    private static final HooksInsn Hooks$getVanillaEntityBoundingBox = new HooksInsn("getVanillaEntityBoundingBox", new MethodDesc(AxisAlignedBB, Entity));
+    private static final HooksInsn Hooks$inverseAdjustXYZ = new HooksInsn("inverseAdjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksInsn Hooks$isHeadspaceFree = new HooksInsn("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
+    private static final HooksInsn Hooks$makePositionAbsolute = new HooksInsn("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
+    private static final HooksInsn Hooks$makePositionRelative = new HooksInsn("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
+    //    private static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksInsn Hooks$netHandlerPlayServerGetPacketZ = new HooksInsn("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
+    private static final HooksInsn Hooks$netHandlerPlayServerGetRelativeY = new HooksInsn("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksInsn Hooks$netHandlerPlayServerHandleFallingYChange =
+            new HooksInsn("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksInsn Hooks$netHandlerPlayServerSetRelativeYToZero =
+            new HooksInsn("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    private static final HooksInsn Hooks$onItemRightClickPost = new HooksInsn("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksInsn Hooks$onItemRightClickPre = new HooksInsn("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksInsn Hooks$onItemUsePost = new HooksInsn("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksInsn Hooks$onItemUsePre = new HooksInsn("onItemUsePre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
+    private static final HooksInsn Hooks$onPlayerStoppedUsingPost = new HooksInsn("onPlayerStoppedUsingPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityLivingBase));
+    private static final HooksInsn Hooks$onPlayerStoppedUsingPre = new HooksInsn("onPlayerStoppedUsingPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityLivingBase));
+    private static final HooksInsn Hooks$pushEntityPlayerSPOutOfBlocks = new HooksInsn("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
+    private static final HooksInsn Hooks$reverseXOffset = new HooksInsn("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksInsn Hooks$reverseYOffset = new HooksInsn("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksInsn Hooks$reverseZOffset = new HooksInsn("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
+    private static final HooksInsn Hooks$runNameplateCorrection = new HooksInsn("runNameplateCorrection", new MethodDesc(VOID, BOOLEAN));
+    private static final HooksInsn Hooks$setListenerOrientationHook = new HooksInsn("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
+    private static final HooksInsn Hooks$setPooledMutableBlockPosToBelowEntity =
+            new HooksInsn("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
+    /*
+        Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)
+     */
+    private static final MethodInsn AbstractClientPlayer$moveEntity_SPECIAL = new MethodInsn(Opcodes.INVOKESPECIAL, AbstractClientPlayer, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
+    private static final MethodInsn AbstractClientPlayer$updateAutoJump_SPECIAL = new MethodInsn(Opcodes.INVOKESPECIAL, AbstractClientPlayer, EntityPlayerSP$updateAutoJump_name, new MethodDesc(VOID, FLOAT, FLOAT));
+    private static final boolean DEBUG_AUTO_JUMP = false;
+    //Set up bit mask
+    private static final int GET_ROTATIONYAW = 0b1;
+    private static final int GET_ROTATIONPITCH = 0b10;
+    private static final int GET_PREVROTATIONYAW = 0b100;
+    private static final int GET_PREVROTATIONPITCH = 0b1000;
+    private static final int GET_ROTATIONYAWHEAD = 0b10000;
+    private static final int GET_PREVROTATIONYAWHEAD = 0b100000;
+    private static final int ALL_GET_ROTATION_VARS = GET_ROTATIONYAW | GET_ROTATIONPITCH | GET_PREVROTATIONYAW
+            | GET_PREVROTATIONPITCH | GET_ROTATIONYAWHEAD | GET_PREVROTATIONYAWHEAD;
 
     static {
         // Superclass replaced with EntityPlayerWithGravity
@@ -83,66 +331,12 @@ public class Transformer implements IClassTransformer {
     }
 
     /**
-     * Default logging method.
-     * @param string Formattable string a la String::format
-     * @param objects Objects to be passed for formatting in log message
-     */
-    private static void log(String string, Object... objects) {
-        FMLLog.info("[UpAndDown] " + string, objects);
-    }
-
-    private static void logPatchStarting(ObfuscationHelper.DeobfAwareString deobfAwareString) {
-        logPatchStarting(deobfAwareString.getDeobf());
-    }
-
-    private static void logPatchStarting(Object object) {
-        log("Patching %s", object);
-    }
-
-    private static void logPatchComplete(ObfuscationHelper.DeobfAwareString deobfAwareString) {
-        logPatchComplete(deobfAwareString.getDeobf());
-    }
-
-    private static void logPatchComplete(Object object) {
-        log("Patched  %s", object);
-    }
-
-    private static void warn(String string, Object... objects) {
-        FMLLog.warning("[UpAndDown] " + string, objects);
-    }
-
-    /**
-     * Default 'crash Minecraft' method.
-     * @param string Reason why we are forcing Minecraft to crash
-     */
-    private static void die(String string) throws RuntimeException {
-        throw new RuntimeException("[UpAndDown] " + string);
-    }
-
-    /**
-     * Option to used to compound multiple tests together
-     * @param shouldContinue boolean to check, if false, Minecraft is forced to crash with the passed dieMessage
-     * @param dieMessage The message to use as the cause when making Minecraft crash
-     * @return
-     */
-    private static void dieIfFalse(boolean shouldContinue, String dieMessage) {
-        if (!shouldContinue) {
-            die(dieMessage);
-        }
-    }
-
-    private static void dieIfFalse(boolean shouldContinue, ClassNode classNode) {
-        dieIfFalse(shouldContinue, "Failed to find the methods to patch in " + classNode.name +
-                ". The Minecraft version you are using likely does not match what the mod requires.");
-    }
-
-
-    /**
      * Used to ensure that patches are applied successfully.
      * If not, Minecraft will be made to crash.
-     * @param shouldLog If we should log a success, or force a crash
-     * @param dieMessage Reason why we are forcing Minecraft to crash
-     * @param formattableLogMsg Formattable string a la String::format
+     *
+     * @param shouldLog           If we should log a success, or force a crash
+     * @param dieMessage          Reason why we are forcing Minecraft to crash
+     * @param formattableLogMsg   Formattable string a la String::format
      * @param objectsForFormatter Objects to be passed for formatting in log message
      */
     private static void logOrDie(boolean shouldLog, String dieMessage, String formattableLogMsg, Object... objectsForFormatter) {
@@ -155,24 +349,39 @@ public class Transformer implements IClassTransformer {
     }
 
     /**
+     * Default logging method.
+     *
+     * @param string  Formattable string a la String::format
+     * @param objects Objects to be passed for formatting in log message
+     */
+    private static void log(String string, Object... objects) {
+        FMLLog.info("[UpAndDown] " + string, objects);
+    }
+
+    /**
+     * Default 'crash Minecraft' method.
+     *
+     * @param string Reason why we are forcing Minecraft to crash
+     */
+    private static void die(String string) throws RuntimeException {
+        throw new RuntimeException("[UpAndDown] " + string);
+    }
+
+    /**
      * Debug helper method to print a class, from bytes, to "standard" output.
      * Useful to compare a class's bytecode, before and after patching if the bytecode is not what we expect, or if the
      * patched bytecode is invalid.
+     *
      * @param bytes The bytes that make up the class
      */
     private static void printClassToStdOut(byte[] bytes) {
         printClassToStream(bytes, System.out);
     }
 
-    private static void printClassToFMLLogger(byte[] bytes) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        printClassToStream(bytes, byteArrayOutputStream);
-        FMLLog.info("\n%s", byteArrayOutputStream);
-    }
-
     /**
      * Internal method to print a class (from bytes), to an OutputStream.
-     * @param bytes bytes that make up a class
+     *
+     * @param bytes        bytes that make up a class
      * @param outputStream stream to output the class's bytecode to
      */
     private static void printClassToStream(byte[] bytes, OutputStream outputStream) {
@@ -184,14 +393,14 @@ public class Transformer implements IClassTransformer {
         writer.flush();
     }
 
-    private static void printMethodToStdOut(MethodNode methodNode) {
-        printMethodToStream(methodNode, System.out);
+    private static void printClassToFMLLogger(byte[] bytes) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        printClassToStream(bytes, byteArrayOutputStream);
+        FMLLog.info("\n%s", byteArrayOutputStream);
     }
 
-    private static void printMethodToFMLLogger(MethodNode methodNode) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        printMethodToStream(methodNode, byteArrayOutputStream);
-        FMLLog.info("\n%s", byteArrayOutputStream);
+    private static void printMethodToStdOut(MethodNode methodNode) {
+        printMethodToStream(methodNode, System.out);
     }
 
     private static void printMethodToStream(MethodNode methodNode, OutputStream outputStream) {
@@ -203,305 +412,10 @@ public class Transformer implements IClassTransformer {
         writer.flush();
     }
 
-    /**
-     * Use to add a local variable to a method.
-     * @param methodNode Method to add the localvariable to
-     * @param objectClassName The variable's class
-     * @return The index of the new local variable
-     */
-    private static int addLocalVar(MethodNode methodNode, ObjectClassName objectClassName) {
-        LocalVariablesSorter localVariablesSorter = new LocalVariablesSorter(methodNode.access, methodNode.desc, methodNode);
-        return localVariablesSorter.newLocal(Type.getObjectType(objectClassName.toString()));
-    }
-
-    /*
-        Mojang method names
-    */
-    private static final MethodName AxisAlignedBB$calculateXOffset_name = new MethodName("calculateXOffset", "func_72316_a");
-    private static final MethodName AxisAlignedBB$calculateYOffset_name = new MethodName("calculateYOffset", "func_72323_b");
-    private static final MethodName AxisAlignedBB$calculateZOffset_name = new MethodName("calculateZOffset", "func_72322_c");
-
-    // () arguments
-    private static final MethodName BlockPos$down_NO_ARGS_name = new MethodName("down", "func_177977_b");
-    private static final MethodName BlockPos$getY_name = new MethodName("getY", "func_177956_o");
-    private static final MethodName BlockPos$up_INT_ARG_name = new MethodName("up", "func_177981_b");
-    private static final MethodName BlockPos$up_NO_ARGS_name = new MethodName("up", "func_177984_a");
-
-    // (DDD) arguments
-    private static final MethodName BlockPos$PooledMutableBlockPos$retain_name = new MethodName("retain", "func_185345_c");
-    // (DDD) arguments
-    private static final MethodName BlockPos$PooledMutableBlockPos$setPos_name = new MethodName("setPos", "func_189532_c");
-
-    private static final MethodName Entity$getEntityBoundingBox_name = new MethodName("getEntityBoundingBox", "func_174813_aQ");
-    private static final MethodName Entity$getEyeHeight_name = new MethodName("getEyeHeight", "func_70047_e");
-    private static final MethodName Entity$getForward_name = new MethodName("getForward", "func_189651_aD");
-    private static final MethodName Entity$getLookVec_name = new MethodName("getLookVec", "func_70040_Z");
-    private static final MethodName Entity$isOffsetPositionInLiquid_name = new MethodName("isOffsetPositionInLiquid", "func_70038_c");
-    private static final MethodName Entity$moveEntity_name = new MethodName("moveEntity", "func_70091_d");
-    private static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
-    private static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
-
-    private static final MethodName EntityItem$combineItems_name = new MethodName("combineItems", "func_70289_a");
-
-    private static final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
-    private static final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
-    private static final MethodName EntityLivingBase$onLivingUpdate_name = new MethodName("onLivingUpdate", "func_70636_d");
-    private static final MethodName EntityLivingBase$updateDistance_name = new MethodName("updateDistance", "func_110146_f");
-
-    private static final MethodName EntityPlayer$getFoodStats_name = new MethodName("getFoodStats", "func_71024_bL");
-
-    private static final MethodName EntityPlayerMP$handleFalling_name = new MethodName("handleFalling", "func_71122_b");
-
-    // Method added by forge, so no obf name
-    private static final MethodName EntityPlayerSP$isHeadspaceFree_name = new MethodName("isHeadspaceFree");
-    private static final MethodName EntityPlayerSP$onUpdateWalkingPlayer_name = new MethodName("onUpdateWalkingPlayer", "func_175161_p");
-    private static final MethodName EntityPlayerSP$updateAutoJump_name = new MethodName("updateAutoJump", "func_189810_i");
-
-    private static final MethodName EntityRenderer$drawNameplate_name = new MethodName("drawNameplate", "func_189692_a");
-    private static final MethodName EntityRenderer$getMouseOver_name = new MethodName("getMouseOver", "func_78473_a");
-
-    private static final MethodName GlStateManager$disableLighting_name = new MethodName("disableLighting", "func_179140_f");
-
-    private static final MethodName INetHandlerPlayClient$handlePlayerPosLook_name = new MethodName("handlePlayerPosLook", "func_184330_a");
-
-    private static final MethodName INetHandlerPlayServer$processPlayer_name = new MethodName("processPlayer", "func_147347_a");
-    private static final MethodName INetHandlerPlayServer$processPlayerDigging_name = new MethodName("processPlayerDigging", "func_147345_a");
-
-    private static final MethodName Item$onRightClick_name = new MethodName("onItemRightClick", "func_77659_a");
-    private static final MethodName Item$onItemUse_name = new MethodName("onItemUse", "func_180614_a");
-    private static final MethodName Item$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77615_a");
-
-    private static final MethodName ItemStack$onItemUse_name = new MethodName("onItemUse", "func_179546_a");
-    private static final MethodName ItemStack$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77974_b");
-    private static final MethodName ItemStack$useItemRightClick_name = new MethodName("useItemRightClick", "func_77957_a");
-
-    private static final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
-
-    private static final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
-
-    private static final MethodName Vec3d$addVector_name = new MethodName("addVector", "func_72441_c");
-    private static final MethodName Vec3d$scale_name = new MethodName("scale", "func_186678_a");
-
-    private static final MethodName World$getEntitiesInAABBexcluding_name = new MethodName("getEntitiesInAABBexcluding", "func_175674_a");
-
-    /*
-        PaulsCode method names
-     */
-    private static final MethodName SoundSystem$setListenerOrientation_name = new MethodName("setListenerOrientation");
-
-    /*
-        Mojang field names
-     */
-    private static final FieldName AxisAlignedBB$maxY_name = new FieldName("maxY", "field_72337_e");
-    private static final FieldName AxisAlignedBB$minY_name = new FieldName("minY", "field_72338_b");
-    private static final FieldName Blocks$LADDER_name = new FieldName("LADDER", "field_150468_ap");
-    private static final FieldName Entity$posX_name = new FieldName("posX", "field_70165_t");
-    private static final FieldName Entity$posY_name = new FieldName("posY", "field_70163_u");
-    private static final FieldName Entity$posZ_name = new FieldName("posZ", "field_70161_v");
-    private static final FieldName Entity$prevPosX_name = new FieldName("prevPosX", "field_70169_q");
-    private static final FieldName Entity$prevPosZ_name = new FieldName("prevPosZ", "field_70166_s");
-    private static final FieldName Entity$prevRotationPitch_name = new FieldName("prevRotationPitch", "field_70127_C");
-    private static final FieldName Entity$prevRotationYaw_name = new FieldName("prevRotationYaw", "field_70126_B");
-    private static final FieldName Entity$rotationPitch_name = new FieldName("rotationPitch", "field_70125_A");
-    private static final FieldName Entity$rotationYaw_name = new FieldName("rotationYaw", "field_70177_z");
-    private static final FieldName EntityLivingBase$limbSwing_name = new FieldName("limbSwing", "field_184619_aG");
-    private static final FieldName EntityLivingBase$limbSwingAmount_name = new FieldName("limbSwingAmount", "field_70721_aZ");
-    private static final FieldName EntityLivingBase$prevRotationYawHead_name = new FieldName("prevRotationYawHead", "field_70758_at");
-    private static final FieldName EntityLivingBase$rotationYawHead_name = new FieldName("rotationYawHead", "field_70759_as");
-    private static final FieldName NetHandlerPlayServer$lastGoodX_name = new FieldName("lastGoodX", "field_184352_o");
-//    private static final FieldName NetHandlerPlayServer$lastGoodY_name = new FieldName("lastGoodY", "field_184353_p");
-//    private static final FieldName NetHandlerPlayServer$lastGoodZ_name = new FieldName("lastGoodZ", "field_184354_q");
-    private static final FieldName NetHandlerPlayServer$playerEntity_name = new FieldName("playerEntity", "field_147369_b");
-
-    /*
-        Shared reference class names
-     */
-    private static final ObjectClassName ActionResult = new ObjectClassName("net/minecraft/util/ActionResult");
-    private static final ObjectClassName AbstractClientPlayer = new ObjectClassName("net/minecraft/client/entity/AbstractClientPlayer");
-    private static final ObjectClassName AxisAlignedBB = new ObjectClassName("net/minecraft/util/math/AxisAlignedBB");
-    private static final ObjectClassName Block = new ObjectClassName("net/minecraft/block/Block");
-    private static final ObjectClassName BlockPos = new ObjectClassName("net/minecraft/util/math/BlockPos");
-    private static final ObjectClassName BlockPos$PooledMutableBlockPos = new ObjectClassName("net/minecraft/util/math/BlockPos$PooledMutableBlockPos");
-    private static final ObjectClassName Blocks = new ObjectClassName("net/minecraft/init/Blocks");
-    private static final ObjectClassName CPacketPlayer = new ObjectClassName("net/minecraft/network/play/client/CPacketPlayer");
-    private static final ObjectClassName Entity = new ObjectClassName("net/minecraft/entity/Entity");
-    private static final ObjectClassName EntityLivingBase = new ObjectClassName("net/minecraft/entity/EntityLivingBase");
-    private static final ObjectClassName EntityPlayer = new ObjectClassName("net/minecraft/entity/player/EntityPlayer");
-    private static final ObjectClassName EntityPlayerMP = new ObjectClassName("net/minecraft/entity/player/EntityPlayerMP");
-    private static final ObjectClassName EntityPlayerSP = new ObjectClassName("net/minecraft/client/entity/EntityPlayerSP");
-    private static final ObjectClassName EnumActionResult = new ObjectClassName("net/minecraft/util/EnumActionResult");
-    private static final ObjectClassName EnumFacing = new ObjectClassName("net/minecraft/util/EnumFacing");
-    private static final ObjectClassName EnumHand = new ObjectClassName("net/minecraft/util/EnumHand");
-    private static final ObjectClassName FoodStats = new ObjectClassName("net/minecraft/util/FoodStats");
-    private static final ObjectClassName Item = new ObjectClassName("net/minecraft/item/Item");
-    private static final ObjectClassName ItemStack = new ObjectClassName("net/minecraft/item/ItemStack");
-    private static final ObjectClassName NetHandlerPlayServer = new ObjectClassName("net/minecraft/network/NetHandlerPlayServer");
-    private static final ObjectClassName Vec3d = new ObjectClassName("net/minecraft/util/math/Vec3d");
-    private static final ObjectClassName World = new ObjectClassName("net/minecraft/world/World");
-    private static final ObjectClassName WorldClient = new ObjectClassName("net/minecraft/client/multiplayer/WorldClient");
-
-    // Non-minecraft classes
-//    private static final ObjectClassName EntityFloatingItem = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/entities/EntityFloatingItem");
-    private static final ObjectClassName EntityPlayerWithGravity = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity");
-    private static final ObjectClassName GravityAxisAlignedBB = new ObjectClassName("uk/co/mysterymayhem/gravitymod/common/util/boundingboxes/GravityAxisAlignedBB");
-    private static final ObjectClassName ItemStackAndBoolean = new ObjectClassName("uk/co/mysterymayhem/gravitymod/asm/util/ItemStackAndBoolean");
-    private static final ObjectClassName List = new ObjectClassName("java/util/List");
-    private static final ObjectClassName Predicate = new ObjectClassName("com/google/common/base/Predicate");
-    private static final ObjectClassName SoundSystem = new ObjectClassName("paulscode/sound/SoundSystem");
-
-    /*
-        Mojang field instructions
-     */
-    private static final FieldInstruction AxisAlignedBB$maxY_GET = new FieldInstruction(GETFIELD, AxisAlignedBB, AxisAlignedBB$maxY_name, DOUBLE);
-    private static final FieldInstruction AxisAlignedBB$minY_GET = new FieldInstruction(GETFIELD, AxisAlignedBB, AxisAlignedBB$minY_name, DOUBLE);
-    private static final FieldInstruction Blocks$LADDER_GET = new FieldInstruction(GETSTATIC, Blocks, Blocks$LADDER_name, Block);
-    private static final FieldInstruction Entity$posX_GET = new FieldInstruction(GETFIELD, Entity, Entity$posX_name, DOUBLE);
-    private static final FieldInstruction EntityLivingBase$limbSwing_PUT = new FieldInstruction(PUTFIELD, EntityLivingBase, EntityLivingBase$limbSwing_name, FLOAT);
-    private static final FieldInstruction EntityLivingBase$limbSwingAmount_GET = new FieldInstruction(GETFIELD, EntityLivingBase, EntityLivingBase$limbSwingAmount_name, FLOAT);
-    private static final FieldInstruction EntityLivingBase$posX_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posX_name, DOUBLE);
-    private static final FieldInstruction EntityLivingBase$posY_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posY_name, DOUBLE);
-    private static final FieldInstruction EntityLivingBase$posZ_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$posZ_name, DOUBLE);
-    private static final FieldInstruction EntityLivingBase$prevPosX_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$prevPosX_name, DOUBLE);
-    private static final FieldInstruction EntityLivingBase$prevPosZ_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$prevPosZ_name, DOUBLE);
-    private static final FieldInstruction EntityLivingBase$rotationPitch_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$rotationPitch_name, FLOAT);
-    private static final FieldInstruction EntityLivingBase$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityLivingBase, Entity$rotationYaw_name, FLOAT);
-    private static final FieldInstruction EntityPlayer$posY_GET = new FieldInstruction(GETFIELD, EntityPlayer, Entity$posY_name, DOUBLE);
-    private static final FieldInstruction EntityPlayerMP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerMP, Entity$posY_name, DOUBLE);
-    private static final FieldInstruction EntityPlayerMP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerMP, Entity$posZ_name, DOUBLE);
-    private static final FieldInstruction EntityPlayerSP$posX_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posX_name, DOUBLE);
-    private static final FieldInstruction EntityPlayerSP$posY_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posY_name, DOUBLE);
-    private static final FieldInstruction EntityPlayerSP$posZ_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$posZ_name, DOUBLE);
-    private static final FieldInstruction EntityPlayerSP$rotationYaw_GET = new FieldInstruction(GETFIELD, EntityPlayerSP, Entity$rotationYaw_name, FLOAT);
-    private static final FieldInstruction NetHandlerPlayServer$lastGoodX_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodX_name, DOUBLE);
-//    private static final FieldInstruction NetHandlerPlayServer$lastGoodY_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodY_name, DOUBLE);
-//    private static final FieldInstruction NetHandlerPlayServer$lastGoodZ_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$lastGoodZ_name, DOUBLE);
-    private static final FieldInstruction NetHandlerPlayServer$playerEntity_GET = new FieldInstruction(GETFIELD, NetHandlerPlayServer, NetHandlerPlayServer$playerEntity_name, EntityPlayerMP);
-
-    /*
-        Mojang method instructions
-     */
-    // While there could be a constructor for MethodInstruction that doesn't require a MethodDesc, it is useful to
-    // visually split apart the arguments so it's easier to tell what each argument is
-    private static final MethodInstruction AxisAlignedBB$INIT = new MethodInstruction(INVOKESPECIAL, AxisAlignedBB, INIT, new MethodDesc(VOID, Vec3d, Vec3d));
-    private static final MethodInstruction AxisAlignedBB$calculateXOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateXOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
-    private static final MethodInstruction AxisAlignedBB$calculateYOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateYOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
-    private static final MethodInstruction AxisAlignedBB$calculateZOffset = new MethodInstruction(INVOKEVIRTUAL, AxisAlignedBB, AxisAlignedBB$calculateZOffset_name, new MethodDesc(DOUBLE, AxisAlignedBB, DOUBLE));
-    private static final MethodInstruction BlockPos$down_NO_ARGS = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$down_NO_ARGS_name, new MethodDesc(BlockPos));
-    private static final MethodInstruction BlockPos$getY = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$getY_name, new MethodDesc(INT));
-    private static final MethodInstruction BlockPos$INIT = new MethodInstruction(INVOKESPECIAL, BlockPos, INIT, new MethodDesc(VOID, INT, INT, INT));
-    private static final MethodInstruction BlockPos$up_INT_ARG = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$up_INT_ARG_name, new MethodDesc(BlockPos, INT));
-    private static final MethodInstruction BlockPos$up_NO_ARGS = new MethodInstruction(INVOKEVIRTUAL, BlockPos, BlockPos$up_NO_ARGS_name, new MethodDesc(BlockPos));
-    private static final MethodInstruction BlockPos$PooledMutableBlockPos$setPos = new MethodInstruction(
-            INVOKEVIRTUAL, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$setPos_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
-    private static final MethodInstruction BlockPos$PooledMutableBlockPos$retain = new MethodInstruction(
-            INVOKESTATIC, BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos$retain_name, new MethodDesc(BlockPos$PooledMutableBlockPos, DOUBLE, DOUBLE, DOUBLE));
-    private static final MethodInstruction Entity$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, Entity, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
-    private static final MethodInstruction EntityLivingBase$getLookVec = new MethodInstruction(INVOKEVIRTUAL, EntityLivingBase, Entity$getLookVec_name, new MethodDesc(Vec3d));
-    private static final MethodInstruction EntityLivingBase$isOffsetPositionInLiquid = new MethodInstruction(
-            INVOKEVIRTUAL, EntityLivingBase, Entity$isOffsetPositionInLiquid_name, new MethodDesc(BOOLEAN, DOUBLE, DOUBLE, DOUBLE));
-    private static final MethodInstruction EntityPlayerMP$getEyeHeight = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$getEyeHeight_name, new MethodDesc(FLOAT));
-    private static final MethodInstruction EntityPlayerMP$handleFalling = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, EntityPlayerMP$handleFalling_name, new MethodDesc(VOID, DOUBLE, BOOLEAN));
-//    private static final MethodInstruction EntityPlayerMP$moveEntity = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerMP, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
-    private static final MethodInstruction EntityPlayerSP$getEntityBoundingBox = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
-    private static final MethodInstruction EntityPlayerSP$getForward = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
-    private static final MethodInstruction EntityPlayer$getFoodStats = new MethodInstruction(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
-    private static final MethodInstruction Item$onItemRightClick = new MethodInstruction(INVOKEVIRTUAL, Item, Item$onRightClick_name, new MethodDesc(ActionResult, ItemStack, World, EntityPlayer, EnumHand));
-    private static final MethodInstruction Item$onItemUse = new MethodInstruction(
-            INVOKEVIRTUAL, Item, Item$onItemUse_name, new MethodDesc(EnumActionResult, ItemStack, EntityPlayer, World, BlockPos, EnumHand, EnumFacing, FLOAT, FLOAT, FLOAT));
-    private static final MethodInstruction Item$onPlayerStoppedUsing = new MethodInstruction(INVOKEVIRTUAL, Item, Item$onPlayerStoppedUsing_name, new MethodDesc(VOID, ItemStack, World, EntityLivingBase, INT));
-    private static final MethodInstruction Vec3d$addVector = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
-    private static final MethodInstruction Vec3d$scale = new MethodInstruction(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
-    private static final MethodInstruction WorldClient$getEntitiesInAABBexcluding = new MethodInstruction(
-            INVOKEVIRTUAL, WorldClient, World$getEntitiesInAABBexcluding_name, new MethodDesc(List, Entity, AxisAlignedBB, Predicate));
-
-    /*
-        Up And Down And All Around asm hook method instructions
-     */
-    private static final HooksMethodInstruction Hooks$addAdjustedVector = new HooksMethodInstruction("addAdjustedVector", new MethodDesc(Vec3d, Vec3d, DOUBLE, DOUBLE, DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$adjustVec = new HooksMethodInstruction("adjustVec", new MethodDesc(Vec3d, Vec3d, Entity));
-//    private static final HooksMethodInstruction Hooks$adjustXYZ = new HooksMethodInstruction("adjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$constructNewGAABBFrom2Vec3d = new HooksMethodInstruction("constructNewGAABBFrom2Vec3d", new MethodDesc(AxisAlignedBB, Vec3d, Vec3d, Entity));
-    private static final HooksMethodInstruction Hooks$getBlockPosAtTopOfPlayer = new HooksMethodInstruction("getBlockPosAtTopOfPlayer", new MethodDesc(BlockPos, Entity));
-    private static final HooksMethodInstruction Hooks$getBlockPostBelowEntity = new HooksMethodInstruction("getBlockPosBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, Entity));
-    private static final HooksMethodInstruction Hooks$getBottomOfEntity = new HooksMethodInstruction("getBottomOfEntity", new MethodDesc(Vec3d, Entity));
-    private static final HooksMethodInstruction Hooks$getImmutableBlockPosBelowEntity = new HooksMethodInstruction("getImmutableBlockPosBelowEntity", new MethodDesc(BlockPos, Entity));
-    private static final HooksMethodInstruction Hooks$getOriginRelativePosX = new HooksMethodInstruction("getOriginRelativePosX", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getOriginRelativePosY = new HooksMethodInstruction("getOriginRelativePosY", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getOriginRelativePosZ = new HooksMethodInstruction("getOriginRelativePosZ", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getPrevRelativeYawHead = new HooksMethodInstruction("getPrevRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
-    private static final HooksMethodInstruction Hooks$getRelativeBottomOfBB = new HooksMethodInstruction("getRelativeBottomOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeDownBlockPos = new HooksMethodInstruction("getRelativeDownBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeLookVec = new HooksMethodInstruction("getRelativeLookVec", new MethodDesc(Vec3d, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePitch = new HooksMethodInstruction("getRelativePitch", new MethodDesc(FLOAT, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePrevPitch = new HooksMethodInstruction("getRelativePrevPitch", new MethodDesc(FLOAT, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePrevPosX = new HooksMethodInstruction("getRelativePrevPosX", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePrevPosZ = new HooksMethodInstruction("getRelativePrevPosZ", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePrevYaw = new HooksMethodInstruction("getRelativePrevYaw", new MethodDesc(FLOAT, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePosX = new HooksMethodInstruction("getRelativePosX", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePosY = new HooksMethodInstruction("getRelativePosY", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativePosZ = new HooksMethodInstruction("getRelativePosZ", new MethodDesc(DOUBLE, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeTopOfBB = new HooksMethodInstruction("getRelativeTopOfBB", new MethodDesc(DOUBLE, AxisAlignedBB, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeUpblockPos_INT_ARG = new HooksMethodInstruction("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, INT, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeUpblockPos_NO_ARGS = new HooksMethodInstruction("getRelativeUpBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeYaw = new HooksMethodInstruction("getRelativeYaw", new MethodDesc(FLOAT, Entity));
-    private static final HooksMethodInstruction Hooks$getRelativeYawHead = new HooksMethodInstruction("getRelativeYawHead", new MethodDesc(FLOAT, EntityLivingBase));
-    private static final HooksMethodInstruction Hooks$getRelativeYOfBlockPos = new HooksMethodInstruction("getRelativeYOfBlockPos", new MethodDesc(INT, BlockPos, Entity));
-    private static final HooksMethodInstruction Hooks$getVanillaEntityBoundingBox = new HooksMethodInstruction("getVanillaEntityBoundingBox", new MethodDesc(AxisAlignedBB, Entity));
-    private static final HooksMethodInstruction Hooks$inverseAdjustXYZ = new HooksMethodInstruction("inverseAdjustXYZ", new MethodDesc(DOUBLE.asArray(), Entity, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$isHeadspaceFree = new HooksMethodInstruction("isHeadspaceFree", new MethodDesc(BOOLEAN, EntityPlayerSP, BlockPos, INT));
-    private static final HooksMethodInstruction Hooks$makePositionAbsolute = new HooksMethodInstruction("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
-    private static final HooksMethodInstruction Hooks$makePositionRelative = new HooksMethodInstruction("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
-//    private static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$netHandlerPlayServerGetPacketZ = new HooksMethodInstruction("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
-    private static final HooksMethodInstruction Hooks$netHandlerPlayServerGetRelativeY = new HooksMethodInstruction("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$netHandlerPlayServerHandleFallingYChange =
-            new HooksMethodInstruction("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$netHandlerPlayServerSetRelativeYToZero =
-            new HooksMethodInstruction("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
-    private static final HooksMethodInstruction Hooks$onItemRightClickPost = new HooksMethodInstruction("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onItemRightClickPre = new HooksMethodInstruction("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onItemUsePost = new HooksMethodInstruction("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onItemUsePre = new HooksMethodInstruction("onItemUsePre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$onPlayerStoppedUsingPost = new HooksMethodInstruction("onPlayerStoppedUsingPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityLivingBase));
-    private static final HooksMethodInstruction Hooks$onPlayerStoppedUsingPre = new HooksMethodInstruction("onPlayerStoppedUsingPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityLivingBase));
-    private static final HooksMethodInstruction Hooks$pushEntityPlayerSPOutOfBlocks = new HooksMethodInstruction("pushEntityPlayerSPOutOfBlocks", new MethodDesc(VOID, EntityPlayerWithGravity, AxisAlignedBB));
-    private static final HooksMethodInstruction Hooks$reverseXOffset = new HooksMethodInstruction("reverseXOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-    private static final HooksMethodInstruction Hooks$reverseYOffset = new HooksMethodInstruction("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-    private static final HooksMethodInstruction Hooks$reverseZOffset = new HooksMethodInstruction("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
-    private static final HooksMethodInstruction Hooks$runNameplateCorrection = new HooksMethodInstruction("runNameplateCorrection", new MethodDesc(VOID, BOOLEAN));
-    private static final HooksMethodInstruction Hooks$setListenerOrientationHook = new HooksMethodInstruction("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
-    private static final HooksMethodInstruction Hooks$setPooledMutableBlockPosToBelowEntity =
-            new HooksMethodInstruction("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
-
-    /*
-        Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)
-     */
-    private static final MethodInstruction AbstractClientPlayer$moveEntity_SPECIAL = new MethodInstruction(Opcodes.INVOKESPECIAL, AbstractClientPlayer, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
-    private static final MethodInstruction AbstractClientPlayer$updateAutoJump_SPECIAL = new MethodInstruction(Opcodes.INVOKESPECIAL, AbstractClientPlayer, EntityPlayerSP$updateAutoJump_name, new MethodDesc(VOID, FLOAT, FLOAT));
-
-    /**
-     * Core transformer method. Recieves classes by name and their bytes and processes them if necessary.
-     * @param className class name prior to deobfuscation (I think)
-     * @param transformedClassName runtime deobfuscated class name
-     * @param bytes the bytes that make up the class sent to the transformer
-     * @return the bytes of the now processed class
-     */
-    @Override
-    public byte[] transform(String className, String transformedClassName, byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
-
-        Function<byte[], byte[]> function = classNameToMethodMap.get(transformedClassName);
-
-        if (function == null) {
-            return bytes;
-        } else {
-            log("Patching class %s", transformedClassName);
-            byte[] toReturn = function.apply(bytes);
-            log("Patched class  %s", transformedClassName);
-            return toReturn;
-        }
+    private static void printMethodToFMLLogger(MethodNode methodNode) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        printMethodToStream(methodNode, byteArrayOutputStream);
+        FMLLog.info("\n%s", byteArrayOutputStream);
     }
 
     /**
@@ -520,19 +434,19 @@ public class Transformer implements IClassTransformer {
                 AbstractInsnNode next = iterator.next();
                 switch (next.getType()) {
                     case (AbstractInsnNode.TYPE_INSN):
-                        TypeInsnNode typeInsnNode = (TypeInsnNode) next;
+                        TypeInsnNode typeInsnNode = (TypeInsnNode)next;
                         if (typeInsnNode.desc.equals(classToReplace)) {
                             typeInsnNode.desc = classReplacement;
                         }
                         break;
                     case (AbstractInsnNode.FIELD_INSN):
-                        FieldInsnNode fieldInsnNode = (FieldInsnNode) next;
+                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
                         if (fieldInsnNode.owner.equals(classToReplace)) {
                             fieldInsnNode.owner = classReplacement;
                         }
                         break;
                     case (AbstractInsnNode.METHOD_INSN):
-                        MethodInsnNode methodInsnNode = (MethodInsnNode) next;
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
                         if (methodInsnNode.owner.equals(classToReplace)) {
                             methodInsnNode.owner = classReplacement;
                         }
@@ -646,6 +560,52 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
+    private static void logPatchStarting(ObfuscationHelper.DeobfAwareString deobfAwareString) {
+        logPatchStarting(deobfAwareString.getDeobf());
+    }
+
+    /**
+     * Use to add a local variable to a method.
+     *
+     * @param methodNode      Method to add the localvariable to
+     * @param objectClassName The variable's class
+     * @return The index of the new local variable
+     */
+    private static int addLocalVar(MethodNode methodNode, ObjectCName objectClassName) {
+        LocalVariablesSorter localVariablesSorter = new LocalVariablesSorter(methodNode.access, methodNode.desc, methodNode);
+        return localVariablesSorter.newLocal(Type.getObjectType(objectClassName.toString()));
+    }
+
+    private static void logPatchComplete(ObfuscationHelper.DeobfAwareString deobfAwareString) {
+        logPatchComplete(deobfAwareString.getDeobf());
+    }
+
+    private static void dieIfFalse(boolean shouldContinue, ClassNode classNode) {
+        dieIfFalse(shouldContinue, "Failed to find the methods to patch in " + classNode.name +
+                ". The Minecraft version you are using likely does not match what the mod requires.");
+    }
+
+    private static void logPatchStarting(Object object) {
+        log("Patching %s", object);
+    }
+
+    private static void logPatchComplete(Object object) {
+        log("Patched  %s", object);
+    }
+
+    /**
+     * Option to used to compound multiple tests together
+     *
+     * @param shouldContinue boolean to check, if false, Minecraft is forced to crash with the passed dieMessage
+     * @param dieMessage     The message to use as the cause when making Minecraft crash
+     * @return
+     */
+    private static void dieIfFalse(boolean shouldContinue, String dieMessage) {
+        if (!shouldContinue) {
+            die(dieMessage);
+        }
+    }
+
     private static byte[] patchRenderLivingBase(byte[] bytes) {
         int methodPatches = 0;
         ClassNode classNode = new ClassNode();
@@ -672,6 +632,115 @@ public class Transformer implements IClassTransformer {
         ClassWriter classWriter = new ClassWriter(0);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
+    }
+
+    private static void patchMethodUsingAbsoluteRotations(MethodNode methodNode, int fieldBits) {
+        patchMethodUsingAbsoluteRotations(methodNode, fieldBits, 1, -1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void patchMethodUsingAbsoluteRotations(MethodNode methodNode, int fieldBits, int minNumberOfPatches, int expectedNumberOfPatches) {
+        if (fieldBits == 0) {
+            return;
+        }
+
+        int numPatchesCompleted = 0;
+
+        boolean changeRotationYaw = (fieldBits & GET_ROTATIONYAW) == GET_ROTATIONYAW;
+        boolean changeRotationPitch = (fieldBits & GET_ROTATIONPITCH) == GET_ROTATIONPITCH;
+        boolean changePrevRotationYaw = (fieldBits & GET_PREVROTATIONYAW) == GET_PREVROTATIONYAW;
+        boolean changePrevRotationPitch = (fieldBits & GET_PREVROTATIONPITCH) == GET_PREVROTATIONPITCH;
+
+        // Field introduced in EntityLivingBase
+        boolean changeRotationYawHead = (fieldBits & GET_ROTATIONYAWHEAD) == GET_ROTATIONYAWHEAD;
+        boolean changePrevRotationYawHead = (fieldBits & GET_PREVROTATIONYAWHEAD) == GET_PREVROTATIONYAWHEAD;
+
+        BiPredicate<ListIterator<AbstractInsnNode>, FieldInsnNode>[] biPredicates = new BiPredicate[Integer.bitCount(fieldBits)];
+        int index = 0;
+        if (changeRotationYaw) {
+            biPredicates[index] = (iterator, node) -> {
+                if (Transformer.Entity$rotationYaw_name.is(node.name)) {
+                    Transformer.Hooks$getRelativeYaw.replace(iterator);
+                    return true;
+                }
+                return false;
+            };
+            index++;
+        }
+        if (changeRotationPitch) {
+            biPredicates[index] = (iterator, node) -> {
+                if (Transformer.Entity$rotationPitch_name.is(node.name)) {
+                    Transformer.Hooks$getRelativePitch.replace(iterator);
+                    return true;
+                }
+                return false;
+            };
+            index++;
+        }
+        if (changePrevRotationYaw) {
+            biPredicates[index] = (iterator, node) -> {
+                if (Transformer.Entity$prevRotationYaw_name.is(node.name)) {
+                    Transformer.Hooks$getRelativePrevYaw.replace(iterator);
+                    return true;
+                }
+                return false;
+            };
+            index++;
+        }
+        if (changePrevRotationPitch) {
+            biPredicates[index] = (iterator, node) -> {
+                if (Transformer.Entity$prevRotationPitch_name.is(node.name)) {
+                    Transformer.Hooks$getRelativePrevPitch.replace(iterator);
+                    return true;
+                }
+                return false;
+            };
+            index++;
+        }
+        if (changeRotationYawHead) {
+            biPredicates[index] = (iterator, node) -> {
+                if (Transformer.EntityLivingBase$rotationYawHead_name.is(node.name)) {
+                    Transformer.Hooks$getRelativeYawHead.replace(iterator);
+                    return true;
+                }
+                return false;
+            };
+            index++;
+        }
+        if (changePrevRotationYawHead) {
+            biPredicates[index] = (iterator, node) -> {
+                if (Transformer.EntityLivingBase$prevRotationYawHead_name.is(node.name)) {
+                    Transformer.Hooks$getPrevRelativeYawHead.replace(iterator);
+                    return true;
+                }
+                return false;
+            };
+//            index++;
+        }
+
+        for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+            AbstractInsnNode next = iterator.next();
+            if (next.getOpcode() == GETFIELD/* && next instanceof FieldInsnNode*/) {
+                FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                for (BiPredicate<ListIterator<AbstractInsnNode>, FieldInsnNode> biPredicate : biPredicates) {
+                    if (biPredicate.test(iterator, fieldInsnNode)) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (minNumberOfPatches < numPatchesCompleted) {
+            die("Patching rotation field access to getRelative hook methods failed in " + methodNode.name);
+        }
+        if (expectedNumberOfPatches > 0 && numPatchesCompleted > expectedNumberOfPatches) {
+            warn("Expected to patch rotation field access " + expectedNumberOfPatches + " times in " + methodNode
+                    + ", but ended up patching " + numPatchesCompleted + " times instead");
+        }
+    }
+
+    private static void warn(String string, Object... objects) {
+        FMLLog.warning("[UpAndDown] " + string, objects);
     }
 
     private static byte[] patchEntityRenderer(byte[] bytes) {
@@ -703,7 +772,7 @@ public class Transformer implements IClassTransformer {
                     if (Transformer.WorldClient$getEntitiesInAABBexcluding.is(next)) {
                         // Not strictly necessary, but the first previous() call will return the getEntitiesInAABBexcluding method we just found
                         iterator.previous();
-                        while(iterator.hasPrevious()) {
+                        while (iterator.hasPrevious()) {
                             next = iterator.previous();
                             if (Transformer.Entity$getEntityBoundingBox.is(next)) {
                                 Transformer.Hooks$getVanillaEntityBoundingBox.replace(iterator);
@@ -815,7 +884,7 @@ public class Transformer implements IClassTransformer {
                             // And it just so happens that our INVOKESTATIC instruction needs to have ALOAD 0 before it
                             // So we cut out a bunch of no longer used instructions and inserted our own instruction
                             // (hopefully it's fine to have local variables that are never used in bytecode)
-                            for (;iterator.hasPrevious() && !newBlockPosFound;) {
+                            for (; iterator.hasPrevious() && !newBlockPosFound; ) {
                                 AbstractInsnNode previous = iterator.previous();
                                 if (Transformer.Entity$posX_GET.is(previous)) {
                                     newBlockPosFound = true;
@@ -830,7 +899,7 @@ public class Transformer implements IClassTransformer {
                                 iterator.remove();
                             }
 
-                            if(!newBlockPosFound) {
+                            if (!newBlockPosFound) {
                                 die("Failed to find " + Transformer.Entity$posX_GET + " prior to " + Transformer.BlockPos$INIT);
                             }
                         }
@@ -855,13 +924,13 @@ public class Transformer implements IClassTransformer {
                             && newBlockPosFound && blockPos$downFound
                             /*&& !Blocks$LADDERFound*/) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        if (!Blocks$LADDERFound && Transformer.Blocks$LADDER_GET.is(fieldInsnNode)){
+                        if (!Blocks$LADDERFound && Transformer.Blocks$LADDER_GET.is(fieldInsnNode)) {
                             iterator.previous(); // returns the same GETSTATIC instruction
                             iterator.previous(); // should be ALOAD 29
 
                             int countToUndo = 0;
                             final int posZVar; //34/77
-                            while(true) {
+                            while (true) {
                                 countToUndo++;
                                 AbstractInsnNode previous = iterator.previous();
                                 if (previous.getOpcode() == Opcodes.DSTORE) {
@@ -869,7 +938,7 @@ public class Transformer implements IClassTransformer {
                                     break;
                                 }
                             }
-                            for(; countToUndo > 0; countToUndo--) {
+                            for (; countToUndo > 0; countToUndo--) {
                                 iterator.next();
                             }
                             final int posYVar = posZVar - 2; //32/75
@@ -978,14 +1047,14 @@ public class Transformer implements IClassTransformer {
                         // The original code that is called is removed
                         else if (replaced_rotationPitch
                                 && !BlockPos$PooledMutableBlockPos$retainFound
-                                && Transformer.BlockPos$PooledMutableBlockPos$retain.is(methodInsnNode)){
+                                && Transformer.BlockPos$PooledMutableBlockPos$retain.is(methodInsnNode)) {
                             Transformer.Hooks$getBlockPostBelowEntity.replace(methodInsnNode);
 
                             iterator.previous(); //Our replacment INVOKESTATIC
 
                             // Deletes everything before the INVOKESTATIC until we've reached our third ALOAD
                             int aload0foundCount = 0;
-                            while(iterator.hasPrevious() && aload0foundCount < 3) {
+                            while (iterator.hasPrevious() && aload0foundCount < 3) {
                                 AbstractInsnNode previous = iterator.previous();
                                 if (previous instanceof VarInsnNode) {
                                     VarInsnNode varInsnNode = (VarInsnNode)previous;
@@ -1043,7 +1112,7 @@ public class Transformer implements IClassTransformer {
                         // later posY are modified
                         else if (BlockPos$PooledMutableBlockPos$setPosFound
                                 && numEntityLivingBase$isOffsetPositionInLiquidFound < 2
-                                && Transformer.EntityLivingBase$isOffsetPositionInLiquid.is(methodInsnNode)){
+                                && Transformer.EntityLivingBase$isOffsetPositionInLiquid.is(methodInsnNode)) {
                             if (methodInsnNode == previousisOffsetPositionInLiquidMethodInsnNode) {
                                 continue;
                             }
@@ -1065,7 +1134,7 @@ public class Transformer implements IClassTransformer {
                             }
                         }
                     }
-                    else if(next instanceof FieldInsnNode) {
+                    else if (next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
                         // Replaces access of the player's pitch with a get-relative-pitch hook, in the Elytra movement
                         if (replaced_getLookVec
@@ -1185,7 +1254,7 @@ public class Transformer implements IClassTransformer {
             if (Transformer.INetHandlerPlayClient$handlePlayerPosLook_name.is(methodNode)) {
                 logPatchStarting(Transformer.INetHandlerPlayClient$handlePlayerPosLook_name);
                 boolean foundAtLeastOneMinY = false;
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator();iterator.hasNext(); ) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
@@ -1243,7 +1312,7 @@ public class Transformer implements IClassTransformer {
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof MethodInsnNode) {
-                        MethodInsnNode methodInsnNode = (MethodInsnNode) next;
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
                         // processPlayer calls handleFalling(...) with the player's change in Y position
                         // We insert a hook that calculates the player's relative Y change and deletes the instructions
                         // that calculate the change in Y position (this.playerEntity.posY - d3)
@@ -1263,8 +1332,7 @@ public class Transformer implements IClassTransformer {
                                 next = iterator.previous(); // GETFIELD posY
                                 if (next instanceof FieldInsnNode) {
                                     FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                                    if (Transformer.EntityPlayerMP$posY_GET.is(fieldInsnNode))
-                                    {
+                                    if (Transformer.EntityPlayerMP$posY_GET.is(fieldInsnNode)) {
                                         VarInsnNode dload3 = new VarInsnNode(Opcodes.DLOAD, 3);
                                         iterator.remove();
                                         iterator.add(dload3);
@@ -1317,7 +1385,7 @@ public class Transformer implements IClassTransformer {
                                 && varInsnNode.var == yDiffLocalVar
                                 && varInsnNode.getOpcode() == Opcodes.DLOAD) {
                             yDiffLoadCount++;
-                            switch(yDiffLoadCount) {
+                            switch (yDiffLoadCount) {
                                 case 4://d8 > -0.5D
 
                                     // run "d9 = d6 - this.playerEntity.posZ;" early so that d9 is given the correct value
@@ -1350,9 +1418,9 @@ public class Transformer implements IClassTransformer {
                                     Hooks$netHandlerPlayServerGetRelativeY.addTo(iterator); //relativeY
                                     break;
                                 //case 2://this.playerEntity.moveEntity(d7, d8, d9);
-                                    // no change, as we're going to call moveEntityAbsolute hook, or the method will take
-                                    // care of the absolute arguments on its own when using the MotionStack (NYI)
-                                    // Either way, we'll delegate this to the default case
+                                // no change, as we're going to call moveEntityAbsolute hook, or the method will take
+                                // care of the absolute arguments on its own when using the MotionStack (NYI)
+                                // Either way, we'll delegate this to the default case
                                 default:
                                     break;
                             }
@@ -1423,7 +1491,7 @@ public class Transformer implements IClassTransformer {
 
                 boolean patched1point5ToGetEyeHeight = false;
 
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator();iterator.hasNext(); ) {
+                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof LdcInsnNode) {
                         LdcInsnNode ldcInsnNode = (LdcInsnNode)next;
@@ -1456,9 +1524,6 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
-    private static final boolean DEBUG_AUTO_JUMP = false;
-
-
     private static byte[] patchEntityPlayerSP(byte[] bytes) {
         int methodPatches = 0;
         int expectedMethodPatches = 5;
@@ -1478,13 +1543,13 @@ public class Transformer implements IClassTransformer {
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
                     if (next instanceof FieldInsnNode) {
-                        FieldInsnNode fieldInsnNode = (FieldInsnNode) next;
+                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
                         if (Transformer.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
                             if (iterator.hasPrevious()) {
                                 iterator.previous();
                                 AbstractInsnNode previous = iterator.previous();
                                 if (previous instanceof VarInsnNode) {
-                                    VarInsnNode varInsnNode = (VarInsnNode) previous;
+                                    VarInsnNode varInsnNode = (VarInsnNode)previous;
                                     if (varInsnNode.var == 3) {
                                                 /*
                                                 Replace
@@ -1549,7 +1614,7 @@ public class Transformer implements IClassTransformer {
                             next = iterator.next();
 
                             if (next instanceof LabelNode) {
-                                ifeqJumpInsnNode.label = (LabelNode) next;
+                                ifeqJumpInsnNode.label = (LabelNode)next;
 
                                 next = iterator.next();
 
@@ -1563,12 +1628,12 @@ public class Transformer implements IClassTransformer {
                                     for (; iterator.hasNext(); ) {
                                         next = iterator.next();
                                         if (next instanceof MethodInsnNode) {
-                                            MethodInsnNode methodInsnNode = (MethodInsnNode) next;
+                                            MethodInsnNode methodInsnNode = (MethodInsnNode)next;
                                             if (Transformer.EntityPlayer$getFoodStats.is(methodInsnNode)) {
                                                 for (; iterator.hasPrevious(); ) {
                                                     AbstractInsnNode previous = iterator.previous();
                                                     if (previous instanceof LabelNode) {
-                                                        labelForGotoJumpInsnNode = (LabelNode) previous;
+                                                        labelForGotoJumpInsnNode = (LabelNode)previous;
                                                         // ClassWriter is going to compute the frames, the commented out code is untested
 //                                                        for(;iterator.hasNext();) {
 //                                                            next = iterator.next();
@@ -1716,7 +1781,7 @@ public class Transformer implements IClassTransformer {
                                 patch5Point5Complete = true;
                             }
                             //PATCH #1
-                            else if (Transformer.Vec3d$addVector.is(methodInsnNode)){
+                            else if (Transformer.Vec3d$addVector.is(methodInsnNode)) {
                                 iterator.remove();
                                 iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
                                 Transformer.Hooks$addAdjustedVector.addTo(iterator);
@@ -1762,7 +1827,7 @@ public class Transformer implements IClassTransformer {
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
                                     && typeInsnNode.desc.equals(Transformer.Vec3d.toString())) {
                                 iterator.remove();
-                                while(!patch1Complete) {
+                                while (!patch1Complete) {
                                     next = iterator.next();
                                     if (next instanceof MethodInsnNode && next.getOpcode() == INVOKESPECIAL) {
                                         iterator.remove();
@@ -1792,12 +1857,12 @@ public class Transformer implements IClassTransformer {
                                 }
                             }
                             //newPATCH #6
-                            else if(patch5Point5Complete
+                            else if (patch5Point5Complete
                                     && !patch6Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
                                     && typeInsnNode.desc.equals(Transformer.BlockPos.toString())) {
                                 iterator.remove();
-                                while(!patch6Complete) {
+                                while (!patch6Complete) {
                                     next = iterator.next();
                                     if (next instanceof MethodInsnNode && next.getOpcode() == INVOKESPECIAL) {
                                         iterator.remove();
@@ -1819,7 +1884,7 @@ public class Transformer implements IClassTransformer {
                                 }
                             }
                             //newPATCH #9
-                            else if(patch8Complete
+                            else if (patch8Complete
                                     && !patch9Complete
 //                                    && typeInsnNode.getOpcode() == Opcodes.NEW
                                     && typeInsnNode.desc.equals(Transformer.Vec3d.toString())) {
@@ -1856,13 +1921,13 @@ public class Transformer implements IClassTransformer {
                                 patch2Complete = true;
                             }
                             //newPATCH #3
-                            else if(patch2Complete
+                            else if (patch2Complete
                                     && !patch3Complete
                                     && Transformer.EntityPlayerSP$posZ_GET.is(fieldInsnNode)) {
                                 Transformer.Hooks$getOriginRelativePosZ.replace(iterator);
                                 patch3Complete = true;
                             }
-                            else if(patch4Complete
+                            else if (patch4Complete
                                     && !patch4Point5Complete
                                     && Transformer.EntityPlayerSP$rotationYaw_GET.is(fieldInsnNode)) {
                                 Transformer.Hooks$getRelativeYaw.replace(iterator);
@@ -1955,7 +2020,7 @@ public class Transformer implements IClassTransformer {
                                 die("Was expecting DSTORE _ after GETFIELD posX, instead got " + next);
                             }
 
-                            while(true) {
+                            while (true) {
                                 next = iterator.next();
                                 if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ALOAD) {
                                     //ALOAD 0
@@ -1973,9 +2038,9 @@ public class Transformer implements IClassTransformer {
                                         die("Was expecting DSTORE _ after GETFIELD posZ, instead got " + next);
                                     }
 
-                                    while(true) {
+                                    while (true) {
                                         next = iterator.next();
-                                        if(next instanceof FieldInsnNode) {
+                                        if (next instanceof FieldInsnNode) {
                                             FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
                                             if (Transformer.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
                                                 iterator.previous();
@@ -2000,7 +2065,7 @@ public class Transformer implements IClassTransformer {
                                                 iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var));
                                                 iterator.add(new InsnNode(Opcodes.D2F));
 
-                                                while(true) {
+                                                while (true) {
                                                     next = iterator.next();
                                                     if (next.getOpcode() == INVOKEVIRTUAL) {
                                                         //INVOKEVIRTUAL net/minecraft/client/entity/EntityPlayerSP.func_189810_i (FF)V // Auto-jump method
@@ -2133,8 +2198,8 @@ public class Transformer implements IClassTransformer {
                 boolean patched_setListenerOrientationInstruction = false;
                 for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
                     AbstractInsnNode next = iterator.next();
-                    if (next instanceof  MethodInsnNode) {
-                        MethodInsnNode methodInsnNode = (MethodInsnNode) next;
+                    if (next instanceof MethodInsnNode) {
+                        MethodInsnNode methodInsnNode = (MethodInsnNode)next;
                         if (Transformer.SoundSystem$setListenerOrientation_name.is(methodInsnNode.name)) {
                             Transformer.Hooks$setListenerOrientationHook.replace(methodInsnNode);
                             iterator.previous();
@@ -2155,118 +2220,30 @@ public class Transformer implements IClassTransformer {
         return classWriter.toByteArray();
     }
 
-    //Set up bit mask
-    private static final int GET_ROTATIONYAW = 0b1;
-    private static final int GET_ROTATIONPITCH = 0b10;
-    private static final int GET_PREVROTATIONYAW = 0b100;
-    private static final int GET_PREVROTATIONPITCH = 0b1000;
-    private static final int GET_ROTATIONYAWHEAD = 0b10000;
-    private static final int GET_PREVROTATIONYAWHEAD = 0b100000;
-    private static final int ALL_GET_ROTATION_VARS = GET_ROTATIONYAW | GET_ROTATIONPITCH | GET_PREVROTATIONYAW
-            | GET_PREVROTATIONPITCH | GET_ROTATIONYAWHEAD | GET_PREVROTATIONYAWHEAD;
-
-    private static void patchMethodUsingAbsoluteRotations(MethodNode methodNode, int fieldBits) {
-        patchMethodUsingAbsoluteRotations(methodNode, fieldBits, 1, -1);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void patchMethodUsingAbsoluteRotations(MethodNode methodNode, int fieldBits, int minNumberOfPatches, int expectedNumberOfPatches) {
-        if (fieldBits == 0) {
-            return;
+    /**
+     * Core transformer method. Recieves classes by name and their bytes and processes them if necessary.
+     *
+     * @param className            class name prior to deobfuscation (I think)
+     * @param transformedClassName runtime deobfuscated class name
+     * @param bytes                the bytes that make up the class sent to the transformer
+     * @return the bytes of the now processed class
+     */
+    @Override
+    public byte[] transform(String className, String transformedClassName, byte[] bytes) {
+        if (bytes == null) {
+            return null;
         }
 
-        int numPatchesCompleted = 0;
+        Function<byte[], byte[]> function = classNameToMethodMap.get(transformedClassName);
 
-        boolean changeRotationYaw = (fieldBits & GET_ROTATIONYAW) == GET_ROTATIONYAW;
-        boolean changeRotationPitch = (fieldBits & GET_ROTATIONPITCH) == GET_ROTATIONPITCH;
-        boolean changePrevRotationYaw = (fieldBits & GET_PREVROTATIONYAW) == GET_PREVROTATIONYAW;
-        boolean changePrevRotationPitch = (fieldBits & GET_PREVROTATIONPITCH) == GET_PREVROTATIONPITCH;
-
-        // Field introduced in EntityLivingBase
-        boolean changeRotationYawHead = (fieldBits & GET_ROTATIONYAWHEAD) == GET_ROTATIONYAWHEAD;
-        boolean changePrevRotationYawHead = (fieldBits & GET_PREVROTATIONYAWHEAD) == GET_PREVROTATIONYAWHEAD;
-
-        BiPredicate<ListIterator<AbstractInsnNode>, FieldInsnNode>[] biPredicates = new BiPredicate[Integer.bitCount(fieldBits)];
-        int index = 0;
-        if (changeRotationYaw) {
-            biPredicates[index] = (iterator, node) -> {
-                if (Transformer.Entity$rotationYaw_name.is(node.name)) {
-                    Transformer.Hooks$getRelativeYaw.replace(iterator);
-                    return true;
-                }
-                return false;
-            };
-            index++;
+        if (function == null) {
+            return bytes;
         }
-        if (changeRotationPitch) {
-            biPredicates[index] = (iterator, node) -> {
-                if (Transformer.Entity$rotationPitch_name.is(node.name)) {
-                    Transformer.Hooks$getRelativePitch.replace(iterator);
-                    return true;
-                }
-                return false;
-            };
-            index++;
-        }
-        if (changePrevRotationYaw) {
-            biPredicates[index] = (iterator, node) -> {
-                if (Transformer.Entity$prevRotationYaw_name.is(node.name)) {
-                    Transformer.Hooks$getRelativePrevYaw.replace(iterator);
-                    return true;
-                }
-                return false;
-            };
-            index++;
-        }
-        if (changePrevRotationPitch) {
-            biPredicates[index] = (iterator, node) -> {
-                if (Transformer.Entity$prevRotationPitch_name.is(node.name)) {
-                    Transformer.Hooks$getRelativePrevPitch.replace(iterator);
-                    return true;
-                }
-                return false;
-            };
-            index++;
-        }
-        if (changeRotationYawHead) {
-            biPredicates[index] = (iterator, node) -> {
-                if (Transformer.EntityLivingBase$rotationYawHead_name.is(node.name)) {
-                    Transformer.Hooks$getRelativeYawHead.replace(iterator);
-                    return true;
-                }
-                return false;
-            };
-            index++;
-        }
-        if (changePrevRotationYawHead) {
-            biPredicates[index] = (iterator, node) -> {
-                if (Transformer.EntityLivingBase$prevRotationYawHead_name.is(node.name)) {
-                    Transformer.Hooks$getPrevRelativeYawHead.replace(iterator);
-                    return true;
-                }
-                return false;
-            };
-//            index++;
-        }
-
-        for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-            AbstractInsnNode next = iterator.next();
-            if (next.getOpcode() == GETFIELD/* && next instanceof FieldInsnNode*/) {
-                FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                for (BiPredicate<ListIterator<AbstractInsnNode>, FieldInsnNode> biPredicate : biPredicates) {
-                    if (biPredicate.test(iterator, fieldInsnNode)) {
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (minNumberOfPatches < numPatchesCompleted) {
-            die("Patching rotation field access to getRelative hook methods failed in " + methodNode.name);
-        }
-        if (expectedNumberOfPatches > 0 && numPatchesCompleted > expectedNumberOfPatches) {
-            warn("Expected to patch rotation field access " + expectedNumberOfPatches + " times in " + methodNode
-                    + ", but ended up patching " + numPatchesCompleted + " times instead");
+        else {
+            log("Patching class %s", transformedClassName);
+            byte[] toReturn = function.apply(bytes);
+            log("Patched class  %s", transformedClassName);
+            return toReturn;
         }
     }
 }

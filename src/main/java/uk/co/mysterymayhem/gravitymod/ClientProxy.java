@@ -15,6 +15,12 @@ import uk.co.mysterymayhem.gravitymod.client.listeners.PlayerCameraListener;
 public class ClientProxy extends CommonProxy {
 
     @Override
+    public void postInit() {
+        super.postInit();
+        this.postInitClient();
+    }
+
+    @Override
     public void preInit() {
         super.preInit();
         this.preInitClient();
@@ -27,9 +33,8 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void postInit() {
-        super.postInit();
-        this.postInitClient();
+    public void registerGravityManager() {
+        this.gravityManagerCommon = new GravityManagerClient();
     }
 
     @Override
@@ -38,10 +43,5 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new PlayerCameraListener());
         MinecraftForge.EVENT_BUS.register(new EntityRenderListener());
         MinecraftForge.EVENT_BUS.register(new ItemTooltipListener());
-    }
-
-    @Override
-    public void registerGravityManager() {
-        this.gravityManagerCommon = new GravityManagerClient();
     }
 }

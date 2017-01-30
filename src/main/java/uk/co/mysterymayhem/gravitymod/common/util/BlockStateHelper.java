@@ -18,6 +18,21 @@ import java.util.Map;
  */
 public class BlockStateHelper {
 
+    @SuppressWarnings("unchecked")
+    public static <E extends Enum<E> & IStringSerializable> E getEnumOfBlockState(Class<E> enumClass, IBlockState blockState) {
+        Collection<IProperty<?>> propertyNames = blockState.getPropertyNames();
+        for (IProperty<?> property : propertyNames) {
+            if (property instanceof PropertyEnum<?>) {
+                PropertyEnum<?> propertyEnum = (PropertyEnum<?>)property;
+                if (propertyEnum.getValueClass() == enumClass) {
+                    PropertyEnum<E> facingPropertyEnum = (PropertyEnum<E>)propertyEnum;
+                    return blockState.getValue(facingPropertyEnum);
+                }
+            }
+        }
+        return null;
+    }
+
     public static EnumFacing getFacingOfBlockState(IBlockState blockState) {
 
         Collection<IProperty<?>> propertyNames = blockState.getPropertyNames();
@@ -89,21 +104,6 @@ public class BlockStateHelper {
             }
         }
         return propertyMap;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <E extends Enum<E> & IStringSerializable> E getEnumOfBlockState(Class<E> enumClass, IBlockState blockState) {
-        Collection<IProperty<?>> propertyNames = blockState.getPropertyNames();
-        for (IProperty<?> property : propertyNames) {
-            if (property instanceof PropertyEnum<?>) {
-                PropertyEnum<?> propertyEnum = (PropertyEnum<?>)property;
-                if (propertyEnum.getValueClass() == enumClass) {
-                    PropertyEnum<E> facingPropertyEnum = (PropertyEnum<E>)propertyEnum;
-                    return blockState.getValue(facingPropertyEnum);
-                }
-            }
-        }
-        return null;
     }
 
     public static boolean propertyIsSavedToMeta(IBlockState blockState, IProperty<?> property) {

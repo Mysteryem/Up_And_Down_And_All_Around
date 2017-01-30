@@ -36,7 +36,7 @@ public class FieldLambdaMetafactory {
         try {
             Class<?> innerFactoryClass = Class.forName("java.lang.invoke.InnerClassLambdaMetafactory");
             MethodHandle counterGetter = TRUSTED_LOOKUP.findStaticGetter(innerFactoryClass, "counter", AtomicInteger.class);
-            counter = (AtomicInteger) counterGetter.invokeExact();
+            counter = (AtomicInteger)counterGetter.invokeExact();
 
             // Get Unsafe instance
             // Getting fields from innerFactoryClass as it's in the java.* package rather than from Unsafe.class which
@@ -45,7 +45,7 @@ public class FieldLambdaMetafactory {
             Unsafe temp = null;
             for (Field declaredField : declaredFields) {
                 if (declaredField.getType() == Unsafe.class) {
-                    temp = (Unsafe) TRUSTED_LOOKUP.unreflectGetter(declaredField).invokeExact();
+                    temp = (Unsafe)TRUSTED_LOOKUP.unreflectGetter(declaredField).invokeExact();
                     break;
                 }
             }
@@ -69,12 +69,13 @@ public class FieldLambdaMetafactory {
     private final String interfaceMethodName;
     private final MethodHandle implMethod;
     private final MethodType handleMethodType;
+
     private FieldLambdaMetafactory(MethodHandles.Lookup caller,
-                                   String interfaceMethodName,
-                                   MethodType invokedType,
-                                   MethodType interfaceMethodType,
-                                   MethodHandle implMethod,
-                                   MethodType handleMethodType) throws LambdaBuilder.LambdaBuildException {
+            String interfaceMethodName,
+            MethodType invokedType,
+            MethodType interfaceMethodType,
+            MethodHandle implMethod,
+            MethodType handleMethodType) throws LambdaBuilder.LambdaBuildException {
         this.implMethod = implMethod;
         this.opType = FieldOpType.getOpType(this.implMethod);
 
@@ -103,34 +104,19 @@ public class FieldLambdaMetafactory {
         this.interfaceMethodName = interfaceMethodName;
     }
 
-    private static void printClassToFMLLogger(byte[] bytes) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        printClassToStream(bytes, byteArrayOutputStream);
-        FMLLog.info("Loading generated inner class lambda:\n%s", byteArrayOutputStream);
-    }
-
-    /**
-     * Internal method to print a class (from bytes), to an OutputStream.
-     *
-     * @param bytes        bytes that make up a class
-     * @param outputStream stream to output the class's bytecode to
-     */
-    private static void printClassToStream(byte[] bytes, OutputStream outputStream) {
-        ClassNode classNode2 = new ClassNode();
-        ClassReader classReader2 = new ClassReader(bytes);
-        PrintWriter writer = new PrintWriter(outputStream);
-        TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
-        classReader2.accept(traceClassVisitor, 0);
-        writer.flush();
-    }
-
     public static CallSite metaFactory(@Nonnull MethodHandles.Lookup caller,
-                                String interfaceMethodName,
-                                @Nonnull MethodType invokedType,
-                                MethodType interfaceMethodType,
-                                @Nonnull MethodHandle implMethod,
-                                MethodType instantiatedMethodType) throws LambdaBuilder.LambdaBuildException {
-        return new FieldLambdaMetafactory(caller, interfaceMethodName, invokedType, interfaceMethodType, implMethod, instantiatedMethodType).buildCallSite();
+            String interfaceMethodName,
+            @Nonnull MethodType invokedType,
+            MethodType interfaceMethodType,
+            @Nonnull MethodHandle implMethod,
+            MethodType instantiatedMethodType) throws LambdaBuilder.LambdaBuildException {
+        return new FieldLambdaMetafactory(
+                caller,
+                interfaceMethodName,
+                invokedType,
+                interfaceMethodType,
+                implMethod,
+                instantiatedMethodType).buildCallSite();
     }
 
     private CallSite buildCallSite() throws LambdaBuilder.LambdaBuildException {
@@ -179,6 +165,27 @@ public class FieldLambdaMetafactory {
         } catch (ReflectiveOperationException e) {
             throw new LambdaBuilder.LambdaBuildException(e);
         }
+    }
+
+    private static void printClassToFMLLogger(byte[] bytes) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        printClassToStream(bytes, byteArrayOutputStream);
+        FMLLog.info("Loading generated inner class lambda:\n%s", byteArrayOutputStream);
+    }
+
+    /**
+     * Internal method to print a class (from bytes), to an OutputStream.
+     *
+     * @param bytes        bytes that make up a class
+     * @param outputStream stream to output the class's bytecode to
+     */
+    private static void printClassToStream(byte[] bytes, OutputStream outputStream) {
+        ClassNode classNode2 = new ClassNode();
+        ClassReader classReader2 = new ClassReader(bytes);
+        PrintWriter writer = new PrintWriter(outputStream);
+        TraceClassVisitor traceClassVisitor = new TraceClassVisitor(classNode2, writer);
+        classReader2.accept(traceClassVisitor, 0);
+        writer.flush();
     }
 
     private enum FieldOpType {
@@ -319,13 +326,6 @@ public class FieldLambdaMetafactory {
             }
         }
 
-        static int getReturnOpcode(Class<?> c) {
-            if (c == Void.TYPE) {
-                return Opcodes.RETURN;
-            }
-            return Opcodes.IRETURN + getOpcodeOffset(c);
-        }
-
         static int getLoadOpcode(Class<?> c) {
             if (c == Void.TYPE) {
                 throw new InternalError("Unexpected void type of load opcode");
@@ -350,6 +350,13 @@ public class FieldLambdaMetafactory {
                 return 4;
             }
         }
+
+        static int getReturnOpcode(Class<?> c) {
+            if (c == Void.TYPE) {
+                return Opcodes.RETURN;
+            }
+            return Opcodes.IRETURN + getOpcodeOffset(c);
+        }
 //            mv.visitFieldInsn(Opcodes.GETSTATIC, "uk/co/mysterymayhem/gravitymod/DebugHelperListener", "privateStringField", "Ljava/lang/String;");
 //            mv.visitInsn(Opcodes.ARETURN);
 
@@ -361,10 +368,6 @@ public class FieldLambdaMetafactory {
                 return 2;
             }
             return 1;
-        }
-
-        public int getReferenceKind() {
-            return this.referenceKind;
         }
 
         public void generateMethod(ClassWriter classWriter, String interfaceClassMethodName, MethodType interfaceClassMethodType, MethodHandle fieldMethodHandle, MethodType handleMethodType) throws LambdaBuilder.LambdaBuildException {
@@ -385,6 +388,10 @@ public class FieldLambdaMetafactory {
 
         public int getNumMethodParameters() {
             return numMethodParameters;
+        }
+
+        public int getReferenceKind() {
+            return this.referenceKind;
         }
     }
 }

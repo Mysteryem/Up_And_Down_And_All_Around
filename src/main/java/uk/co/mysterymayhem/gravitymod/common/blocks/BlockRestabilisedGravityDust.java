@@ -22,14 +22,6 @@ public class BlockRestabilisedGravityDust extends AbstractModBlock<BlockRestabil
     }
 
     @Override
-    public void postInit() {
-        Object[] inputs = new Object[9];
-        Arrays.fill(inputs, StaticItems.RESTABILISED_GRAVITY_DUST);
-        GameRegistry.addShapelessRecipe(new ItemStack(this), inputs);
-        GameRegistry.addShapelessRecipe(new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST, 9), this);
-    }
-
-    @Override
     public ItemBlock createItem(BlockRestabilisedGravityDust block) {
         return new ItemBlock(this);
     }
@@ -37,5 +29,13 @@ public class BlockRestabilisedGravityDust extends AbstractModBlock<BlockRestabil
     @Override
     public String getName() {
         return "restabilisedgravitydust_block";
+    }
+
+    @Override
+    public void postInit() {
+        Object[] inputs = new Object[9];
+        Arrays.fill(inputs, StaticItems.RESTABILISED_GRAVITY_DUST);
+        GameRegistry.addShapelessRecipe(new ItemStack(this), inputs);
+        GameRegistry.addShapelessRecipe(new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST, 9), this);
     }
 }

@@ -61,6 +61,22 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
     }
 
     @Override
+    public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
+        for (int i = 0; i < DAMAGE_TO_NAME_MAP.size(); i++) {
+            subItems.add(new ItemStack(this, 1, i));
+        }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void preInitClient() {
+        MeshDefinitions meshDefinitions = new MeshDefinitions();
+        ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
+        ModelBakery.registerItemVariants(this, (ResourceLocation[])modelResourceLocations);
+        ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
+    }
+
+    @Override
     public void preInit() {
         if (Loader.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
             // This code will not be run unless the baubles mod is loaded
@@ -85,13 +101,6 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
         IGravityModItem.super.preInit();
     }
 
-    @Override
-    public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
-        for (int i = 0; i < DAMAGE_TO_NAME_MAP.size(); i++) {
-            subItems.add(new ItemStack(this, 1, i));
-        }
-    }
-
     // Implements client only interface
     @SideOnly(Side.CLIENT)
     private class MeshDefinitions implements ItemMeshDefinition {
@@ -111,14 +120,5 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
             int metadata = stack.getMetadata();
             return list.get(metadata);
         }
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void preInitClient() {
-        MeshDefinitions meshDefinitions = new MeshDefinitions();
-        ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
-        ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
-        ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
     }
 }

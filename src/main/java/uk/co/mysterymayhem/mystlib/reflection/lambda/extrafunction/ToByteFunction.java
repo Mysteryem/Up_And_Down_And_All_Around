@@ -5,9 +5,9 @@ package uk.co.mysterymayhem.mystlib.reflection.lambda.extrafunction;
  */
 @FunctionalInterface
 public interface ToByteFunction<T> {
-    byte applyAsByte(T value);
-
     default ByteSupplier bind(T instance) {
         return () -> this.applyAsByte(instance);
     }
+
+    byte applyAsByte(T value);
 }

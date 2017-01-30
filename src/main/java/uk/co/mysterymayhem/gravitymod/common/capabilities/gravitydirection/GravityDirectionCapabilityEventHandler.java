@@ -26,20 +26,11 @@ public class GravityDirectionCapabilityEventHandler {
             event.addCapability(GravityDirectionCapability.CAPABILITY_RESOURCE_LOCATION, new ICapabilitySerializable<NBTPrimitive>() {
 
                 IGravityDirectionCapability instance = GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getDefaultInstance();
+
                 // Give the player a GravityAxisAlignedBB as early as possible (can't give them one during the EntityConstructingEvent
                 // as the AttachCapabilitiesEvent is fired after it
                 {
                     player.setEntityBoundingBox(new GravityAxisAlignedBB(instance, player.getEntityBoundingBox()));
-                }
-
-                @Override
-                public NBTPrimitive serializeNBT() {
-                    return (NBTPrimitive) GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().writeNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, instance, null);
-                }
-
-                @Override
-                public void deserializeNBT(NBTPrimitive nbt) {
-                    GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().readNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, instance, null, nbt);
                 }
 
                 @Override
@@ -50,6 +41,16 @@ public class GravityDirectionCapabilityEventHandler {
                 @Override
                 public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
                     return capability == GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE ? GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.<T>cast(instance) : null;
+                }
+
+                @Override
+                public NBTPrimitive serializeNBT() {
+                    return (NBTPrimitive)GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().writeNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, instance, null);
+                }
+
+                @Override
+                public void deserializeNBT(NBTPrimitive nbt) {
+                    GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().readNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, instance, null, nbt);
                 }
             });
             //

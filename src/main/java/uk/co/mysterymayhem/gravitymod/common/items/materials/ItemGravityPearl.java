@@ -37,92 +37,16 @@ import java.util.List;
  */
 public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravityPearl> {
 
-//    private enum UseType {
-//        NONE(0f),
-//        PULL(1f),
-//        REPULSE(2f);
-//
-//        private final float overrideValue;
-//
-//        UseType(float overrideValue) {
-//            this.overrideValue = overrideValue;
-//        }
-//    }
-
     @Override
-    public void preInit() {
-        this.addPropertyOverride(new ResourceLocation("use"), new IItemPropertyGetter()
-        {
-            @SideOnly(Side.CLIENT)
-            public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn)
-            {
-                if (entityIn != null) {
-                    ItemStack activeStack = entityIn.getActiveItemStack();
-                        if (activeStack == stack && stack.getItem() == ItemGravityPearl.this) {
-                            if (entityIn.isSneaking()) {
-                                //pull
-                                return 1f;
-                            }
-                            else {
-                                //push
-                                return 2f;
-                            }
-                        }
-//                    }
-                }
-                return 0f;
-            }
-        });
-        this.setMaxStackSize(16);
-
-        IGravityModItem.super.preInit();
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void preInitClient() {
-        ModelLoader.registerItemVariants(this,
-                new ModelResourceLocation(this.getRegistryName() + "_push", "inventory"),
-                new ModelResourceLocation(this.getRegistryName() + "_pull", "inventory"));
-        IGravityModItem.super.preInitClient();
-    }
-
-    @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                this,
-                " D ",
-                "DPD",
-                " D ",
-                'D', StaticItems.RESTABILISED_GRAVITY_DUST,
-                'P', Items.ENDER_PEARL));
-    }
-
-    @Override
-    public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
-        super.onPlayerStoppedUsing(stack, worldIn, entityLiving, timeLeft);
-    }
-
-    /**
-     * returns the action that specifies what animation to play when the items is being used
-     */
-    @Override
-    public EnumAction getItemUseAction(ItemStack stack)
-    {
-        return EnumAction.BOW;
+    public String getName() {
+        return "gravitypearl";
     }
 
     // Non-block use
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand)
-    {
+    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
         playerIn.setActiveHand(hand);
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
-    }
-
-    @Override
-    public int getMaxItemUseDuration(ItemStack stack) {
-        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -136,11 +60,6 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
                 }
             }
         }
-    }
-
-    // getCentre instance method of AxisAlignedBB is client only
-    private static Vec3d getCentreOfAABB(AxisAlignedBB bb) {
-        return new Vec3d(bb.minX + (bb.maxX - bb.minX) * 0.5D, bb.minY + (bb.maxY - bb.minY) * 0.5D, bb.minZ + (bb.maxZ - bb.minZ) * 0.5D);
     }
 
     private static void pushPullNearbyEntities(EntityPlayer playerIn) {
@@ -164,7 +83,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
             //pull
             for (Entity nearbyEntity : nearbyEntities) {
                 float strength = baseStrength;
-                if (nearbyEntity instanceof EntityItem){
+                if (nearbyEntity instanceof EntityItem) {
                     strength *= 5;
                 }
                 Vec3d entityCentre = getCentreOfAABB(nearbyEntity.getEntityBoundingBox());
@@ -181,7 +100,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
                 double entMotionY = nearbyEntity.motionY;
                 double entMotionZ = nearbyEntity.motionZ;
 //
-                if ((xMotionToAdd > 0 && entMotionX < xMotionToAdd) 
+                if ((xMotionToAdd > 0 && entMotionX < xMotionToAdd)
                         || (xMotionToAdd < 0 && entMotionX > xMotionToAdd)) {
                     nearbyEntity.motionX += xMotionToAdd;
                 }
@@ -199,7 +118,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
             //push
             for (Entity nearbyEntity : nearbyEntities) {
                 float strength = baseStrength;
-                if (nearbyEntity instanceof IProjectile){
+                if (nearbyEntity instanceof IProjectile) {
                     strength *= 10;
                 }
                 Vec3d entityCentre = getCentreOfAABB(nearbyEntity.getEntityBoundingBox());
@@ -232,9 +151,33 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
         }
     }
 
+    // getCentre instance method of AxisAlignedBB is client only
+    private static Vec3d getCentreOfAABB(AxisAlignedBB bb) {
+        return new Vec3d(bb.minX + (bb.maxX - bb.minX) * 0.5D, bb.minY + (bb.maxY - bb.minY) * 0.5D, bb.minZ + (bb.maxZ - bb.minZ) * 0.5D);
+    }
+
+    /**
+     * returns the action that specifies what animation to play when the items is being used
+     */
     @Override
-    public String getName() {
-        return "gravitypearl";
+    public EnumAction getItemUseAction(ItemStack stack) {
+        return EnumAction.BOW;
+    }
+
+    @Override
+    public int getMaxItemUseDuration(ItemStack stack) {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public void onPlayerStoppedUsing(ItemStack stack, World worldIn, EntityLivingBase entityLiving, int timeLeft) {
+        super.onPlayerStoppedUsing(stack, worldIn, entityLiving, timeLeft);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitypearl"));
     }
 
     @Override
@@ -256,8 +199,6 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
 
         return null;
     }
-
-
 
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
@@ -286,9 +227,50 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
         return false;
     }
 
+    @Override
+    public void postInit() {
+        GameRegistry.addRecipe(new ShapedOreRecipe(
+                this,
+                " D ",
+                "DPD",
+                " D ",
+                'D', StaticItems.RESTABILISED_GRAVITY_DUST,
+                'P', Items.ENDER_PEARL));
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitypearl"));
+    public void preInitClient() {
+        ModelLoader.registerItemVariants(this,
+                new ModelResourceLocation(this.getRegistryName() + "_push", "inventory"),
+                new ModelResourceLocation(this.getRegistryName() + "_pull", "inventory"));
+        IGravityModItem.super.preInitClient();
+    }
+
+    @Override
+    public void preInit() {
+        this.addPropertyOverride(new ResourceLocation("use"), new IItemPropertyGetter() {
+            @SideOnly(Side.CLIENT)
+            public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
+                if (entityIn != null) {
+                    ItemStack activeStack = entityIn.getActiveItemStack();
+                    if (activeStack == stack && stack.getItem() == ItemGravityPearl.this) {
+                        if (entityIn.isSneaking()) {
+                            //pull
+                            return 1f;
+                        }
+                        else {
+                            //push
+                            return 2f;
+                        }
+                    }
+//                    }
+                }
+                return 0f;
+            }
+        });
+        this.setMaxStackSize(16);
+
+        IGravityModItem.super.preInit();
     }
 }

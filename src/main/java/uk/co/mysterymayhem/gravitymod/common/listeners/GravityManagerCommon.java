@@ -41,35 +41,6 @@ import javax.annotation.Nonnull;
  */
 public class GravityManagerCommon {
 
-    public static boolean playerIsAffectedByWeakGravity(EntityPlayerMP player) {
-        if (!(player instanceof FakePlayer)) {
-            ItemStack[] armorInventory = player.inventory.armorInventory;
-            int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
-            int numWeakGravityEnablers = 0;
-            for (ItemStack stack : armorInventory) {
-                if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
-                    if (++numWeakGravityEnablers == numRequired) {
-                        return true;
-                    }
-                }
-            }
-            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
-                IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(player);
-                int slots = baublesHandler.getSlots();
-                for (int i = 0; i < slots; i++) {
-                    ItemStack stack = baublesHandler.getStackInSlot(i);
-                    if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
-                        if (++numWeakGravityEnablers == numRequired) {
-                            return true;
-                        }
-                    }
-                }
-
-            }
-        }
-        return false;
-    }
-
     public static boolean playerIsAffectedByNormalGravity(EntityPlayerMP player) {
         if (!(player instanceof FakePlayer)) {
             ItemStack[] armorInventory = player.inventory.armorInventory;
@@ -121,38 +92,47 @@ public class GravityManagerCommon {
         return !(playerMP instanceof FakePlayer);
     }
 
-    public void doGravityTransition(@Nonnull EnumGravityDirection newDirection, @Nonnull EntityPlayerMP player, boolean noTimeout) {
-        EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
-        if (oldDirection != newDirection) {
-            GravityTransitionEvent.Server event = new GravityTransitionEvent.Server.Pre(newDirection, oldDirection, player);
-            if (!MinecraftForge.EVENT_BUS.post(event)) {
-                GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection, noTimeout);
-                player.connection.update();
-                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection, noTimeout);
-                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Post(newDirection, oldDirection, player));
+    public static boolean playerIsAffectedByWeakGravity(EntityPlayerMP player) {
+        if (!(player instanceof FakePlayer)) {
+            ItemStack[] armorInventory = player.inventory.armorInventory;
+            int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
+            int numWeakGravityEnablers = 0;
+            for (ItemStack stack : armorInventory) {
+                if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                    if (++numWeakGravityEnablers == numRequired) {
+                        return true;
+                    }
+                }
+            }
+            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
+                IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(player);
+                int slots = baublesHandler.getSlots();
+                for (int i = 0; i < slots; i++) {
+                    ItemStack stack = baublesHandler.getStackInSlot(i);
+                    if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                        if (++numWeakGravityEnablers == numRequired) {
+                            return true;
+                        }
+                    }
+                }
+
             }
         }
+        return false;
     }
 
-    public void prepareGravityTransition(@Nonnull EnumGravityDirection newDirection, @Nonnull EntityPlayerMP player, int priority) {
-        IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(player);
-        gravityCapability.setPendingDirection(newDirection, priority);
+    public EnumGravityDirection getGravityDirection(String playerName) {
+        return GravityDirectionCapability.getGravityDirection(playerName, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
     }
 
-    @SubscribeEvent
-    public void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.player instanceof EntityPlayerMP) {
-            EnumGravityDirection gravityDirection = API.getGravityDirection(event.player);
-            // Default gravity is down when players are created server/client side
-            if (gravityDirection != EnumGravityDirection.DOWN) {
-                PacketHandler.INSTANCE.sendTo(
-                        new GravityChangeMessage(event.player.getName(), gravityDirection, true),
-                        (EntityPlayerMP) event.player
-                );
-                // When the client receives the gravity change packet, their position changes client side, we teleport them back via a packet
-                ((EntityPlayerMP)event.player).connection.setPlayerLocation(event.player.posX, event.player.posY, event.player.posZ, event.player.rotationYaw, event.player.rotationPitch);
-            }
-            PacketHandler.INSTANCE.sendTo(new ModCompatConfigCheckMessage(ItemStackUseListener.getHashCode()), (EntityPlayerMP) event.player);
+    public void handlePacket(GravityChangeMessage message, MessageContext context) {
+        switch (message.getPacketType()) {
+            case CLIENT_REQUEST_GRAVITY_OF_PLAYER:
+                //TODO: Move all packet handling logic into this method (using the context to get the worldthread when needed), return type will need to change!
+                // This is handled in the GravityChangeMessage.WhatsUpMessageHandler class currently so as to minimise response time
+                break;
+            default:
+                break;
         }
     }
 
@@ -161,7 +141,7 @@ public class GravityManagerCommon {
         if (event.player instanceof EntityPlayerMP) {
             PacketHandler.INSTANCE.sendTo(
                     new GravityChangeMessage(event.player.getName(), GravityDirectionCapability.getGravityDirection(event.player), true),
-                    (EntityPlayerMP) event.player
+                    (EntityPlayerMP)event.player
             );
         }
     }
@@ -174,7 +154,7 @@ public class GravityManagerCommon {
             if (event.isWasDeath()) {
                 PacketHandler.INSTANCE.sendTo(
                         new GravityChangeMessage(clone.getName(), GravityDirectionCapability.getGravityDirection(clone), true),
-                        (EntityPlayerMP) clone
+                        (EntityPlayerMP)clone
                 );
             }
             else {
@@ -208,25 +188,20 @@ public class GravityManagerCommon {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPlayerUpdateTickStart(PlayerTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(event.player);
-            if (event.side == Side.SERVER) {
-                EntityPlayer player = event.player;
-                int timeOut = gravityCapability.getTimeoutTicks();
-                if (timeOut == 0) {
-                    EnumGravityDirection currentDirection = gravityCapability.getDirection();
-                    EnumGravityDirection newDirection = gravityCapability.getPendingDirection();
-                    if (currentDirection != newDirection) {
-                        doGravityTransition(newDirection, (EntityPlayerMP) player, false);
-                    }
-                }
-
+    @SubscribeEvent
+    public void onPlayerLogIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.player instanceof EntityPlayerMP) {
+            EnumGravityDirection gravityDirection = API.getGravityDirection(event.player);
+            // Default gravity is down when players are created server/client side
+            if (gravityDirection != EnumGravityDirection.DOWN) {
+                PacketHandler.INSTANCE.sendTo(
+                        new GravityChangeMessage(event.player.getName(), gravityDirection, true),
+                        (EntityPlayerMP)event.player
+                );
+                // When the client receives the gravity change packet, their position changes client side, we teleport them back via a packet
+                ((EntityPlayerMP)event.player).connection.setPlayerLocation(event.player.posX, event.player.posY, event.player.posZ, event.player.rotationYaw, event.player.rotationPitch);
             }
-            //decrements timeOut on both client and server
-            gravityCapability.tick();
-            Hooks.makeMotionRelative(event.player);
+            PacketHandler.INSTANCE.sendTo(new ModCompatConfigCheckMessage(ItemStackUseListener.getHashCode()), (EntityPlayerMP)event.player);
         }
     }
 
@@ -256,21 +231,42 @@ public class GravityManagerCommon {
         }
     }
 
-//    //@SubscribeEvent(priority = EventPriority.LOW)
-//    public void onPlayerTick(PlayerTickEvent event) {
-//        if (event.side == Side.SERVER) {
-//            if (event.phase == TickEvent.Phase.START) {
-//                ItemStack itemStack = event.player.inventory.armorInventory[0];
-//                if (itemStack != null && itemStack.getItem() == ModItems.antiGravityBoots) {
-//                    doGravityTransition(EnumGravityDirection.UP, (EntityPlayerMP)event.player);
-//                }
-//                else {
-//                    doGravityTransition(EnumGravityDirection.DOWN, (EntityPlayerMP)event.player);
-//                }
-//            }
-//        }
-//    }
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onPlayerUpdateTickStart(PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(event.player);
+            if (event.side == Side.SERVER) {
+                EntityPlayer player = event.player;
+                int timeOut = gravityCapability.getTimeoutTicks();
+                if (timeOut == 0) {
+                    EnumGravityDirection currentDirection = gravityCapability.getDirection();
+                    EnumGravityDirection newDirection = gravityCapability.getPendingDirection();
+                    if (currentDirection != newDirection) {
+                        doGravityTransition(newDirection, (EntityPlayerMP)player, false);
+                    }
+                }
 
+            }
+            //decrements timeOut on both client and server
+            gravityCapability.tick();
+            Hooks.makeMotionRelative(event.player);
+        }
+    }
+
+    public void doGravityTransition(@Nonnull EnumGravityDirection newDirection, @Nonnull EntityPlayerMP player, boolean noTimeout) {
+        EnumGravityDirection oldDirection = GravityDirectionCapability.getGravityDirection(player);
+        if (oldDirection != newDirection) {
+            GravityTransitionEvent.Server event = new GravityTransitionEvent.Server.Pre(newDirection, oldDirection, player);
+            if (!MinecraftForge.EVENT_BUS.post(event)) {
+                GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection, noTimeout);
+                player.connection.update();
+                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection, noTimeout);
+                MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Post(newDirection, oldDirection, player));
+            }
+        }
+    }
+
+    //TODO: Replace with sending packet to only players that are tracking the player whose gravity is changing
     //Dedicated/Integrated Server only
     private void sendUpdatePacketToDimension(EntityPlayerMP player, EnumGravityDirection newGravityDirection, boolean noTimeout) {
         //DEBUG
@@ -293,22 +289,8 @@ public class GravityManagerCommon {
 //        }
     }
 
-    public void handlePacket(GravityChangeMessage message, MessageContext context) {
-        switch(message.getPacketType()) {
-            case CLIENT_REQUEST_GRAVITY_OF_PLAYER:
-                //TODO: Move all packet handling logic into this method (using the context to get the worldthread when needed), return type will need to change!
-                // This is handled in the GravityChangeMessage.WhatsUpMessageHandler class currently so as to minimise response time
-                break;
-            default:
-                break;
-        }
+    public void prepareGravityTransition(@Nonnull EnumGravityDirection newDirection, @Nonnull EntityPlayerMP player, int priority) {
+        IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(player);
+        gravityCapability.setPendingDirection(newDirection, priority);
     }
-
-    public EnumGravityDirection getGravityDirection(String playerName) {
-        return GravityDirectionCapability.getGravityDirection(playerName, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
-    }
-
-//    public void setGravityDirection(String playerName, EnumGravityDirection direction) {
-//        GravityCapability.setGravityCapability(playerName, direction, FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
-//    }
 }

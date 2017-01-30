@@ -1,14 +1,13 @@
 package uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier;
 
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
-import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 
 import java.util.HashMap;
 import java.util.Locale;
 
 /**
  * All the possible PrePostModifiers, all absolute is the default state, so is not included.
- *
+ * <p>
  * Created by Mysteryem on 2016-10-23.
  */
 public enum EnumPrePostModifier implements IPrePostModifier<EntityPlayerWithGravity> {
@@ -129,22 +128,23 @@ public enum EnumPrePostModifier implements IPrePostModifier<EntityPlayerWithGrav
     };
 
     private static final HashMap<String, EnumPrePostModifier> lowerCaseConfigStringToEnumPrePostModifier = new HashMap<>();
+
     static {
         for (EnumPrePostModifier modifier : EnumPrePostModifier.values()) {
             lowerCaseConfigStringToEnumPrePostModifier.put(modifier.configString, modifier);
         }
     }
 
-    public static EnumPrePostModifier getFromConfigString(String configString) {
-        return lowerCaseConfigStringToEnumPrePostModifier.get(configString.toLowerCase(Locale.ENGLISH));
-    }
-
-    private final boolean isMotionModifier;
     private final String configString;
+    private final boolean isMotionModifier;
 
     EnumPrePostModifier(boolean isMotionModifier, String configString) {
         this.isMotionModifier = isMotionModifier;
         this.configString = configString;
+    }
+
+    public static EnumPrePostModifier getFromConfigString(String configString) {
+        return lowerCaseConfigStringToEnumPrePostModifier.get(configString.toLowerCase(Locale.ENGLISH));
     }
 
     @Override

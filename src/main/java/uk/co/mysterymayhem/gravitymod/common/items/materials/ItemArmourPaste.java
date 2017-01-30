@@ -45,6 +45,11 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     private static final EnumSet<EntityEquipmentSlot> armourSlots = EnumSet.of(
             EntityEquipmentSlot.CHEST, EntityEquipmentSlot.FEET, EntityEquipmentSlot.HEAD, EntityEquipmentSlot.LEGS);
 
+    public static boolean hasPasteTag(@Nonnull ItemStack stack) {
+        NBTTagCompound tagCompound = stack.getTagCompound();
+        return tagCompound != null && tagCompound.hasKey(NBT_KEY);
+    }
+
     private static boolean isItemArmour(@Nonnull ItemStack stack, @Nonnull Item item) {
         if (item instanceof ItemArmor) {
             return true;
@@ -62,103 +67,62 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         return ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID) && item instanceof IBauble;
     }
 
-    public static boolean hasPasteTag(@Nonnull ItemStack stack) {
-        NBTTagCompound tagCompound = stack.getTagCompound();
-        return tagCompound != null && tagCompound.hasKey(NBT_KEY);
-    }
-
-    private static class ArmourPasteRemoval extends ShapelessRecipes {
-
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
-        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
-        static {
-            NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
-            if (tagCompound == null) {
-                tagCompound = new NBTTagCompound();
-                DUMMY_RECIPE_INPUT.setTagCompound(tagCompound);
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+        KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
+        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
+                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.infobaubles"));
             }
-            tagCompound.setBoolean(NBT_KEY, true);
-        }
-
-        public ArmourPasteRemoval() {
-            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
-        }
-
-        @Override
-        public boolean matches(InventoryCrafting inv, World worldIn) {
-            int pasteItemsFound = 0;
-            int waterBucketItemsFound = 0;
-            for (int i = 0; i < inv.getSizeInventory(); i++) {
-                ItemStack stack = inv.getStackInSlot(i);
-                if (stack != null) {
-                    Item item = stack.getItem();
-                    if (item == Items.WATER_BUCKET) {
-                        if (++waterBucketItemsFound > 1) {
-                            return false;
-                        }
-                    }
-                    else if (stack.stackSize == 1 && (isItemArmour(stack, item) || isItemBauble(item)) && hasPasteTag(stack)) {
-                        if (++pasteItemsFound > 1) {
-                            // Found too many paste items
-                            return false;
-                        }
-                    }
-                    else {
-                        // Found an item that isn't a water bucket or an armour piece/bauble with a paste tag
-                        return false;
-                    }
-                }
+            else {
+                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.info"));
             }
-            // Necessary to check as either could be zero
-            return pasteItemsFound == 1 && waterBucketItemsFound == 1;
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.inforemoval"));
         }
-
-        @Nullable
-        @Override
-        public ItemStack getCraftingResult(InventoryCrafting inv) {
-            ItemStack armourStack = null;
-            for (int i = 0; i < inv.getSizeInventory(); i++) {
-                armourStack = inv.getStackInSlot(i);
-                if (armourStack != null && armourStack.getItem() != Items.WATER_BUCKET) {
-                    break;
-                }
-            }
-
-            ItemStack copy = armourStack.copy();
-            NBTTagCompound tagCompound = copy.getTagCompound();
-            if (tagCompound != null) {
-                tagCompound.removeTag(NBT_KEY);
-                if (tagCompound.hasNoTags()) {
-                    // Prevent leaving behind empty tags
-                    copy.setTagCompound(null);
-                }
-            }
-//            copy.stackSize = 1;
-            return copy;
-        }
-
-        @Override
-        public int getRecipeSize() {
-            return 2;
-        }
-
-        @Nullable
-        @Override
-        public ItemStack getRecipeOutput() {
-            return super.getRecipeOutput();
-        }
-
-        @Override
-        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
-            return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+        else {
+            tooltip.add(keyBindSneak.getDisplayName() + I18n.format("mouseovertext.mysttmtgravitymod.presskeyfordetails"));
         }
     }
 
+    @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
+    }
+
+    @Override
+    public String getName() {
+        return "armourpaste";
+    }
+
+    @Override
+    public void postInit() {
+        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone"));
+//        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.GRAVITY_DUST, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
+
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        GameRegistry.addRecipe(new ArmourPasteRecipe());
+        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        GameRegistry.addRecipe(new ArmourPasteRemoval());
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void preInitClient() {
+        String ANY_ARMOUR_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.nopaste");
+        String ANY_ARMOUR_WITH_PASTE_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.paste");
+        ArmourPasteRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
+        ArmourPasteRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
+        ArmourPasteRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
+        ArmourPasteRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
+        IGravityModItem.super.preInitClient();
+    }
 
     private static class ArmourPasteRecipe extends ShapelessRecipes {
 
-        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE, 1);
         static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE, 1);
+
         static {
             NBTTagCompound tagCompound = DUMMY_RECIPE_OUTPUT.getTagCompound();
             if (tagCompound == null) {
@@ -243,54 +207,92 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         }
     }
 
-    @Override
-    public String getName() {
-        return "armourpaste";
-    }
+    private static class ArmourPasteRemoval extends ShapelessRecipes {
 
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void preInitClient() {
-        String ANY_ARMOUR_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.nopaste");
-        String ANY_ARMOUR_WITH_PASTE_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.paste");
-        ArmourPasteRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
-        ArmourPasteRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
-        ArmourPasteRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
-        ArmourPasteRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
-        IGravityModItem.super.preInitClient();
-    }
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
 
-    @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone"));
-//        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.GRAVITY_DUST, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
-
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ArmourPasteRecipe());
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ArmourPasteRemoval());
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
-            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
-                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.infobaubles"));
+        static {
+            NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
+            if (tagCompound == null) {
+                tagCompound = new NBTTagCompound();
+                DUMMY_RECIPE_INPUT.setTagCompound(tagCompound);
             }
-            else {
-                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.info"));
-            }
-            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.inforemoval"));
+            tagCompound.setBoolean(NBT_KEY, true);
         }
-        else {
-            tooltip.add(keyBindSneak.getDisplayName() + I18n.format("mouseovertext.mysttmtgravitymod.presskeyfordetails"));
-        }
-    }
 
-    @Override
-    public EnumRarity getRarity(ItemStack stack) {
-        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
+        public ArmourPasteRemoval() {
+            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
+        }
+
+        @Nullable
+        @Override
+        public ItemStack getRecipeOutput() {
+            return super.getRecipeOutput();
+        }
+
+        @Override
+        public boolean matches(InventoryCrafting inv, World worldIn) {
+            int pasteItemsFound = 0;
+            int waterBucketItemsFound = 0;
+            for (int i = 0; i < inv.getSizeInventory(); i++) {
+                ItemStack stack = inv.getStackInSlot(i);
+                if (stack != null) {
+                    Item item = stack.getItem();
+                    if (item == Items.WATER_BUCKET) {
+                        if (++waterBucketItemsFound > 1) {
+                            return false;
+                        }
+                    }
+                    else if (stack.stackSize == 1 && (isItemArmour(stack, item) || isItemBauble(item)) && hasPasteTag(stack)) {
+                        if (++pasteItemsFound > 1) {
+                            // Found too many paste items
+                            return false;
+                        }
+                    }
+                    else {
+                        // Found an item that isn't a water bucket or an armour piece/bauble with a paste tag
+                        return false;
+                    }
+                }
+            }
+            // Necessary to check as either could be zero
+            return pasteItemsFound == 1 && waterBucketItemsFound == 1;
+        }
+
+        @Nullable
+        @Override
+        public ItemStack getCraftingResult(InventoryCrafting inv) {
+            ItemStack armourStack = null;
+            for (int i = 0; i < inv.getSizeInventory(); i++) {
+                armourStack = inv.getStackInSlot(i);
+                if (armourStack != null && armourStack.getItem() != Items.WATER_BUCKET) {
+                    break;
+                }
+            }
+
+            ItemStack copy = armourStack.copy();
+            NBTTagCompound tagCompound = copy.getTagCompound();
+            if (tagCompound != null) {
+                tagCompound.removeTag(NBT_KEY);
+                if (tagCompound.hasNoTags()) {
+                    // Prevent leaving behind empty tags
+                    copy.setTagCompound(null);
+                }
+            }
+//            copy.stackSize = 1;
+            return copy;
+        }
+
+        @Override
+        public int getRecipeSize() {
+            return 2;
+        }
+
+
+        @Override
+        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
+            return ForgeHooks.defaultRecipeGetRemainingItems(inv);
+        }
     }
 }

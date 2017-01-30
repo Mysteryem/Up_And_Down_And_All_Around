@@ -28,12 +28,10 @@ public class ClientTickListener {
     // This delay is the same length as the attack cooldown of the item by default and is roughly the same amount of time
     // that it takes for a new item to appear in the player's hand
     private static final int DELAY_TICKS = 5;
-
-    // Accessor used to retrieve state
-    private static boolean playerCanSeeGravityFields = false;
-
     // Counter for use with held goggles
     private static int cumulativeTickCount = 0;
+    // Accessor used to retrieve state
+    private static boolean playerCanSeeGravityFields = false;
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
@@ -87,6 +85,7 @@ public class ClientTickListener {
 
     /**
      * Based on GuiIngame::renderPumpkinOverlay for original code
+     *
      * @param event
      */
     @SubscribeEvent
@@ -98,11 +97,12 @@ public class ClientTickListener {
             GlStateManager.disableDepth();
             GlStateManager.depthMask(false);
             GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            final float red = 116f/255f;
-            final float green = 94f/255f;
-            final float blue = 140f/255f;
-            final float alpha = 101f/255f;
+            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager
+                    .SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            final float red = 116f / 255f;
+            final float green = 94f / 255f;
+            final float blue = 140f / 255f;
+            final float alpha = 101f / 255f;
             GlStateManager.disableAlpha();
             GlStateManager.disableTexture2D();
             Tessellator tessellator = Tessellator.getInstance();

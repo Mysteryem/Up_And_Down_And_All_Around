@@ -5,9 +5,9 @@ package uk.co.mysterymayhem.mystlib.reflection.lambda.extrafunction;
  */
 @FunctionalInterface
 public interface ToFloatFunction<T> {
-    float applyAsFloat(T value);
-
     default FloatSupplier bind(T instance) {
         return () -> this.applyAsFloat(instance);
     }
+
+    float applyAsFloat(T value);
 }

@@ -15,10 +15,10 @@ import uk.co.mysterymayhem.gravitymod.common.items.tools.ItemWeakGravityControll
 
 /**
  * Registry of singletons used in the mod, static and final for speed purposes.
- *
+ * <p>
  * The static block aka &lt;clinit&gt; is run when this class is referenced for the first time (usually when some code
  * tries to access one of the static fields)
- *
+ * <p>
  * Created by Mysteryem on 2016-12-07.
  */
 public class StaticItems {
@@ -44,23 +44,23 @@ public class StaticItems {
     static {
         if (ModItems.STATIC_SETUP_ALLOWED) {
             PERSONAL_GRAVITY_CONTROLLER = ModItems.personalGravityController;
-            WEAK_GRAVITY_CONTROLLER     = ModItems.weakGravityController;
+            WEAK_GRAVITY_CONTROLLER = ModItems.weakGravityController;
             ULTIMATE_GRAVITY_CONTROLLER = ModItems.ultimateGravityController;
-            GRAVITY_BAUBLE              = ModItems.gravityBauble;
-            GRAVITY_ANCHOR              = ModItems.gravityAnchor;
-            GRAVITY_INGOT               = ModItems.gravityIngot;
-            GRAVITY_PEARL               = ModItems.gravityPearl;
-            GRAVITY_DUST                = ModItems.gravityDust;
-            SPACETIME_ANOMALY           = ModItems.spacetimeAnomaly;
-            ARMOUR_PASTE                = ModItems.armourPaste;
-            GRAVITY_BOOTS               = ModItems.gravityBoots;
-            GRAVITY_CHESTPLATE          = ModItems.gravityChestplate;
-            GRAVITY_HELMET              = ModItems.gravityHelmet;
-            GRAVITY_LEGGINGS            = ModItems.gravityLeggings;
-            GRAVITY_FIELD_GOGGLES       = ModItems.gravityFieldGoggles;
-            DESTABILISED_GRAVITY_DUST   = ModItems.destabilisedGravityDust;
-            RESTABILISED_GRAVITY_DUST   = ModItems.restabilisedGravityDust;
-            LIQUID_ANTI_MASS_BUCKET     = ModItems.liquidAntiMassBucket;
+            GRAVITY_BAUBLE = ModItems.gravityBauble;
+            GRAVITY_ANCHOR = ModItems.gravityAnchor;
+            GRAVITY_INGOT = ModItems.gravityIngot;
+            GRAVITY_PEARL = ModItems.gravityPearl;
+            GRAVITY_DUST = ModItems.gravityDust;
+            SPACETIME_ANOMALY = ModItems.spacetimeAnomaly;
+            ARMOUR_PASTE = ModItems.armourPaste;
+            GRAVITY_BOOTS = ModItems.gravityBoots;
+            GRAVITY_CHESTPLATE = ModItems.gravityChestplate;
+            GRAVITY_HELMET = ModItems.gravityHelmet;
+            GRAVITY_LEGGINGS = ModItems.gravityLeggings;
+            GRAVITY_FIELD_GOGGLES = ModItems.gravityFieldGoggles;
+            DESTABILISED_GRAVITY_DUST = ModItems.destabilisedGravityDust;
+            RESTABILISED_GRAVITY_DUST = ModItems.restabilisedGravityDust;
+            LIQUID_ANTI_MASS_BUCKET = ModItems.liquidAntiMassBucket;
         }
         else {
             throw new RuntimeException("Static item registry setup occurring too early");

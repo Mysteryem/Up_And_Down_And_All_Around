@@ -19,6 +19,8 @@ import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
  */
 public class EntityGravityItem extends EntityItem implements IEntityAdditionalSpawnData {
 
+    private static final String DIRECTION_NBT_STRING = "gravitydirection";
+
     private EnumGravityDirection direction = EnumGravityDirection.DOWN;
 
     @UsedReflexively
@@ -38,15 +40,8 @@ public class EntityGravityItem extends EntityItem implements IEntityAdditionalSp
         this.setNoGravity(true);
     }
 
-    private static final String DIRECTION_NBT_STRING = "gravitydirection";
-
-    // Read direction information
-    @Override
-    public void readEntityFromNBT(NBTTagCompound compound) {
-        if (compound.hasKey(DIRECTION_NBT_STRING)) {
-            this.direction = EnumGravityDirection.getSafeDirectionFromOrdinal(compound.getShort(DIRECTION_NBT_STRING));
-        }
-        super.readEntityFromNBT(compound);
+    public EnumGravityDirection getDirection() {
+        return this.direction;
     }
 
     // Write direction information
@@ -56,8 +51,13 @@ public class EntityGravityItem extends EntityItem implements IEntityAdditionalSp
         super.writeEntityToNBT(compound);
     }
 
-    public EnumGravityDirection getDirection() {
-        return this.direction;
+    // Read direction information
+    @Override
+    public void readEntityFromNBT(NBTTagCompound compound) {
+        if (compound.hasKey(DIRECTION_NBT_STRING)) {
+            this.direction = EnumGravityDirection.getSafeDirectionFromOrdinal(compound.getShort(DIRECTION_NBT_STRING));
+        }
+        super.readEntityFromNBT(compound);
     }
 
     // Send direction data to client

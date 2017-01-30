@@ -16,6 +16,7 @@ import static uk.co.mysterymayhem.mystlib.reflection.lambda.LambdaBuilder.*;
  */
 @SuppressWarnings("unchecked")
 public class ReflectionLambdas {
+    // Replacement for these Access Transformer entries
     //    public net.minecraft.entity.Entity field_70150_b #nextStepDistance
     //    public net.minecraft.util.math.MathHelper field_181163_d #FRAC_BIAS
     //    public net.minecraft.util.math.MathHelper field_181164_e #ASINE_TAB

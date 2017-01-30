@@ -17,7 +17,7 @@ public final class LookupHelper {
         try {
             Field IMPL_LOOKUP = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
             IMPL_LOOKUP.setAccessible(true);
-            TRUSTED_LOOKUP = (MethodHandles.Lookup) IMPL_LOOKUP.get(null);
+            TRUSTED_LOOKUP = (MethodHandles.Lookup)IMPL_LOOKUP.get(null);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -42,12 +42,13 @@ public final class LookupHelper {
      * Note that some classes are not valid, such as java.*<br>
      * This Lookup can create method handles for any fields/methods accessible from inside the class in question,
      * including calls to super methods, e.g. super.toString()
+     *
      * @param clazz Class whose access the Lookup object will inherit.
      * @return A Lookup object as if created by MethodHandles.lookup() from inside clazz.
      */
     public static MethodHandles.Lookup createLookupInClass(Class<?> clazz) {
         try {
-            return (MethodHandles.Lookup) INSTANCE.lookupConstructor.invokeExact(clazz);
+            return (MethodHandles.Lookup)INSTANCE.lookupConstructor.invokeExact(clazz);
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
@@ -55,6 +56,7 @@ public final class LookupHelper {
 
     /**
      * Get a the Lookup object that is trusted and can access
+     *
      * @return
      */
     public static MethodHandles.Lookup getTrustedLookup() {

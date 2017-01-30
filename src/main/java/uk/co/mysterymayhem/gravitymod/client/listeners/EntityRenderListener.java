@@ -26,12 +26,55 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
 @SideOnly(Side.CLIENT)
 public class EntityRenderListener {
 
-    //TODO: Un-hardcode and force >=1
     private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
-    private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT/rotationSpeed;
+    private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
     private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
-
+    private EntityLivingBase entityBeingRendered = null;
+    private boolean nameplateNeedToPop = false;
     private boolean playerRotationNeedToPop = false;
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onNameplateRenderPost(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
+        if (this.nameplateNeedToPop) {
+            this.nameplateNeedToPop = false;
+            GlStateManager.popMatrix();
+        }
+        this.entityBeingRendered = null;
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onNameplateRenderPre(RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
+        if (this.playerRotationNeedToPop) {
+            this.playerRotationNeedToPop = false;
+            GlStateManager.popMatrix();
+        }
+        entityBeingRendered = event.getEntity();
+
+        GlStateManager.pushMatrix();
+        this.nameplateNeedToPop = true;
+
+        // move nameplate into correct position if the player has been rotated due to non-downwards gravity
+        if (this.entityBeingRendered instanceof EntityPlayer) {
+            EntityPlayer playerBeingRendered = (EntityPlayer)entityBeingRendered;
+            EnumGravityDirection gravityDirection = API.getGravityDirection(playerBeingRendered);
+            if (gravityDirection != EnumGravityDirection.DOWN) {
+                //see net.minecraft.client.renderer.entity renderLivingLabel for why this value in particular
+                double distanceToUndo = playerBeingRendered.height + 0.5 - (playerBeingRendered.isSneaking() ? 0.25 : 0);
+                GlStateManager.translate(0, -distanceToUndo, 0);
+                double distanceToMove;
+                switch (gravityDirection) {
+                    case UP:
+                        distanceToMove = distanceToUndo;
+                        break;
+                    default:
+                        distanceToMove = distanceToUndo - API.getStandardEyeHeight(playerBeingRendered);
+                        break;
+                }
+                double[] d = gravityDirection.adjustXYZValues(0, distanceToMove, 0);
+                GlStateManager.translate(d[0], d[1], d[2]);
+            }
+        }
+    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRender(RenderPlayerEvent.Pre event) {
@@ -78,13 +121,13 @@ public class EntityRenderListener {
             Vec3i cameraTransformVars = gravityDirection.getCameraTransformVars();
             Vec3i prevCameraTransformVars = capability.getPrevDirection().getCameraTransformVars();
 
-            GlStateManager.rotate((float) (prevCameraTransformVars.getX() * oneMinusMultiplier), 1, 0, 0);
-            GlStateManager.rotate((float) (prevCameraTransformVars.getY() * oneMinusMultiplier), 0, 1, 0);
-            GlStateManager.rotate((float) (prevCameraTransformVars.getZ() * oneMinusMultiplier), 0, 0, 1);
+            GlStateManager.rotate((float)(prevCameraTransformVars.getX() * oneMinusMultiplier), 1, 0, 0);
+            GlStateManager.rotate((float)(prevCameraTransformVars.getY() * oneMinusMultiplier), 0, 1, 0);
+            GlStateManager.rotate((float)(prevCameraTransformVars.getZ() * oneMinusMultiplier), 0, 0, 1);
 
-            GlStateManager.rotate((float) (-cameraTransformVars.getX() * oneMinusMultiplier), 1, 0, 0);
-            GlStateManager.rotate((float) (-cameraTransformVars.getY() * oneMinusMultiplier), 0, 1, 0);
-            GlStateManager.rotate((float) (-cameraTransformVars.getZ() * oneMinusMultiplier), 0, 0, 1);
+            GlStateManager.rotate((float)(-cameraTransformVars.getX() * oneMinusMultiplier), 1, 0, 0);
+            GlStateManager.rotate((float)(-cameraTransformVars.getY() * oneMinusMultiplier), 0, 1, 0);
+            GlStateManager.rotate((float)(-cameraTransformVars.getZ() * oneMinusMultiplier), 0, 0, 1);
 //
             GlStateManager.translate(subtract.xCoord, subtract.yCoord, subtract.zCoord);
         }
@@ -100,51 +143,5 @@ public class EntityRenderListener {
             this.playerRotationNeedToPop = false;
             GlStateManager.popMatrix();
         }
-    }
-
-    private boolean nameplateNeedToPop = false;
-    private EntityLivingBase entityBeingRendered = null;
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onNameplateRenderPre(RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
-        if (this.playerRotationNeedToPop) {
-            this.playerRotationNeedToPop = false;
-            GlStateManager.popMatrix();
-        }
-        entityBeingRendered = event.getEntity();
-
-        GlStateManager.pushMatrix();
-        this.nameplateNeedToPop = true;
-
-        // move nameplate into correct position if the player has been rotated due to non-downwards gravity
-        if (this.entityBeingRendered instanceof EntityPlayer) {
-            EntityPlayer playerBeingRendered = (EntityPlayer)entityBeingRendered;
-            EnumGravityDirection gravityDirection = API.getGravityDirection(playerBeingRendered);
-            if (gravityDirection != EnumGravityDirection.DOWN) {
-                //see net.minecraft.client.renderer.entity renderLivingLabel for why this value in particular
-                double distanceToUndo = playerBeingRendered.height + 0.5 - (playerBeingRendered.isSneaking() ? 0.25 : 0);
-                GlStateManager.translate(0, -distanceToUndo, 0);
-                double distanceToMove;
-                switch (gravityDirection) {
-                    case UP:
-                        distanceToMove = distanceToUndo;
-                        break;
-                    default:
-                        distanceToMove = distanceToUndo - API.getStandardEyeHeight(playerBeingRendered);
-                        break;
-                }
-                double[] d = gravityDirection.adjustXYZValues(0, distanceToMove, 0);
-                GlStateManager.translate(d[0], d[1], d[2]);
-            }
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onNameplateRenderPost(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
-        if (this.nameplateNeedToPop) {
-            this.nameplateNeedToPop = false;
-            GlStateManager.popMatrix();
-        }
-        this.entityBeingRendered = null;
     }
 }

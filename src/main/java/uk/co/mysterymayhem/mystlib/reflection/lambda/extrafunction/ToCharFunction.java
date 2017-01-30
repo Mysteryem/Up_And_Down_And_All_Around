@@ -5,9 +5,9 @@ package uk.co.mysterymayhem.mystlib.reflection.lambda.extrafunction;
  */
 @FunctionalInterface
 public interface ToCharFunction<T> {
-    char applyAsChar(T value);
-
     default CharSupplier bind(T instance) {
         return () -> this.applyAsChar(instance);
     }
+
+    char applyAsChar(T value);
 }

@@ -7,11 +7,11 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
  * Created by Mysteryem on 2016-12-25.
  */
 public interface IModTileEntityClassWrapper<T extends TileEntity> extends IModObject {
-    Class<T> getTileEntityClass();
-
     @Override
     default void preInit() {
         GameRegistry.registerTileEntity(this.getTileEntityClass(), this.getModID() + this.getName());
         IModObject.super.preInit();
     }
+
+    Class<T> getTileEntityClass();
 }

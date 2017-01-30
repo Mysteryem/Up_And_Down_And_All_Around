@@ -8,7 +8,7 @@ import uk.co.mysterymayhem.gravitymod.common.packets.IMessageHelper;
 /**
  * Created by Mysteryem on 2016-10-13.
  */
-public enum EnumChangePacketType implements IMessageHelper<GravityChangeMessage>{
+public enum EnumChangePacketType implements IMessageHelper<GravityChangeMessage> {
     SINGLE {
         @Override
         public void writeToBuff(GravityChangeMessage message, ByteBuf buf) {

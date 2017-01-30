@@ -9,8 +9,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
+import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
@@ -22,19 +22,22 @@ import javax.annotation.Nullable;
  */
 public class GravityDirectionCapability {
     public static final EnumGravityDirection DEFAULT_GRAVITY = EnumGravityDirection.DOWN;
-    public static final int MIN_PRIORITY = Integer.MIN_VALUE;
     public static final int DEFAULT_TIMEOUT = 20;
-
-    public static void registerCapability() {
-        CapabilityManager.INSTANCE.register(IGravityDirectionCapability.class, new GravityDirectionCapabilityStorage(), new GravityDirectionCapabilityFactory());
-        MinecraftForge.EVENT_BUS.register(new GravityDirectionCapabilityEventHandler());
-    }
-
+    public static final int MIN_PRIORITY = Integer.MIN_VALUE;
+    public static final String RESOURCE_NAME = "IGravityCapability";
+    public static final ResourceLocation CAPABILITY_RESOURCE_LOCATION = new ResourceLocation(GravityMod.MOD_ID, RESOURCE_NAME);
+    private static final float oppositeDirectionFallDistanceMultiplier = ConfigHandler.oppositeDirectionFallDistanceMultiplier;
+    private static final float otherDirectionsFallDistanceMultiplier = ConfigHandler.otherDirectionFallDistanceMultiplier;
     @CapabilityInject(IGravityDirectionCapability.class)
     public static Capability<IGravityDirectionCapability> GRAVITY_CAPABILITY_INSTANCE = null;
 
-    public static final String RESOURCE_NAME = "IGravityCapability";
-    public static final ResourceLocation CAPABILITY_RESOURCE_LOCATION  = new ResourceLocation(GravityMod.MOD_ID, RESOURCE_NAME);
+    public static EnumGravityDirection getGravityDirection(String playerName, World world) {
+        return getGravityDirection(getGravityCapability(playerName, world));
+    }
+
+    public static EnumGravityDirection getGravityDirection(IGravityDirectionCapability capability) {
+        return capability == null ? DEFAULT_GRAVITY : capability.getDirection();
+    }
 
     @Nullable
     private static IGravityDirectionCapability getGravityCapability(@Nonnull String playerName, @Nonnull World world) {
@@ -48,16 +51,8 @@ public class GravityDirectionCapability {
         return player.getCapability(GRAVITY_CAPABILITY_INSTANCE, null);
     }
 
-    public static EnumGravityDirection getGravityDirection(String playerName, World world) {
-        return getGravityDirection(getGravityCapability(playerName, world));
-    }
-
     public static EnumGravityDirection getGravityDirection(EntityPlayer player) {
         return getGravityDirection(getGravityCapability(player));
-    }
-
-    public static EnumGravityDirection getGravityDirection(IGravityDirectionCapability capability) {
-        return capability == null ? DEFAULT_GRAVITY : capability.getDirection();
     }
 
     public static AxisAlignedBB newGravityAxisAligned(EntityPlayer player, AxisAlignedBB old) {
@@ -72,8 +67,10 @@ public class GravityDirectionCapability {
         return new GravityAxisAlignedBB(gravityCapability, old);
     }
 
-    private static final float oppositeDirectionFallDistanceMultiplier = ConfigHandler.oppositeDirectionFallDistanceMultiplier;
-    private static final float otherDirectionsFallDistanceMultiplier = ConfigHandler.otherDirectionFallDistanceMultiplier;
+    public static void registerCapability() {
+        CapabilityManager.INSTANCE.register(IGravityDirectionCapability.class, new GravityDirectionCapabilityStorage(), GravityDirectionCapabilityImpl::new);
+        MinecraftForge.EVENT_BUS.register(new GravityDirectionCapabilityEventHandler());
+    }
 
     public static void setGravityDirection(EntityPlayer player, EnumGravityDirection newDirection, boolean noTimeout) {
         final boolean clientSide = player.worldObj.isRemote;

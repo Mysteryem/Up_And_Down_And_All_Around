@@ -7,17 +7,17 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
  * Created by Mysteryem on 2016-10-10.
  */
 public class GravityDirectionCapabilityImpl implements IGravityDirectionCapability {
-    // Updated when the direction changes. Used to do smooth transitions between
-    private EnumGravityDirection prevDirection;
     // The direction for this tick
     private EnumGravityDirection direction;
+    private Vec3d eyePosChangeVec = null;
+    private boolean hasTransitionAngle = false;
     //
     private EnumGravityDirection pendingDirection;
     private int pendingPriority = GravityDirectionCapability.MIN_PRIORITY;
+    // Updated when the direction changes. Used to do smooth transitions between
+    private EnumGravityDirection prevDirection;
     private int timeoutTicks = 0;
-    private boolean hasTransitionAngle = false;
     private double transitionRotationAmount = 0;
-    private Vec3d eyePosChangeVec = null;
 
     public GravityDirectionCapabilityImpl() {
         this(GravityDirectionCapability.DEFAULT_GRAVITY);
@@ -36,56 +36,9 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     }
 
     @Override
-    public EnumGravityDirection getPrevDirection() {
-        return this.prevDirection;
-    }
-
-    @Override
-    public int getTimeoutTicks() {
-        return this.timeoutTicks;
-    }
-
-    @Override
-    public void setTimeoutTicks(int timeoutTicks) {
-        this.timeoutTicks = timeoutTicks;
-    }
-
-    @Override
     public void setDirection(EnumGravityDirection direction) {
         updateDirection(direction);
         this.timeoutTicks = GravityDirectionCapability.DEFAULT_TIMEOUT;
-    }
-
-    @Override
-    public void setTransitionAngle(double angle) {
-        this.transitionRotationAmount = angle;
-        this.hasTransitionAngle = true;
-    }
-
-    @Override
-    public boolean hasTransitionAngle() {
-        return this.hasTransitionAngle;
-    }
-
-    @Override
-    public double getTransitionAngle() {
-        return this.transitionRotationAmount;
-    }
-
-    @Override
-    public Vec3d getEyePosChangeVector() {
-        return eyePosChangeVec;
-    }
-
-    @Override
-    public void setEyePosChangeVector(Vec3d vec3d) {
-        this.eyePosChangeVec = vec3d;
-    }
-
-    @Override
-    public void setDirectionNoTimeout(EnumGravityDirection direction) {
-        updateDirection(direction);
-        this.timeoutTicks = 0;
     }
 
     private void updateDirection(EnumGravityDirection direction) {
@@ -98,8 +51,23 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     }
 
     @Override
+    public EnumGravityDirection getPrevDirection() {
+        return this.prevDirection;
+    }
+
+    @Override
     public EnumGravityDirection getPendingDirection() {
         return this.pendingDirection;
+    }
+
+    @Override
+    public int getTimeoutTicks() {
+        return this.timeoutTicks;
+    }
+
+    @Override
+    public void setTimeoutTicks(int timeoutTicks) {
+        this.timeoutTicks = timeoutTicks;
     }
 
     @Override
@@ -119,17 +87,35 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
         this.pendingPriority = GravityDirectionCapability.MIN_PRIORITY;
     }
 
-//    public void updateCurrentDirection() {
-//        if (this.timeoutTicks == 0) {
-//            if (this.pendingDirection != this.direction) {
-//                this.direction = this.pendingDirection;
-//                this.timeoutTicks = GravityDirectionCapability.DEFAULT_TIMEOUT;
-//            }
-//            this.pendingDirection = GravityDirectionCapability.DEFAULT_GRAVITY;
-//            this.pendingPriority = GravityDirectionCapability.MIN_PRIORITY;
-//        }
-//        else {
-//            this.timeoutTicks--;
-//        }
-//    }
+    @Override
+    public boolean hasTransitionAngle() {
+        return this.hasTransitionAngle;
+    }
+
+    @Override
+    public double getTransitionAngle() {
+        return this.transitionRotationAmount;
+    }
+
+    @Override
+    public void setTransitionAngle(double angle) {
+        this.transitionRotationAmount = angle;
+        this.hasTransitionAngle = true;
+    }
+
+    @Override
+    public Vec3d getEyePosChangeVector() {
+        return eyePosChangeVec;
+    }
+
+    @Override
+    public void setEyePosChangeVector(Vec3d vec3d) {
+        this.eyePosChangeVec = vec3d;
+    }
+
+    @Override
+    public void setDirectionNoTimeout(EnumGravityDirection direction) {
+        updateDirection(direction);
+        this.timeoutTicks = 0;
+    }
 }

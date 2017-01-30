@@ -29,15 +29,6 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
     }
 
     @Override
-    protected void addToCollection(ArrayList<IFMLStaged> modObjects) {
-        modObjects.add(new ModItems());
-        modObjects.add(new ModBlocks());
-        modObjects.add(new ModEntities());
-        modObjects.add(new ModTileEntities());
-        modObjects.add(new ModGUIs());
-    }
-
-    @Override
     public void preInit() {
         GravityDirectionCapability.registerCapability();
         this.registerGravityManager();
@@ -45,14 +36,14 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         super.preInit();
     }
 
+    public void registerGravityManager() {
+        this.gravityManagerCommon = new GravityManagerCommon();
+    }
+
     @Override
     public void init() {
         super.init();
         this.registerListeners();
-    }
-
-    public void registerGravityManager() {
-        this.gravityManagerCommon = new GravityManagerCommon();
     }
 
     public void registerListeners() {
@@ -68,14 +59,14 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         return this.gravityManagerCommon;
     }
 
-
-    // Events that try to allow other mods using these events to modify the player's motion as if they have currently
-    // have downwards gravity
-
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onRightClickBlockHighest(PlayerInteractEvent.RightClickBlock event) {
         Hooks.makeMotionAbsolute(event.getEntityPlayer());
     }
+
+
+    // Events that try to allow other mods using these events to modify the player's motion as if they have currently
+    // have downwards gravity
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public void onRightClickBlockLowest(PlayerInteractEvent.RightClickBlock event) {
@@ -90,5 +81,14 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public void onRightClickItemLowest(PlayerInteractEvent.RightClickItem event) {
         Hooks.popMotionStack(event.getEntityPlayer());
+    }
+
+    @Override
+    protected void addToCollection(ArrayList<IFMLStaged> modObjects) {
+        modObjects.add(new ModItems());
+        modObjects.add(new ModBlocks());
+        modObjects.add(new ModEntities());
+        modObjects.add(new ModTileEntities());
+        modObjects.add(new ModGUIs());
     }
 }

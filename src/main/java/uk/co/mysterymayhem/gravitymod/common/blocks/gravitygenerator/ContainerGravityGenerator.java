@@ -20,11 +20,13 @@ import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABI
 public class ContainerGravityGenerator extends Container {
 
     private static final int HOTBAR_ITEM_COUNT = 9;
-    private static final int MAIN_INV_ITEMS_PER_ROW = HOTBAR_ITEM_COUNT;
     private static final int HOTBAR_X_START = 8;
     private static final int HOTBAR_Y_START = 119;
     private static final int MAININV_X_START = HOTBAR_X_START;
     private static final int MAININV_Y_START = 61;
+    private static final int MAIN_INV_ITEMS_PER_ROW = HOTBAR_ITEM_COUNT;
+    private static final int MAX_DISTANCE = 8;
+    private static final int MAX_DISTANCE_SQUARED = MAX_DISTANCE * MAX_DISTANCE;
     private static final int SLOT_SPACING = 18;
 
     private final TileGravityGenerator tileGravityGenerator;
@@ -74,14 +76,8 @@ public class ContainerGravityGenerator extends Container {
 //        }
     }
 
-    private static final int MAX_DISTANCE = 8;
-    private static final int MAX_DISTANCE_SQUARED = MAX_DISTANCE * MAX_DISTANCE;
-
-    @Override
-    public boolean canInteractWith(@Nonnull EntityPlayer playerIn) {
-        BlockPos pos = this.tileGravityGenerator.getPos();
-        return playerIn.worldObj.getTileEntity(pos) == this.tileGravityGenerator
-                && playerIn.getDistanceSqToCenter(pos) < MAX_DISTANCE_SQUARED;
+    public TileGravityGenerator getTileGravityGenerator() {
+        return tileGravityGenerator;
     }
 
     @Nullable
@@ -90,7 +86,10 @@ public class ContainerGravityGenerator extends Container {
         return null;
     }
 
-    public TileGravityGenerator getTileGravityGenerator() {
-        return tileGravityGenerator;
+    @Override
+    public boolean canInteractWith(@Nonnull EntityPlayer playerIn) {
+        BlockPos pos = this.tileGravityGenerator.getPos();
+        return playerIn.worldObj.getTileEntity(pos) == this.tileGravityGenerator
+                && playerIn.getDistanceSqToCenter(pos) < MAX_DISTANCE_SQUARED;
     }
 }

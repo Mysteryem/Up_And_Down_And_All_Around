@@ -7,6 +7,7 @@ import uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator.GUIProvider
  */
 public class StaticGUIs {
     public static final GUIProviderGravityGenerator GUI_GRAVITY_GENERATOR;
+
     static {
         if (ModGUIs.STATIC_SETUP_ALLOWED) {
             GUI_GRAVITY_GENERATOR = ModGUIs.GUI_GRAVITY_GENERATOR;

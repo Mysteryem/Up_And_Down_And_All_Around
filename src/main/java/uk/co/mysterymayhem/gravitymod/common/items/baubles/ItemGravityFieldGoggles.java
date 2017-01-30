@@ -46,7 +46,7 @@ import java.util.List;
         @Optional.Interface(iface = ModSupport.INTERFACE_IBAUBLE, modid = ModSupport.BAUBLES_MOD_ID),
         @Optional.Interface(iface = ModSupport.INTERFACE_IRENDERBAUBLE, modid = ModSupport.BAUBLES_MOD_ID)
 })
-public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRenderBauble, IGravityFieldsVisible, IGravityModItem<ItemGravityFieldGoggles>{
+public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRenderBauble, IGravityFieldsVisible, IGravityModItem<ItemGravityFieldGoggles> {
 
     public static final ArmorMaterial material = EnumHelper.addArmorMaterial(
             GravityMod.MOD_ID + ":emptyarmourmaterial",
@@ -69,28 +69,6 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
 //        super(materialIn, renderIndexIn, equipmentSlotIn);
 //    }
 
-
-    @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(this,
-                "IBI",
-                "GIG",
-                'I', "ingotIron",
-                'B', StaticItems.LIQUID_ANTI_MASS_BUCKET,
-                'G', "blockGlass"));
-    }
-
-    @Override
-    @Optional.Method(modid = ModSupport.BAUBLES_MOD_ID)
-    public BaubleType getBaubleType(ItemStack itemStack) {
-        return BaubleType.HEAD;
-    }
-
-    @Override
-    public String getName() {
-        return "gravitygoggles";
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
@@ -98,59 +76,19 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
     }
 
     @Override
+    public EnumRarity getRarity(ItemStack stack) {
+        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
+    }
+
     @SideOnly(Side.CLIENT)
-    @Optional.Method(modid = ModSupport.BAUBLES_MOD_ID)
-    public void onPlayerBaubleRender(ItemStack itemStack, EntityPlayer entityPlayer, RenderType renderType, float v) {
-//        ItemRenderer itemRenderer = Minecraft.getMinecraft().getItemRenderer();
-        RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
-        if (renderType == RenderType.HEAD && itemStack.getItem() == StaticItems.GRAVITY_FIELD_GOGGLES) {
+    @Override
+    public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, EntityEquipmentSlot armorSlot, ModelBiped _default) {
+        return ModelGravityGoggles.INSTANCE;
+    }
 
-            GlStateManager.pushMatrix();
-            GlStateManager.disableLighting();
-
-//            GlStateManager.translate(0, -entityPlayer.getDefaultEyeHeight(), 0);
-            /*
-            Code taken from vazkii.botania.api.item.IBaubleRender.Helper#translateToHeadLevel(EntityPlayer player)t
-             */
-//            IRenderBauble.Helper.translateToHeadLevel(entityPlayer);
-            if (entityPlayer.isSneaking()) {
-                GlStateManager.translate(
-                        0.25F * MathHelper.sin(entityPlayer.rotationPitch * (float) Math.PI / 180),
-                        0.25F * MathHelper.cos(entityPlayer.rotationPitch * (float) Math.PI / 180),
-                        0F);
-            }
-
-            ItemStack helmet = entityPlayer.inventory.armorItemInSlot(3);
-            if (helmet != null && helmet.getItem() == this) {
-                //We're already wearing a pair of goggles in our helmet slot, so render the bauble ones in a slightly
-                //different position
-//                GlStateManager.translate(0.2, -0.2, 0);
-//                GlStateManager.translate(0.15, -0.12, 0);
-                GlStateManager.rotate(26, 0, 1, 0);
-                GlStateManager.translate(0.2, -0.28, 0);
-                GlStateManager.rotate(-90, 0, 0, 1);
-            }
-
-            GlStateManager.rotate(90, 0, 1, 0);
-            GlStateManager.rotate(180, 1, 0, 0);
-//            GlStateManager.scale(0.5F, 0.5F, 0.5F);
-            GlStateManager.translate(0, 0.3, -0.25);
-
-            if (!itemRenderer.shouldRenderItemIn3D(itemStack)/* || item instanceof ItemSkull*/)
-            {
-                GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
-            }
-
-            GlStateManager.pushAttrib();
-            RenderHelper.enableStandardItemLighting();
-
-            itemRenderer.renderItem(itemStack, ItemCameraTransforms.TransformType.FIXED);
-            RenderHelper.disableStandardItemLighting();
-            GlStateManager.popAttrib();
-
-            GlStateManager.enableLighting();
-            GlStateManager.popMatrix();
-        }
+    @Override
+    public String getName() {
+        return "gravitygoggles";
     }
 
     @Override
@@ -172,15 +110,75 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
         return super.onItemRightClick(itemStackIn, worldIn, playerIn, hand);
     }
 
-    @SideOnly(Side.CLIENT)
     @Override
-    public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, EntityEquipmentSlot armorSlot, ModelBiped _default) {
-        return ModelGravityGoggles.INSTANCE;
+    @Optional.Method(modid = ModSupport.BAUBLES_MOD_ID)
+    public BaubleType getBaubleType(ItemStack itemStack) {
+        return BaubleType.HEAD;
     }
 
     @Override
-    public EnumRarity getRarity(ItemStack stack) {
-        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
+    @SideOnly(Side.CLIENT)
+    @Optional.Method(modid = ModSupport.BAUBLES_MOD_ID)
+    public void onPlayerBaubleRender(ItemStack itemStack, EntityPlayer entityPlayer, RenderType renderType, float v) {
+//        ItemRenderer itemRenderer = Minecraft.getMinecraft().getItemRenderer();
+        RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
+        if (renderType == RenderType.HEAD && itemStack.getItem() == StaticItems.GRAVITY_FIELD_GOGGLES) {
+
+            GlStateManager.pushMatrix();
+            GlStateManager.disableLighting();
+
+//            GlStateManager.translate(0, -entityPlayer.getDefaultEyeHeight(), 0);
+            /*
+            Code taken from vazkii.botania.api.item.IBaubleRender.Helper#translateToHeadLevel(EntityPlayer player)t
+             */
+//            IRenderBauble.Helper.translateToHeadLevel(entityPlayer);
+            if (entityPlayer.isSneaking()) {
+                GlStateManager.translate(
+                        0.25F * MathHelper.sin(entityPlayer.rotationPitch * (float)Math.PI / 180),
+                        0.25F * MathHelper.cos(entityPlayer.rotationPitch * (float)Math.PI / 180),
+                        0F);
+            }
+
+            ItemStack helmet = entityPlayer.inventory.armorItemInSlot(3);
+            if (helmet != null && helmet.getItem() == this) {
+                //We're already wearing a pair of goggles in our helmet slot, so render the bauble ones in a slightly
+                //different position
+//                GlStateManager.translate(0.2, -0.2, 0);
+//                GlStateManager.translate(0.15, -0.12, 0);
+                GlStateManager.rotate(26, 0, 1, 0);
+                GlStateManager.translate(0.2, -0.28, 0);
+                GlStateManager.rotate(-90, 0, 0, 1);
+            }
+
+            GlStateManager.rotate(90, 0, 1, 0);
+            GlStateManager.rotate(180, 1, 0, 0);
+//            GlStateManager.scale(0.5F, 0.5F, 0.5F);
+            GlStateManager.translate(0, 0.3, -0.25);
+
+            if (!itemRenderer.shouldRenderItemIn3D(itemStack)/* || item instanceof ItemSkull*/) {
+                GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
+            }
+
+            GlStateManager.pushAttrib();
+            RenderHelper.enableStandardItemLighting();
+
+            itemRenderer.renderItem(itemStack, ItemCameraTransforms.TransformType.FIXED);
+            RenderHelper.disableStandardItemLighting();
+            GlStateManager.popAttrib();
+
+            GlStateManager.enableLighting();
+            GlStateManager.popMatrix();
+        }
+    }
+
+    @Override
+    public void postInit() {
+        GameRegistry.addRecipe(new ShapedOreRecipe(this,
+                "IBI",
+                "GIG",
+                'I', "ingotIron",
+                'B', StaticItems.LIQUID_ANTI_MASS_BUCKET,
+                'G', "blockGlass"));
     }
 
     //    @SideOnly(Side.CLIENT)

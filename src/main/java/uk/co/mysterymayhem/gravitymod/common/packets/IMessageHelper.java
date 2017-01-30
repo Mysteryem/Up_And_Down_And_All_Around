@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 public interface IMessageHelper<T extends IMessage> {
-    void writeToBuff(T message, ByteBuf buf);
     void readFromBuff(T message, ByteBuf buf);
+
+    void writeToBuff(T message, ByteBuf buf);
 }

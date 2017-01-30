@@ -19,7 +19,6 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
@@ -28,7 +27,6 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
-import uk.co.mysterymayhem.gravitymod.common.util.IConditionallyAffectsGravity;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,131 +34,13 @@ import java.util.stream.Collectors;
 /**
  * Created by Mysteryem on 2016-10-11.
  */
-public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, IGravityModItem<ItemAbstractGravityController>, IConditionallyAffectsGravity {
+public abstract class ItemAbstractGravityController extends Item implements ITickOnMouseCursor, IGravityModItem<ItemAbstractGravityController> {
 
-    //7 values (0-6) -> first 3 bits
-    protected enum EnumControllerActiveDirection {
-        DOWN(EnumGravityDirection.DOWN),
-        UP(EnumGravityDirection.UP),
-        NORTH(EnumGravityDirection.NORTH),
-        EAST(EnumGravityDirection.EAST),
-        SOUTH(EnumGravityDirection.SOUTH),
-        WEST(EnumGravityDirection.WEST),
-        NONE(null);
-
-        public final int mask;
-        public final EnumGravityDirection gravityDirection;
-        public final String extraText;
-
-        EnumControllerActiveDirection(EnumGravityDirection direction) {
-            this.extraText = "." + this.name().toLowerCase(Locale.ENGLISH);
-            this.gravityDirection = direction;
-            this.mask = this.ordinal();
-        }
-
-        public static EnumControllerActiveDirection getFromMeta(int meta) {
-            EnumControllerActiveDirection[] values = EnumControllerActiveDirection.values();
-            if (meta >= 0 && meta < values.length) {
-                return values[meta];
-            }
-            else {
-                return NONE;
-            }
-        }
-
-        public static EnumControllerActiveDirection getFromCombinedMeta(int combinedMeta) {
-            return getFromMeta(ItemAbstractGravityController.getActiveDirectionMetaFromCombinedMeta(combinedMeta));
-        }
-
-        public int addToCombinedMeta(int combinedMeta) {
-            //clear the lowest 3 bits, then add the mask
-            return (0b1111000 & combinedMeta) | this.mask;
-        }
-
-    }
-
-    //12 values (0-11) -> next 4 bits
-    protected enum EnumControllerVisibleState {
-        DOWN_OFF("down", EnumControllerActiveDirection.DOWN, null),
-        DOWN_ON("down_on", null, EnumControllerActiveDirection.DOWN),
-        UP_OFF("up", EnumControllerActiveDirection.UP, null),
-        UP_ON("up_on", null, EnumControllerActiveDirection.UP),
-        NORTH_OFF("north", EnumControllerActiveDirection.NORTH, null),
-        NORTH_ON("north_on", null, EnumControllerActiveDirection.NORTH),
-        EAST_OFF("east", EnumControllerActiveDirection.EAST, null),
-        EAST_ON("east_on", null, EnumControllerActiveDirection.EAST),
-        SOUTH_OFF("south", EnumControllerActiveDirection.SOUTH, null),
-        SOUTH_ON("south_on", null, EnumControllerActiveDirection.SOUTH),
-        WEST_OFF("west", EnumControllerActiveDirection.WEST, null),
-        WEST_ON("west_on", null, EnumControllerActiveDirection.WEST);
-
-        public final int mask;
-        public final String unlocalizedName;
-        public final EnumControllerActiveDirection illegalDirection;
-        public final EnumControllerActiveDirection onlyLegalDirection;
-
-        EnumControllerVisibleState(String unlocalizedName, EnumControllerActiveDirection illegalCombination, EnumControllerActiveDirection onlyLegalCombination) {
-            this.illegalDirection = illegalCombination;
-            this.onlyLegalDirection = onlyLegalCombination;
-            this.unlocalizedName = unlocalizedName;
-            this.mask = this.ordinal() << 3;
-        }
-
-        public static EnumControllerVisibleState getFromMeta(int meta) {
-            EnumControllerVisibleState[] values = EnumControllerVisibleState.values();
-            if (meta >= 0 && meta < values.length) {
-                return values[meta];
-            }
-            else {
-                return DOWN_OFF;
-            }
-        }
-
-        public static EnumControllerVisibleState getFromCombinedMeta(int combinedMeta) {
-            return getFromMeta(ItemAbstractGravityController.getVisibleStateMetaFromCombinedMeta(combinedMeta));
-        }
-
-        public int addToCombinedMeta(int combinedMeta) {
-            //clear bits 4-7, then add the mask
-            return (0b0000111 & combinedMeta) | this.mask;
-        }
-
-        public EnumControllerVisibleState getOffState() {
-            int ordinal = this.ordinal();
-            if (ordinal % 2 == 1) {
-                return EnumControllerVisibleState.values()[ordinal - 1];
-            }
-            return this;
-        }
-
-        public boolean isOffState() {
-            return this.onlyLegalDirection == null;
-        }
-
-        public String getUnlocalizedName() {
-            return this.unlocalizedName;
-        }
-
-//        public EnumControllerVisibleState next() {
-//            // 0/2 = 0; 0*2 = 0; 0+2 = 2
-//            // 1/2 = 0; 0*2 = 0; 0+2 = 2
-//            // 2/2 = 1; 1*2 = 2; 2+2 = 4
-//            int next = ((this.ordinal()/2)*2+2);
-//            EnumControllerVisibleState[] values = EnumControllerVisibleState.values();
-//            if (next < values.length) {
-//                return values[next];
-//            }
-//            else {
-//                return DOWN_OFF;
-//            }
-//        }
-    }
-
-    static final int DEFAULT_META = getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF);
-
-    protected static final int[] LEGAL_METADATA;
     public static final List<Integer> LEGAL_METADATA_LIST;
     public static final Set<Integer> LEGAL_METADATA_SET;
+    protected static final int[] LEGAL_METADATA;
+    static final int DEFAULT_META = getCombinedMetaFor(EnumControllerActiveDirection.NONE, EnumControllerVisibleState.DOWN_OFF);
+
     static {
         ArrayList<Integer> legalMetaList = new ArrayList<>();
         for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
@@ -187,37 +67,12 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         LEGAL_METADATA_SET = Collections.unmodifiableSet(new HashSet<>(LEGAL_METADATA_LIST));
     }
 
-    protected static int getCombinedMetaFor(EnumControllerActiveDirection active, EnumControllerVisibleState visible) {
-        return active.mask | visible.mask;
-    }
-
     protected static int getActiveDirectionMetaFromCombinedMeta(int combinedMeta) {
         return combinedMeta & 0b111;
     }
 
     protected static int getVisibleStateMetaFromCombinedMeta(int combinedMeta) {
         return combinedMeta >>> 3;
-    }
-
-//    private final GravityManagerCommon.GravityStrengthType gravityStrengthType;
-//
-//    public ItemAbstractGravityController(GravityManagerCommon.GravityStrengthType gravityStrengthType) {
-//        this.gravityStrengthType = gravityStrengthType;
-//    }
-
-    abstract boolean affectsPlayer(EntityPlayerMP player);
-
-    @Override
-    public boolean affectsEntity(Entity entity) {
-        return entity instanceof EntityPlayerMP && !(entity instanceof FakePlayer) && this.affectsPlayer((EntityPlayerMP) entity);
-    }
-
-    @Override
-    public void preInit() {
-        this.setMaxStackSize(1);
-        this.setMaxDamage(0);
-        this.setHasSubtypes(true);
-        IGravityModItem.super.preInit();
     }
 
     @SideOnly(Side.CLIENT)
@@ -240,20 +95,34 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         }
     }
 
+    // We could alternatively return a new EntityItem instance
     @Override
-    public String getUnlocalizedName(ItemStack stack) {
-        int meta = stack.getItemDamage();
-        EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(meta);
-
-        return super.getUnlocalizedName() + fromCombinedMeta.extraText;
+    public Entity createEntity(World world, Entity location, ItemStack itemstack) {
+        int meta = itemstack.getItemDamage();
+        EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
+        if (activeDirection != EnumControllerActiveDirection.NONE) {
+            activeDirection = EnumControllerActiveDirection.NONE;
+            EnumControllerVisibleState offStateFromMeta = EnumControllerVisibleState.getFromCombinedMeta(meta).getOffState();
+            meta = getCombinedMetaFor(activeDirection, offStateFromMeta);
+            itemstack.setItemDamage(meta);
+        }
+        return null;
     }
 
+    protected static int getCombinedMetaFor(EnumControllerActiveDirection active, EnumControllerVisibleState visible) {
+        return active.mask | visible.mask;
+    }
+
+//    private final GravityManagerCommon.GravityStrengthType gravityStrengthType;
+//
+//    public ItemAbstractGravityController(GravityManagerCommon.GravityStrengthType gravityStrengthType) {
+//        this.gravityStrengthType = gravityStrengthType;
+//    }
+
+    // Fake tab for JEI compat
     @Override
-    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-        if (oldStack.getItemDamage() != newStack.getItemDamage()) {
-            return true;
-        }
-        return super.shouldCauseReequipAnimation(oldStack, newStack, slotChanged);
+    public CreativeTabs[] getCreativeTabs() {
+        return new CreativeTabs[]{ModItems.FAKE_TAB_FOR_CONTROLLERS, ModItems.UP_AND_DOWN_CREATIVE_TAB};
     }
 
     @SideOnly(Side.CLIENT)
@@ -272,43 +141,18 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         }
     }
 
-    // Fake tab for JEI compat
     @Override
-    public CreativeTabs[] getCreativeTabs() {
-        return new CreativeTabs[]{ModItems.FAKE_TAB_FOR_CONTROLLERS, ModItems.UP_AND_DOWN_CREATIVE_TAB};
-    }
+    public String getUnlocalizedName(ItemStack stack) {
+        int meta = stack.getItemDamage();
+        EnumControllerActiveDirection fromCombinedMeta = EnumControllerActiveDirection.getFromCombinedMeta(meta);
 
-    @Override
-    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        if (entityIn instanceof EntityPlayerMP) {
-            if (this.affectsPlayer((EntityPlayerMP)entityIn)) {
-                int meta = stack.getItemDamage();
-                EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
-                if (activeDirection != EnumControllerActiveDirection.NONE) {
-                    API.setPlayerGravity(activeDirection.gravityDirection, (EntityPlayerMP) entityIn, this.getPriority(entityIn));
-                }
-            }
-        }
+        return super.getUnlocalizedName() + fromCombinedMeta.extraText;
     }
 
     // Returns true, even though, we return null in the createEntity method, so that we can modify the item meta/damage when an item entity gets spawned
     @Override
     public boolean hasCustomEntity(ItemStack stack) {
         return true;
-    }
-
-    // We could alternatively return a new EntityItem instance
-    @Override
-    public Entity createEntity(World world, Entity location, ItemStack itemstack) {
-        int meta = itemstack.getItemDamage();
-        EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
-        if (activeDirection != EnumControllerActiveDirection.NONE) {
-            activeDirection = EnumControllerActiveDirection.NONE;
-            EnumControllerVisibleState offStateFromMeta = EnumControllerVisibleState.getFromCombinedMeta(meta).getOffState();
-            meta = getCombinedMetaFor(activeDirection, offStateFromMeta);
-            itemstack.setItemDamage(meta);
-        }
-        return null;
     }
 
     @Override
@@ -432,6 +276,167 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
     }
 
+    @Override
+    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
+        if (entityIn instanceof EntityPlayerMP) {
+            EntityPlayerMP playerMP = (EntityPlayerMP)entityIn;
+            if (this.affectsPlayer(playerMP)) {
+                int meta = stack.getItemDamage();
+                EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
+                if (activeDirection != EnumControllerActiveDirection.NONE) {
+                    API.setPlayerGravity(activeDirection.gravityDirection, playerMP, this.getPriority(playerMP));
+                }
+            }
+        }
+    }
+
+    abstract boolean affectsPlayer(EntityPlayerMP player);
+
+    abstract int getPriority(EntityPlayerMP target);
+
+    @Override
+    public void preInit() {
+        this.setMaxStackSize(1);
+        this.setMaxDamage(0);
+        this.setHasSubtypes(true);
+        IGravityModItem.super.preInit();
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void preInitClient() {
+        MeshDefinitions meshDefinitions = new MeshDefinitions();
+        ModelResourceLocation[] modelResourceLocations = meshDefinitions.modelLookup.valueCollection().toArray(new ModelResourceLocation[meshDefinitions.modelLookup.valueCollection().size()]);
+        ModelBakery.registerItemVariants(this, (ResourceLocation[])modelResourceLocations);
+        ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
+    }
+
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        if (oldStack.getItemDamage() != newStack.getItemDamage()) {
+            return true;
+        }
+        return super.shouldCauseReequipAnimation(oldStack, newStack, slotChanged);
+    }
+
+    //7 values (0-6) -> first 3 bits
+    protected enum EnumControllerActiveDirection {
+        DOWN(EnumGravityDirection.DOWN),
+        UP(EnumGravityDirection.UP),
+        NORTH(EnumGravityDirection.NORTH),
+        EAST(EnumGravityDirection.EAST),
+        SOUTH(EnumGravityDirection.SOUTH),
+        WEST(EnumGravityDirection.WEST),
+        NONE(null);
+
+        public final String extraText;
+        public final EnumGravityDirection gravityDirection;
+        public final int mask;
+
+        EnumControllerActiveDirection(EnumGravityDirection direction) {
+            this.extraText = "." + this.name().toLowerCase(Locale.ENGLISH);
+            this.gravityDirection = direction;
+            this.mask = this.ordinal();
+        }
+
+        public static EnumControllerActiveDirection getFromCombinedMeta(int combinedMeta) {
+            return getFromMeta(ItemAbstractGravityController.getActiveDirectionMetaFromCombinedMeta(combinedMeta));
+        }
+
+        public static EnumControllerActiveDirection getFromMeta(int meta) {
+            EnumControllerActiveDirection[] values = EnumControllerActiveDirection.values();
+            if (meta >= 0 && meta < values.length) {
+                return values[meta];
+            }
+            else {
+                return NONE;
+            }
+        }
+
+        public int addToCombinedMeta(int combinedMeta) {
+            //clear the lowest 3 bits, then add the mask
+            return (0b1111000 & combinedMeta) | this.mask;
+        }
+
+    }
+
+    //12 values (0-11) -> next 4 bits
+    protected enum EnumControllerVisibleState {
+        DOWN_OFF("down", EnumControllerActiveDirection.DOWN, null),
+        DOWN_ON("down_on", null, EnumControllerActiveDirection.DOWN),
+        UP_OFF("up", EnumControllerActiveDirection.UP, null),
+        UP_ON("up_on", null, EnumControllerActiveDirection.UP),
+        NORTH_OFF("north", EnumControllerActiveDirection.NORTH, null),
+        NORTH_ON("north_on", null, EnumControllerActiveDirection.NORTH),
+        EAST_OFF("east", EnumControllerActiveDirection.EAST, null),
+        EAST_ON("east_on", null, EnumControllerActiveDirection.EAST),
+        SOUTH_OFF("south", EnumControllerActiveDirection.SOUTH, null),
+        SOUTH_ON("south_on", null, EnumControllerActiveDirection.SOUTH),
+        WEST_OFF("west", EnumControllerActiveDirection.WEST, null),
+        WEST_ON("west_on", null, EnumControllerActiveDirection.WEST);
+
+        public final EnumControllerActiveDirection illegalDirection;
+        public final int mask;
+        public final EnumControllerActiveDirection onlyLegalDirection;
+        public final String unlocalizedName;
+
+        EnumControllerVisibleState(String unlocalizedName, EnumControllerActiveDirection illegalCombination, EnumControllerActiveDirection onlyLegalCombination) {
+            this.illegalDirection = illegalCombination;
+            this.onlyLegalDirection = onlyLegalCombination;
+            this.unlocalizedName = unlocalizedName;
+            this.mask = this.ordinal() << 3;
+        }
+
+        public static EnumControllerVisibleState getFromCombinedMeta(int combinedMeta) {
+            return getFromMeta(ItemAbstractGravityController.getVisibleStateMetaFromCombinedMeta(combinedMeta));
+        }
+
+        public static EnumControllerVisibleState getFromMeta(int meta) {
+            EnumControllerVisibleState[] values = EnumControllerVisibleState.values();
+            if (meta >= 0 && meta < values.length) {
+                return values[meta];
+            }
+            else {
+                return DOWN_OFF;
+            }
+        }
+
+        public int addToCombinedMeta(int combinedMeta) {
+            //clear bits 4-7, then add the mask
+            return (0b0000111 & combinedMeta) | this.mask;
+        }
+
+        public EnumControllerVisibleState getOffState() {
+            int ordinal = this.ordinal();
+            if (ordinal % 2 == 1) {
+                return EnumControllerVisibleState.values()[ordinal - 1];
+            }
+            return this;
+        }
+
+        public String getUnlocalizedName() {
+            return this.unlocalizedName;
+        }
+
+        public boolean isOffState() {
+            return this.onlyLegalDirection == null;
+        }
+
+//        public EnumControllerVisibleState next() {
+//            // 0/2 = 0; 0*2 = 0; 0+2 = 2
+//            // 1/2 = 0; 0*2 = 0; 0+2 = 2
+//            // 2/2 = 1; 1*2 = 2; 2+2 = 4
+//            int next = ((this.ordinal()/2)*2+2);
+//            EnumControllerVisibleState[] values = EnumControllerVisibleState.values();
+//            if (next < values.length) {
+//                return values[next];
+//            }
+//            else {
+//                return DOWN_OFF;
+//            }
+//        }
+    }
+
     @SideOnly(Side.CLIENT)
     private class MeshDefinitions implements ItemMeshDefinition {
 
@@ -450,7 +455,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
                     if (visibleState.illegalDirection == activeDirection) {
                         continue;
                     }
-                    if (visibleState.onlyLegalDirection != null){
+                    if (visibleState.onlyLegalDirection != null) {
                         if (visibleState.onlyLegalDirection == activeDirection) {
                             // If the visible direction is the same as the active direction, we don't need to display the extra overlay
                             // that shows the currently active direction
@@ -473,15 +478,6 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 //            int ordinal = EnumControllerVisibleState.getFromCombinedMeta(metadata).ordinal();
 //            return list.get(ordinal);
         }
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void preInitClient() {
-        MeshDefinitions meshDefinitions = new MeshDefinitions();
-        ModelResourceLocation[] modelResourceLocations = meshDefinitions.modelLookup.valueCollection().toArray(new ModelResourceLocation[meshDefinitions.modelLookup.valueCollection().size()]);
-        ModelBakery.registerItemVariants(this, (ResourceLocation[]) modelResourceLocations);
-        ModelLoader.setCustomMeshDefinition(this, meshDefinitions);
     }
 
 }

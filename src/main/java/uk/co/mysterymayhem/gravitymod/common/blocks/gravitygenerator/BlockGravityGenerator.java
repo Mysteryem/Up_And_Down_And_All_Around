@@ -48,20 +48,15 @@ import java.util.List;
 /**
  * Created by Mysteryem on 2016-10-10.
  */
-public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerator, GenericItemBlock<BlockGravityGenerator>> /*implements ITileEntityProvider*/ {
-//    private static final String name = "gravitygenerator";
-
-    public static final PropertyEnum<EnumGravityTier> TIER = PropertyEnum.create("tier", EnumGravityTier.class);
-
-    // Direction the block is faced
-    public static final PropertyDirection FACING = BlockDirectional.FACING;
+public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerator, GenericItemBlock<BlockGravityGenerator>> {
 
     // Used with get actual state when block is powered
     public static final PropertyBool ENABLED = PropertyBool.create("active");
+    // Direction the block is faced
+    public static final PropertyDirection FACING = BlockDirectional.FACING;
+    public static final PropertyEnum<EnumGravityTier> TIER = PropertyEnum.create("tier", EnumGravityTier.class);
 
-//    public final EnumGravityTier gravityTier;
-
-    public BlockGravityGenerator(/*EnumGravityTier gravityTier*/) {
+    public BlockGravityGenerator() {
         super(Material.IRON, MapColor.IRON, new MetaHelper().addMeta(TIER).addNonMeta(FACING, ENABLED));
         this.setHardness(5F).setResistance(10f).setSoundType(SoundType.METAL);
     }
@@ -70,22 +65,13 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     public GenericItemBlock<BlockGravityGenerator> createItem(BlockGravityGenerator block) {
         GenericItemBlock<BlockGravityGenerator> itemBlock = new GenericItemBlock<BlockGravityGenerator>(block) {
             @Override
-            public String getUnlocalizedName(ItemStack stack) {
-                int itemDamage = stack.getItemDamage();
-                IBlockState stateFromMeta = getStateFromMeta(itemDamage);
-                String extra = TIER.getName(stateFromMeta.getValue(TIER));
-                return this.getBlock().getUnlocalizedName() + '.' + extra;
-//                return super.getUnlocalizedName(stack);
-            }
-
-            @Override
             public EnumRarity getRarity(ItemStack stack) {
                 if (stack.isItemEnchanted()) {
                     return EnumRarity.RARE;
                 }
                 int itemDamage = stack.getItemDamage();
                 IBlockState stateFromMeta = getStateFromMeta(itemDamage);
-                switch(stateFromMeta.getValue(TIER)) {
+                switch (stateFromMeta.getValue(TIER)) {
                     case WEAK:
                         return GravityMod.RARITY_WEAK;
                     case NORMAL:
@@ -94,9 +80,63 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                         return GravityMod.RARITY_STRONG;
                 }
             }
+
+            @Override
+            public String getUnlocalizedName(ItemStack stack) {
+                int itemDamage = stack.getItemDamage();
+                IBlockState stateFromMeta = getStateFromMeta(itemDamage);
+                String extra = TIER.getName(stateFromMeta.getValue(TIER));
+                return this.getBlock().getUnlocalizedName() + '.' + extra;
+//                return super.getUnlocalizedName(stack);
+            }
         };
         itemBlock.setHasSubtypes(true);
         return itemBlock;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        TileEntity tileEntity;
+        if (worldIn instanceof ChunkCache) {
+            tileEntity = ((ChunkCache)worldIn).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
+        }
+        else {
+            tileEntity = worldIn.getTileEntity(pos);
+        }
+        EnumFacing facing = EnumFacing.UP;
+        boolean blockPowered = false;
+        if (tileEntity instanceof TileGravityGenerator) {
+            TileGravityGenerator tileGravityGenerator = (TileGravityGenerator)tileEntity;
+            World world = tileGravityGenerator.getWorld();
+            if (world != null) {
+                blockPowered = world.isBlockPowered(pos);
+            }
+            else {
+                // fallback I guess
+                blockPowered = tileGravityGenerator.isPowered();
+            }
+            facing = tileGravityGenerator.getFacing();
+        }
+        return state.withProperty(FACING, facing).withProperty(ENABLED, blockPowered);
+    }
+
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        TileEntity tileEntity = worldIn.getTileEntity(pos);
+        if (tileEntity instanceof TileGravityGenerator && tileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
+            IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+            int slots = itemHandler.getSlots();
+            for (int i = 0; i < slots; i++) {
+                // Extracting items may not be necessary
+                ItemStack stackInSlot = itemHandler.extractItem(i, Integer.MAX_VALUE, false);
+                if (stackInSlot != null) {
+                    Block.spawnAsEntity(worldIn, pos, stackInSlot);
+                }
+            }
+        }
+
+        super.breakBlock(worldIn, pos, state);
     }
 
     @Override
@@ -121,206 +161,25 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     }
 
     @Override
-    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-        TileEntity tileEntity = worldIn.getTileEntity(pos);
-        if (tileEntity instanceof TileGravityGenerator && tileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
-            IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-            int slots = itemHandler.getSlots();
-            for (int i = 0; i < slots; i++) {
-                // Extracting items may not be necessary
-                ItemStack stackInSlot = itemHandler.extractItem(i, Integer.MAX_VALUE, false);
-                if (stackInSlot != null) {
-                    Block.spawnAsEntity(worldIn, pos, stackInSlot);
-                }
-            }
-        }
-
-        super.breakBlock(worldIn, pos, state);
-    }
-
-    //    @Override
-//    public boolean rotateBlock(World world, BlockPos pos, EnumFacing axis) {
-//        IBlockState blockState = world.getBlockState(pos);
-//        Boolean value = blockState.getValue(ENABLED);
-//        if (value) {
-//            return false;
-//        }
-//
-//        EnumFacing facing = blockState.getValue(FACING);
-//        EnumFacing newFacing = facing.rotateAround(axis.getAxis());
-//
-//        if (newFacing != facing) {
-//            TileEntity tileEntity = world.getTileEntity(pos);
-//            if (tileEntity instanceof TileGravityGenerator) {
-//                world.setBlockState(pos, blockState.withProperty(FACING, newFacing));
-//                ((TileGravityGenerator) tileEntity).updateOnFacingChange(newFacing);
-//                return true;
-//            }
-//            else {
-//                GravityMod.logWarning("Tried to rotate BlockGravityGenerator with non/the wrong tile entity");
-//                return false;
-//            }
-//        }
-//        else {
-//            return false;
-//        }
-//    }
-
-//    // Why is this deprecated?..
-//    @SuppressWarnings("deprecation")
-//    @Override
-//    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn) {
-//        int powered = worldIn.isBlockIndirectlyGettingPowered(pos);
-//        worldIn.setBlockState(pos, state.withProperty(ENABLED, powered > 0), 1 | 2);
-//    }
-
-    @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if (tileEntity instanceof TileGravityGenerator) {
             TileGravityGenerator generator = (TileGravityGenerator)tileEntity;
             generator.setFacing(BlockPistonBase.getFacingFromEntity(pos, placer));
         }
-//        worldIn.setBlockState(pos, state.withProperty(FACING, BlockPistonBase.getFacingFromEntity(pos, placer)), 2);
-//        String ad = "";
-    }
-
-//    @Override
-//    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
-//        if (!worldIn.isRemote) {
-//            if (worldIn.isPowered(pos)) {
-//                worldIn.setBlockState(pos, state.withProperty(ENABLED, true), 1 | 2);
-//            }
-//        }
-//    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void preInitClient() {
-//        ItemMeshDefinition meshDefinitions = stack -> {
-//            int metadata = stack.getMetadata();
-//            IBlockState stateFromMeta = BlockGravityGenerator.this.getStateFromMeta(metadata);
-//            return new ModelResourceLocation(BlockGravityGenerator.this.getRegistryName(), TIER.getName() + "=" + TIER.getName(stateFromMeta.getValue(TIER)));
-//        };
-//        ArrayList<ResourceLocation> mrls = new ArrayList<>();
-//        IBlockState defaultState = this.getDefaultState();
-//        for (EnumGravityTier tier : EnumGravityTier.values()) {
-//            int meta = this.getMetaFromState(defaultState.withProperty(TIER, tier));
-//            mrls.add(meshDefinitions.getModelLocation(new ItemStack(this, 1, meta)));
-//        }
-//
-//        ResourceLocation[] modelResourceLocations = mrls.toArray(new ResourceLocation[mrls.size()]);
-//
-//        ItemBlock item = this.getItem();
-//
-//        ModelBakery.registerItemVariants(item, modelResourceLocations);
-//        ModelLoader.setCustomMeshDefinition(item, meshDefinitions);
-
-        for (EnumGravityTier tier : EnumGravityTier.values()) {
-            int meta = this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier));
-//            ModelLoader.setCustomModelResourceLocation(item, meta, new ModelResourceLocation(this.getRegistryName(), "inventory"));
-            ModelResourceLocation modelResourceLocation = new ModelResourceLocation(this.getRegistryName(), ENABLED.getName() + "=" + ENABLED.getName(false) + "," + FACING.getName() + "=" + FACING.getName(EnumFacing.NORTH) + "," + TIER.getName() + "=" + TIER.getName(tier));
-            ModelLoader.registerItemVariants(item, modelResourceLocation);
-            ModelLoader.setCustomModelResourceLocation(item, meta, modelResourceLocation);
+        else {
+            GravityMod.logWarning("BlockGravityGenerator places, but found a %s of class %s at %s",
+                    tileEntity,
+                    tileEntity == null ? null : tileEntity.getClass(),
+                    pos);
         }
-    }
-
-    @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, ItemStack stack) {
-        if (placer != null) {
-            facing = BlockPistonBase.getFacingFromEntity(pos, placer);
-        }
-        int metadata = stack.getMetadata();
-        return this.getStateFromMeta(metadata).withProperty(FACING, facing);
-//        return super.getStateForPlacement(world, pos, facing, hitX, hitY, hitZ, meta, placer, stack);
     }
 
     @Override
     public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
-//        IBlockState defaultState = this.getDefaultState();
         for (EnumGravityTier tier : EnumGravityTier.values()) {
             list.add(new ItemStack(this, 1, tier.ordinal()/*this.getMetaFromState(defaultState.withProperty(TIER, tier))*/));
         }
-//        list.add(new ItemStack(this, 1, this.getMetaFromState(defaultState.withProperty(TIER, EnumGravityTier.WEAK))));
-//        list.add(new ItemStack(this, 1, this.getMetaFromState(defaultState.withProperty(TIER, EnumGravityTier.NORMAL))));
-//        list.add(new ItemStack(this, 1, this.getMetaFromState(defaultState.withProperty(TIER, EnumGravityTier.STRONG))));
-//        super.getSubBlocks(itemIn, tab, list);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-        TileEntity tileEntity;
-        if (worldIn instanceof ChunkCache) {
-            tileEntity = ((ChunkCache) worldIn).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK);
-        }
-        else {
-            tileEntity = worldIn.getTileEntity(pos);
-        }
-        EnumFacing facing = EnumFacing.UP;
-        boolean blockPowered = false;
-        if (tileEntity instanceof TileGravityGenerator) {
-            TileGravityGenerator tileGravityGenerator = (TileGravityGenerator)tileEntity;
-            World world = tileGravityGenerator.getWorld();
-            if (world != null) {
-                blockPowered = world.isBlockPowered(pos);
-            }
-            else {
-                // fallback I guess
-                blockPowered = tileGravityGenerator.isPowered();
-            }
-            facing = tileGravityGenerator.getFacing();
-        }
-        return state.withProperty(FACING, facing).withProperty(ENABLED, blockPowered);
-//        return super.getActualState(state, worldIn, pos);
-    }
-
-    public static int getRedstonePower(IBlockAccess access, BlockPos pos, EnumFacing facing)
-    {
-        IBlockState iblockstate = access.getBlockState(pos);
-        return iblockstate.getBlock().shouldCheckWeakPower(iblockstate, access, pos, facing) ? access.getStrongPower(pos, facing) : iblockstate.getWeakPower(access, pos, facing);
-    }
-
-    public static boolean isBlockPowered(IBlockAccess access, BlockPos pos)
-    {
-        return getRedstonePower(access, pos.down(), EnumFacing.DOWN) > 0
-                || getRedstonePower(access, pos.up(), EnumFacing.UP) > 0
-                || getRedstonePower(access, pos.north(), EnumFacing.NORTH) > 0
-                || getRedstonePower(access, pos.south(), EnumFacing.SOUTH) > 0
-                || getRedstonePower(access, pos.west(), EnumFacing.WEST) > 0
-                || getRedstonePower(access, pos.east(), EnumFacing.EAST) > 0;
-    }
-
-    public static EnumFacing getFacingFromEntity(BlockPos clickedBlock, EntityLivingBase entity) {
-        return BlockPistonBase.getFacingFromEntity(clickedBlock, entity);
-//        //TODO: Surely you'd need to add 0.5 to each of the clickedBlock values
-//        return EnumFacing.getFacingFromVector(
-//                (float) (entity.posX - clickedBlock.getX()),
-//                (float) (entity.posY - clickedBlock.getY()),
-//                (float) (entity.posZ - clickedBlock.getZ()));
-    }
-
-    /*
-
-        From IModBlock
-
-     */
-
-    @Override
-    public void preInit() {
-        this.setDefaultState(this.getDefaultState().withProperty(FACING, EnumFacing.UP));
-
-        super.preInit();
-    }
-
-    @Override
-    public String getName() {
-        return "gravitygenerator";
-    }
-
-    @Override
-    public GenericItemBlock<BlockGravityGenerator> getItem() {
-        return this.item;
     }
 
     @Override
@@ -341,10 +200,28 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     }
 
     @Override
+    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, ItemStack stack) {
+        if (placer != null) {
+            facing = BlockPistonBase.getFacingFromEntity(pos, placer);
+        }
+        int metadata = stack.getMetadata();
+        return this.getStateFromMeta(metadata).withProperty(FACING, facing);
+    }
+
+    @Override
+    public GenericItemBlock<BlockGravityGenerator> getItem() {
+        return this.item;
+    }
+
+    @Override
+    public String getName() {
+        return "gravitygenerator";
+    }
+
+    @Override
     public void postInit() {
         super.postInit();
 
-//        ItemStack antimassBucket = UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, LiquidAntiMass.INSTANCE);
         ItemStack weakGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.WEAK)));
         ItemStack normalGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.NORMAL)));
         ItemStack strongGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.STRONG)));
@@ -375,5 +252,24 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 'G', "ingotGold",
                 'N', normalGenerator,
                 'L', "blockLapis"));
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void preInitClient() {
+
+        for (EnumGravityTier tier : EnumGravityTier.values()) {
+            int meta = this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier));
+            ModelResourceLocation modelResourceLocation = new ModelResourceLocation(this.getRegistryName(), ENABLED.getName() + "=" + ENABLED.getName(false) + "," + FACING.getName() + "=" + FACING.getName(EnumFacing.NORTH) + "," + TIER.getName() + "=" + TIER.getName(tier));
+            ModelLoader.registerItemVariants(item, modelResourceLocation);
+            ModelLoader.setCustomModelResourceLocation(item, meta, modelResourceLocation);
+        }
+    }
+
+    @Override
+    public void preInit() {
+        this.setDefaultState(this.getDefaultState().withProperty(FACING, EnumFacing.UP));
+
+        super.preInit();
     }
 }
