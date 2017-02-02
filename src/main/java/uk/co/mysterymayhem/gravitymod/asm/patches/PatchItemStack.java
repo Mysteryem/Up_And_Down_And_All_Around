@@ -1,115 +1,93 @@
 package uk.co.mysterymayhem.gravitymod.asm.patches;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import uk.co.mysterymayhem.gravitymod.asm.Transformer;
+import uk.co.mysterymayhem.gravitymod.asm.util.patching.ClassPatcher;
 
-import java.util.ListIterator;
-import java.util.function.Function;
+import java.util.function.Predicate;
+
+import static uk.co.mysterymayhem.gravitymod.asm.Ref.*;
 
 /**
- * Created by Mysteryem on 2017-01-30.
+ * Upon using items, we generally need to ensure the player has absolute motion fields, while there are events that
+ * are fired before items are used, there aren't any events fired immediately after the item is used. I need a way
+ * to put the player's rotation fields back to normal after the item has finished processing, so I've added what is
+ * effectively some events around the item use methods in the ItemStack class.
+ * <p>
+ * Created by Mysteryem on 2017-02-01.
  */
-public class PatchItemStack implements Function<byte[], byte[]> {
-    // Upon using items, we generally need to ensure the player has absolute motion fields, while there are events that
-    // are fired before items are used, there aren't any events fired immediately after the item is used. I need a way
-    // to put the player's rotation fields back to normal after the item has finished processing, so I've added what is
-    // effectively some events around the item use methods in the ItemStack class.
-    @Override
-    public byte[] apply(byte[] bytes) {
-        int methodPatches = 0;
-        final int expectedMethodPatches = 3;
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+public class PatchItemStack extends ClassPatcher {
+    private static final String ON_ITEM_USE_KEY = "ON_ITEM_USE_KEY";
+    private static final String USE_ITEM_RIGHT_CLICK_KEY = "USE_ITEM_RIGHT_CLICK_KEY";
+    private static final String ON_PLAYER_STOPPED_USING_KEY = "ON_PLAYER_STOPPED_USING_KEY";
 
-        for (MethodNode methodNode : classNode.methods) {
-            if (Transformer.ItemStack$onItemUse_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.ItemStack$onItemUse_name);
+    public PatchItemStack() {
+        super("net.minecraft.item.ItemStack", 0, ClassWriter.COMPUTE_MAXS);
 
-                int insertedLocalIndex = Transformer.addLocalVar(methodNode, Transformer.ItemStackAndBoolean);
+        Predicate<MethodNode> onItemUse = ItemStack$onItemUse_name::is;
+        this.addMethodPatch(onItemUse, methodNode -> this.storeData(ON_ITEM_USE_KEY, Transformer.addLocalVar(methodNode, ItemStackAndBoolean)));
+        this.addMethodPatch(onItemUse, (node, iterator) -> {
+            if (Item$onItemUse.is(node)) {
+                int insertedLocalIndex = (Integer)this.getData(ON_ITEM_USE_KEY);
 
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (Transformer.Item$onItemUse.is(next)) {
-                        iterator.previous();
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
-                        Transformer.Hooks$onItemUsePre.addTo(iterator);
-                        iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
-                        iterator.next(); // Item$onItemUse
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
-                        Transformer.Hooks$onItemUsePost.addTo(iterator);
-                        methodPatches++;
-                        Transformer.logPatchComplete(Transformer.ItemStack$onItemUse_name);
-                        break;
-                    }
-                }
+                iterator.previous();
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
+                Hooks$onItemUsePre.addTo(iterator);
+                iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
+                iterator.next(); // Item$onItemUse
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // this, EntityPlayer
+                Hooks$onItemUsePost.addTo(iterator);
+                return true;
             }
-            else if (Transformer.ItemStack$useItemRightClick_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.ItemStack$useItemRightClick_name);
+            return false;
+        });
 
-                int insertedLocalIndex = Transformer.addLocalVar(methodNode, Transformer.ItemStackAndBoolean);
+        Predicate<MethodNode> useItemRightClick = ItemStack$useItemRightClick_name::is;
+        this.addMethodPatch(useItemRightClick, methodNode -> this.storeData(USE_ITEM_RIGHT_CLICK_KEY, Transformer.addLocalVar(methodNode, ItemStackAndBoolean)));
+        this.addMethodPatch(useItemRightClick, (node, iterator) -> {
+            if (Item$onItemRightClick.is(node)) {
+                int insertedLocalIndex = (Integer)this.getData(USE_ITEM_RIGHT_CLICK_KEY);
 
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (Transformer.Item$onItemRightClick.is(next)) {
-                        iterator.previous();
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
-                        Transformer.Hooks$onItemRightClickPre.addTo(iterator);
-                        iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
-                        iterator.next(); // Item$onItemRightClick
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
-                        Transformer.Hooks$onItemRightClickPost.addTo(iterator);
-                        methodPatches++;
-                        Transformer.logPatchComplete(Transformer.ItemStack$useItemRightClick_name);
-                        break;
-                    }
-                }
+                iterator.previous();
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
+                Hooks$onItemRightClickPre.addTo(iterator);
+                iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
+                iterator.next(); // Item$onItemRightClick
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityPlayer
+                Hooks$onItemRightClickPost.addTo(iterator);
+                return true;
             }
-            else if (Transformer.ItemStack$onPlayerStoppedUsing_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.ItemStack$onPlayerStoppedUsing_name);
+            return false;
+        });
 
-                int insertedLocalIndex = Transformer.addLocalVar(methodNode, Transformer.ItemStackAndBoolean);
+        Predicate<MethodNode> onPlayerStoppedUsing = ItemStack$onPlayerStoppedUsing_name::is;
+        this.addMethodPatch(onPlayerStoppedUsing, methodNode -> this.storeData(ON_PLAYER_STOPPED_USING_KEY, Transformer.addLocalVar(methodNode, ItemStackAndBoolean)));
+        this.addMethodPatch(onPlayerStoppedUsing, (node, iterator) -> {
+            if (Item$onPlayerStoppedUsing.is(node)) {
+                int insertedLocalIndex = (Integer)this.getData(ON_PLAYER_STOPPED_USING_KEY);
 
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (Transformer.Item$onPlayerStoppedUsing.is(next)) {
-                        iterator.previous();
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityLivingBase
-                        Transformer.Hooks$onPlayerStoppedUsingPre.addTo(iterator);
-                        iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
-                        iterator.next(); // Item$onPlayerStoppedUsing
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityLivingBase
-                        Transformer.Hooks$onPlayerStoppedUsingPost.addTo(iterator);
-                        methodPatches++;
-                        Transformer.logPatchComplete(Transformer.ItemStack$onPlayerStoppedUsing_name);
-                        break;
-                    }
-                }
+                iterator.previous();
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityLivingBase
+                Hooks$onPlayerStoppedUsingPre.addTo(iterator);
+                iterator.add(new VarInsnNode(Opcodes.ASTORE, insertedLocalIndex));
+                iterator.next(); // Item$onPlayerStoppedUsing
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, insertedLocalIndex)); // origItemStackCopy
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 2)); // this, EntityLivingBase
+                Hooks$onPlayerStoppedUsingPost.addTo(iterator);
+                return true;
             }
-            if (methodPatches == 3) {
-                break;
-            }
-        }
-
-        Transformer.dieIfFalse(methodPatches == expectedMethodPatches, classNode);
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
+            return false;
+        });
     }
 }

@@ -1,677 +1,596 @@
 package uk.co.mysterymayhem.gravitymod.asm.patches;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
+import uk.co.mysterymayhem.gravitymod.asm.Ref;
 import uk.co.mysterymayhem.gravitymod.asm.Transformer;
+import uk.co.mysterymayhem.gravitymod.asm.util.patching.ClassPatcher;
+import uk.co.mysterymayhem.gravitymod.asm.util.patching.InsnPatcher;
+import uk.co.mysterymayhem.gravitymod.asm.util.patching.MethodPatcher;
 
 import java.util.ListIterator;
-import java.util.function.Function;
 
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
 /**
- * Created by Mysteryem on 2017-01-30.
+ * Created by Mysteryem on 2017-02-01.
  */
-public class PatchEntityPlayerSP implements Function<byte[], byte[]> {
+public class PatchEntityPlayerSP extends ClassPatcher {
+    public PatchEntityPlayerSP() {
+        super("net.minecraft.client.entity.EntityPlayerSP", 0, ClassWriter.COMPUTE_FRAMES);
 
-    @Override
-    public byte[] apply(byte[] bytes) {
-        int methodPatches = 0;
-        int expectedMethodPatches = 5;
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        // onUpdateWalkingPlayer makes the assumption that the minY of the player's bounding box is the same as their y position
+        //
+        // We remove all uses of axisalignedbb.minY and replace them with this.posY
+        this.addMethodPatch(Ref.EntityPlayerSP$onUpdateWalkingPlayer_name::is, methodNode -> {
+            int numReplacements = 0;
+            for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
+                AbstractInsnNode next = iterator.next();
+                if (next instanceof FieldInsnNode) {
+                    FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
+                    if (Ref.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
+                        if (iterator.hasPrevious()) {
+                            iterator.previous();
+                            AbstractInsnNode previous = iterator.previous();
+                            if (previous instanceof VarInsnNode) {
+                                VarInsnNode varInsnNode = (VarInsnNode)previous;
+                                if (varInsnNode.var == 3) {
+                                    /*
+                                    Replace
+                                    axisalignedbb.minY
+                                    with
+                                    this.posY
+                                    in
+                                    EntityPlayerSP::onUpdateWalkingPlayer
+                                     */
+                                    varInsnNode.var = 0;
+                                    Ref.EntityPlayerSP$posY_GET.replace(fieldInsnNode);
+                                    numReplacements++;
 
-        int numReplacements = 0;
-
-        for (MethodNode methodNode : classNode.methods) {
-            // onUpdateWalkingPlayer makes the assumption that the minY of the player's bounding box is the same as their y position
-            //
-            // We remove the usage of axisalignedbb.minY and replace it with this.posY
-            if (Transformer.EntityPlayerSP$onUpdateWalkingPlayer_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.EntityPlayerSP$onUpdateWalkingPlayer_name);
-
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (next instanceof FieldInsnNode) {
-                        FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                        if (Transformer.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
-                            if (iterator.hasPrevious()) {
-                                iterator.previous();
-                                AbstractInsnNode previous = iterator.previous();
-                                if (previous instanceof VarInsnNode) {
-                                    VarInsnNode varInsnNode = (VarInsnNode)previous;
-                                    if (varInsnNode.var == 3) {
-                                                /*
-                                                Replace
-                                                axisalignedbb.minY
-                                                with
-                                                this.posY
-                                                in
-                                                EntityPlayerSP::onUpdateWalkingPlayer
-                                                 */
-                                        varInsnNode.var = 0;
-                                        Transformer.EntityPlayerSP$posY_GET.replace(fieldInsnNode);
-                                        numReplacements++;
-
-                                        // We went back two with .previous(), so go forwards again the same amount
-                                        iterator.next();
-                                        iterator.next();
-                                    }
+                                    // We went back two with .previous(), so go forwards again the same amount
+                                    iterator.next();
+                                    iterator.next();
                                 }
                             }
                         }
                     }
                 }
-                Transformer.dieIfFalse(numReplacements != 0, "Failed to find any instances of \"axisalignedbb.minY\"");
-                Transformer.logPatchComplete(Transformer.EntityPlayerSP$onUpdateWalkingPlayer_name);
-                methodPatches++;
             }
-            // onLivingUpdate calls EntityPlayerSP::pushOutOfBlocks a bunch of times with arguments that look like they won't respect
-            //      non-standard gravity, the inserted Hook currently just performs the vanilla behaviour
-            else if (Transformer.EntityLivingBase$onLivingUpdate_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.EntityLivingBase$onLivingUpdate_name);
+            Transformer.dieIfFalse(numReplacements != 0, "Failed to find any instances of \"axisalignedbb.minY\"");
+        });
 
-                boolean error = true;
-                for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                    AbstractInsnNode next = iterator.next();
-                    if (Transformer.EntityPlayerSP$getEntityBoundingBox.is(next)) {
-                        next = iterator.next();
-                        if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ASTORE) {
-                            int axisalignedbb_var = ((VarInsnNode)next).var;
+        // onLivingUpdate calls EntityPlayerSP::pushOutOfBlocks a bunch of times with arguments that look like they won't respect
+        //      non-standard gravity, the inserted Hook currently just performs the vanilla behaviour
+        this.addMethodPatch(Ref.EntityLivingBase$onLivingUpdate_name::is, this::onLivingUpdatePatch);
 
-                            VarInsnNode aLoad6 = new VarInsnNode(Opcodes.ALOAD, axisalignedbb_var);
-                            TypeInsnNode instanceofGravityAxisAlignedBB = new TypeInsnNode(Opcodes.INSTANCEOF, Transformer.GravityAxisAlignedBB.toString());
-                            JumpInsnNode ifeqJumpInsnNode = new JumpInsnNode(Opcodes.IFEQ, null);
-                            VarInsnNode aLoad0 = new VarInsnNode(Opcodes.ALOAD, 0);
+        // isHeadSpaceFree checks upwards, it's changed to check upwards relative to the player (the method is small,
+        //      I deleted the original entirely for the time being.
+        this.addMethodPatch(Ref.EntityPlayerSP$isHeadspaceFree_name::is, methodNode -> {
+            InsnList instructions = methodNode.instructions;
+            AbstractInsnNode label = instructions.get(0);
+            AbstractInsnNode lineNumber = instructions.get(1);
+            AbstractInsnNode labelEnd = instructions.getLast();
+            // Don't actually need the returnNode
+//            AbstractInsnNode returnNode = labelEnd.getPrevious();
+
+            //TODO: Rewrite this so that it doesn't straight up delete all the existing instructions
+            instructions.clear();
+            instructions.add(label);
+            instructions.add(lineNumber);
+            instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+            //TODO: Introduce a way to grab the localvariable indices
+            instructions.add(new VarInsnNode(Opcodes.ALOAD, 1));
+            instructions.add(new VarInsnNode(Opcodes.ILOAD, 2));
+            Ref.Hooks$isHeadspaceFree.addTo(instructions);
+            instructions.add(new InsnNode(Opcodes.IRETURN));
+            instructions.add(labelEnd);
+        });
+
+        // There are some methods in updateAutoJump that we need to replace with gravity-direction-aware methods
+        // There are a bunch of them throughout, so we do a blanket replacement for simplicity
+        this.addMethodPatch(Ref.EntityPlayerSP$updateAutoJump_name::is, methodNode -> {
+            int addVectorReplacements = 0;
+            int blockPosUPCount = 0;
+            int blockPosUPCountI = 0;
+
+            for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); /**/) {
+                AbstractInsnNode node = iterator.next();
+                if (Ref.Vec3d$addVector.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$addAdjustedVector.addTo(iterator);
+                    addVectorReplacements++;
+                }
+                else if (Ref.BlockPos$up_NO_ARGS.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$getRelativeUpblockPos_NO_ARGS.addTo(iterator);
+                    blockPosUPCount++;
+                }
+                else if (Ref.BlockPos$up_INT_ARG.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$getRelativeUpblockPos_INT_ARG.addTo(iterator);
+                    blockPosUPCountI++;
+                }
+            }
+
+            Transformer.log("updateAutoJump Replacement counts: addVector: " + addVectorReplacements
+                    + ", up(): " + blockPosUPCount
+                    + ", up(int): " + blockPosUPCountI);
+        });
+
+        // The updateAutoJump method has so many patches.
+        // I somehow managed to get it to work correctly with mostly trial and error.
+        // I don't understand some parts of the method in the deobfuscated, normal vanilla code.
+        // Hopefully updateAutoJump won't get changed much in future Minecraft versions meaning I won't have to scratch my head over and over to get it to
+        // work when I begin trying to port this mod to a future version
+        if (Transformer.DEBUG_AUTO_JUMP) {
+            // Use debug patch that re-routes control back to EntityPlayerWithGravity
+            this.addMethodPatch(Ref.EntityPlayerSP$updateAutoJump_name::is, (node, iterator) -> {
+                if (node instanceof LineNumberNode) {
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    iterator.add(new VarInsnNode(Opcodes.FLOAD, 1));
+                    iterator.add(new VarInsnNode(Opcodes.FLOAD, 2));
+                    Ref.AbstractClientPlayer$updateAutoJump_SPECIAL.addTo(iterator);
+                    iterator.add(new InsnNode(Opcodes.RETURN));
+                    return true;
+                }
+                return false;
+            });
+        }
+        else {
+            // So many patches that it gets its own class
+            this.addMethodPatch(new UpdateAutoJump());
+        }
+
+        // moveEntity passes the change in X and Z movement to the updateAutoJump method, we need to pass the change in
+        //      X and Z relative to the player's view instead
+        //
+        //      DEBUG_AUTO_JUMP instead calls super to help with debugging EntityPlayerWithGravity::updateAutoJump
+        if (Transformer.DEBUG_AUTO_JUMP) {
+            // Replace method with super call for debugging purposes
+            this.addMethodPatch(Ref.Entity$moveEntity_name::is, (node, iterator) -> {
+                if (node instanceof LineNumberNode) {
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, 1));
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, 3));
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, 5));
+                    Ref.AbstractClientPlayer$moveEntity_SPECIAL.addTo(iterator);
+                    iterator.add(new InsnNode(Opcodes.RETURN));
+                    return true;
+                }
+                return false;
+            });
+        }
+        else {
+            // Change moveEntity so that it calls updateAutoJump with the change in relative X and Z instead of the change in X and Z
+            // TODO: Look into splitting this into a bunch of smaller patches
+            // TODO: Look into making this work by additionally storing 'before posY' to a new localvariable instead of changing the values that get stored
+            //       into 'before posX' and 'before posZ'. We would then be able to pass all 3 old variables and 'this' to a Hook method and either calculate
+            //       the differences in X and Z and pass them back into this method, which we would then direct into the updateAutoJump method call, or the
+            //       hook may be able to call updateAutoJump itself and instead we'll just return from the current method early (updateAutoJump would have to
+            //       be called via reflection as we can't safely 'underride' the method in EntityPlayerWithGravity as it won't be reobfuscated, so it can
+            //       only work in either a dobfuscated or normal environment and not both).
+            // This method starts by storing the current x, y and z positions of the player
+            this.addMethodPatch(Ref.Entity$moveEntity_name::is, this::moveEntityPatch);
+        }
+    }
+
+    private boolean moveEntityPatch(AbstractInsnNode node, ListIterator<AbstractInsnNode> iterator) {
+        if (node.getOpcode() == Opcodes.ALOAD && node instanceof VarInsnNode) {
+            int prevRelativeXPos_var = -1;
+            int prevRelativeZPos_var = -1;
+            // ALOAD 0                                          // this
+            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));    // this, this
+            iterator.next(); // GETFIELD this.posX              // this, this.posX
+            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));    // this, this.posX, this
+            Ref.EntityPlayerSP$posY_GET.addTo(iterator);        // this, this.posX, this.posY
+            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));    // this, this.posX, this.posY, this
+            Ref.EntityPlayerSP$posZ_GET.addTo(iterator);        // this, this.posX, this.posY, this.posZ
+            Ref.Hooks$inverseAdjustXYZ.addTo(iterator);         // doubles
+            iterator.add(new InsnNode(Opcodes.DUP));            // doubles, doubles
+            iterator.add(new InsnNode(Opcodes.ICONST_0));       // doubles, doubles, 0
+            iterator.add(new InsnNode(Opcodes.DALOAD));         // doubles, doubles[0]
+            //next is DSTORE 7
+            node = iterator.next();                             // doubles (pseudo-relative posX stored to local var '7')
+            if (node instanceof VarInsnNode) {
+                prevRelativeXPos_var = ((VarInsnNode)node).var;
+            }
+            else {
+                Transformer.die("Was expecting DSTORE _ after GETFIELD posX, instead got " + node);
+            }
+
+            while (true) {
+                node = iterator.next();
+                // Beforehand, the code would do 'localVar7 = this.posZ'
+                // Instead of re-calling Hooks.inverseAdjustXYZ and gathering the arguments again, we duplicated the result on the stack, so we can get
+                // the pseudo-relative posZ from it
+                if (node instanceof VarInsnNode && node.getOpcode() == Opcodes.ALOAD) {
+                    // node == ALOAD 0                                                          // doubles, this
+//                            iterator.remove(); // disabled removal of existing code
+                    iterator.next(); // GETFIELD posZ                                           // doubles, this.posZ
+//                            iterator.remove(); // disabled removal of existing code
+                    //next is DSTORE 9
+                    node = iterator.next();                                                     // doubles (this.posZ stored to local var '9')
+                    if (node instanceof VarInsnNode) {
+                        prevRelativeZPos_var = ((VarInsnNode)node).var;
+                    }
+                    else {
+                        Transformer.die("Was expecting DSTORE _ after GETFIELD posZ, instead got " + node);
+                    }
+
+                    iterator.add(new InsnNode(Opcodes.ICONST_2));                               // doubles, 2
+                    iterator.add(new InsnNode(Opcodes.DALOAD));                                 // doubles[2]
+                    iterator.add(new VarInsnNode(Opcodes.DSTORE, prevRelativeZPos_var));        // [empty] (pseudo-relative posZ stored to local var '9'
+
+                    while (true) {
+                        node = iterator.next();
+                        // We skip a bunch of instructions where super.moveEntity is called with the arguments that were passed to this method.
+                        // super.moveEntity updates this.posX/Y/Z to new values.
+                        // The difference between the new values and the old values (x and z only) then gets passed to the updateAutoJump method.
+                        // We need to pass the difference between new and old _relative_ x and z values instead.
+                        //
+                        // The inserted code is done Z first, so that the stack ends up how we want
+                        //
+                        // We stop once we hit the next GETFIELD posX instruction.
+                        // Before it, are two ALOAD 0 instructions, giving us a stack of:       // this, this
+                        if (Ref.EntityPlayerSP$posX_GET.is(node)) {
+                            iterator.previous(); // We're going to insert another ALOAD 0 before the GETFIELD posX
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));                    // this, this, this
+                            iterator.next(); // same GETFIELD instruction                       // this, this, this.posX
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));                    // this, this, this.posX, this
+                            Ref.EntityPlayerSP$posY_GET.addTo(iterator);                        // this, this, this.posX, this.posY
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));                    // this, this, this.posX, this.posY, this
+                            Ref.EntityPlayerSP$posZ_GET.addTo(iterator);                        // this, this, this.posX, this.posY, this.posZ
+                            Ref.Hooks$inverseAdjustXYZ.addTo(iterator);                         // this, doubles
+                            iterator.add(new InsnNode(Opcodes.DUP));                            // this, doubles, doubles
+                            iterator.add(new InsnNode(Opcodes.ICONST_2));                       // this, doubles, doubles, 2
+                            iterator.add(new InsnNode(Opcodes.DALOAD));                         // this, doubles, newRelPosZ
+                            iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var)); // this, doubles, newRelPosZ, oldRelPosZ
+                            iterator.add(new InsnNode(Opcodes.DSUB));                           // this, doubles, (newRelPosZ - oldRelPosZ)
+                            iterator.add(new VarInsnNode(Opcodes.DSTORE, prevRelativeZPos_var));// this, doubles (stored posZ difference)
+                            iterator.add(new InsnNode(Opcodes.ICONST_0));                       // this, doubles, 0
+                            iterator.add(new InsnNode(Opcodes.DALOAD));                         // this, newRelPosX
+                            iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeXPos_var)); // this, newRelPosX, oldRelPosX
+                            iterator.add(new InsnNode(Opcodes.DSUB));                           // this, (newRelPosX - oldRelPosX)
+                            iterator.add(new InsnNode(Opcodes.D2F));                            // this, (float)xDiff
+                            iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var)); // this, (float)xDiff, zDiff
+                            iterator.add(new InsnNode(Opcodes.D2F));                            // this, (float)xDiff, (float)zDiff
+
+                            // We then delete all existing instructions (it would calculate the difference in X and Z, convert them to floats and then
+                            // call updateAutoJump
+                            while (true) {
+                                node = iterator.next();
+                                if (node.getOpcode() == INVOKEVIRTUAL) {
+                                    // Once we hit the method call, we're done (the method also returns afterwards)
+                                    //INVOKEVIRTUAL EntityPlayerSP.updateAutoJump (FF)V         // [empty]
+                                    return true;
+                                }
+                                else {
+                                    iterator.remove();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean onLivingUpdatePatch(AbstractInsnNode node, ListIterator<AbstractInsnNode> iterator) {
+        if (Ref.EntityPlayerSP$getEntityBoundingBox.is(node)) {
+            node = iterator.next();
+            if (node instanceof VarInsnNode && node.getOpcode() == Opcodes.ASTORE) {
+                int axisalignedbb_var = ((VarInsnNode)node).var;
+
+                VarInsnNode aLoad6 = new VarInsnNode(Opcodes.ALOAD, axisalignedbb_var);
+                TypeInsnNode instanceofGravityAxisAlignedBB = new TypeInsnNode(Opcodes.INSTANCEOF, Ref.GravityAxisAlignedBB.toString());
+                JumpInsnNode ifeqJumpInsnNode = new JumpInsnNode(Opcodes.IFEQ, null);
+                VarInsnNode aLoad0 = new VarInsnNode(Opcodes.ALOAD, 0);
 //                            VarInsnNode aLoad6_2 = new VarInsnNode(Opcodes.ALOAD, axisalignedbb_var);
-                            JumpInsnNode gotoJumpInsnNode = new JumpInsnNode(Opcodes.GOTO, null);
+                JumpInsnNode gotoJumpInsnNode = new JumpInsnNode(Opcodes.GOTO, null);
 
-                            // Load the localvariable which holds the value previously returned by this.getEntityBoundingBox()
-                            iterator.add(aLoad6);
-                            // Add 'if (axisalignedbb instanceof GravityAxisAlignedBB)'
-                            iterator.add(instanceofGravityAxisAlignedBB);
-                            // Add the conditional jump instruction
-                            iterator.add(ifeqJumpInsnNode);
-                            // Load 'this'
-                            iterator.add(aLoad0);
-                            // Load the localvariable which holds the value previously...
-                            iterator.add(aLoad6.clone(null));
-                            // Add our static hooks call
-                            Transformer.Hooks$pushEntityPlayerSPOutOfBlocks.addTo(iterator);
-                            // Add the unconditional jump
-                            iterator.add(gotoJumpInsnNode);
+                // Load the localvariable which holds the value previously returned by this.getEntityBoundingBox()
+                iterator.add(aLoad6);
+                // Add 'if (axisalignedbb instanceof GravityAxisAlignedBB)'
+                iterator.add(instanceofGravityAxisAlignedBB);
+                // Add the conditional jump instruction
+                iterator.add(ifeqJumpInsnNode);
+                // Load 'this'
+                iterator.add(aLoad0);
+                // Load the localvariable which holds the value previously...
+                iterator.add(aLoad6.clone(null));
+                // Add our static hooks call
+                Ref.Hooks$pushEntityPlayerSPOutOfBlocks.addTo(iterator);
+                // Add the unconditional jump
+                iterator.add(gotoJumpInsnNode);
 
-                            next = iterator.next();
+                node = iterator.next();
 
-                            if (next instanceof LabelNode) {
-                                ifeqJumpInsnNode.label = (LabelNode)next;
+                if (node instanceof LabelNode) {
+                    ifeqJumpInsnNode.label = (LabelNode)node;
 
-                                next = iterator.next();
+                    node = iterator.next();
 
-                                if (next instanceof LineNumberNode) {
-                                    // ClassWriter is going to compute the frames, the commented out code is untested
-//                                    FrameNode frameAppendNode = new FrameNode(Opcodes.F_APPEND, 1, new Object[]{"net/minecraft/util/math/AxisAlignedBB"}, 0, new Object[0]);
-//                                    iterator.add(frameAppendNode);
+                    if (node instanceof LineNumberNode) {
+                        // ClassWriter is going to compute the frames, the commented out code is untested
+//                        FrameNode frameAppendNode = new FrameNode(Opcodes.F_APPEND, 1, new Object[]{"net/minecraft/util/math/AxisAlignedBB"}, 0, new Object[0]);
+//                        iterator.add(frameAppendNode);
 
-                                    LabelNode labelForGotoJumpInsnNode = null;
+                        LabelNode labelForGotoJumpInsnNode = null;
 
-                                    for (; iterator.hasNext(); ) {
-                                        next = iterator.next();
-                                        if (next instanceof MethodInsnNode) {
-                                            MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                                            if (Transformer.EntityPlayer$getFoodStats.is(methodInsnNode)) {
-                                                for (; iterator.hasPrevious(); ) {
-                                                    AbstractInsnNode previous = iterator.previous();
-                                                    if (previous instanceof LabelNode) {
-                                                        labelForGotoJumpInsnNode = (LabelNode)previous;
-                                                        // ClassWriter is going to compute the frames, the commented out code is untested
-//                                                        for(;iterator.hasNext();) {
-//                                                            next = iterator.next();
-//                                                            if (next instanceof VarInsnNode) {
-//                                                                varInsnNode = (VarInsnNode)next;
-//                                                                if (varInsnNode.getOpcode() == Opcodes.ALOAD && varInsnNode.var == 0) {
-//                                                                    FrameNode frameSameNode = new FrameNode(Opcodes.F_SAME, 0, new Object[0], 0, new Object[0]);
-//                                                                    break;
-//                                                                }
-//                                                            }
-//                                                        }
-                                                        break;
-                                                    }
-                                                }
-                                                break;
-                                            }
+                        while (iterator.hasNext()) {
+                            node = iterator.next();
+                            if (node instanceof MethodInsnNode) {
+                                MethodInsnNode methodInsnNode = (MethodInsnNode)node;
+                                if (Ref.EntityPlayer$getFoodStats.is(methodInsnNode)) {
+                                    while (iterator.hasPrevious()) {
+                                        AbstractInsnNode previous = iterator.previous();
+                                        if (previous instanceof LabelNode) {
+                                            labelForGotoJumpInsnNode = (LabelNode)previous;
+                                            // ClassWriter is going to compute the frames, the commented out code is untested
+//                                            for(;iterator.hasNext();) {
+//                                                node = iterator.next();
+//                                                if (node instanceof VarInsnNode) {
+//                                                    varInsnNode = (VarInsnNode)node;
+//                                                    if (varInsnNode.getOpcode() == Opcodes.ALOAD && varInsnNode.var == 0) {
+//                                                        FrameNode frameSameNode = new FrameNode(Opcodes.F_SAME, 0, new Object[0], 0, new Object[0]);
+//                                                        break;
+//                                                    }
+//                                                }
+//                                            }
+                                            break;
                                         }
                                     }
-                                    Transformer.dieIfFalse(labelForGotoJumpInsnNode != null, "Couldn't find correct label for jump instruction");
-                                    gotoJumpInsnNode.label = labelForGotoJumpInsnNode;
-                                    error = false;
                                     break;
                                 }
                             }
-                            break;
+                        }
+                        Transformer.dieIfFalse(labelForGotoJumpInsnNode != null, "Couldn't find correct label for jump instruction");
+                        gotoJumpInsnNode.label = labelForGotoJumpInsnNode;
+                        return true;
+                    }
+                }
+            }
+            Transformer.die("Unexpected instruction after EntityPlayerSP::getEntityBoundingBox");
+        }
+        return false;
+    }
+
+    private class UpdateAutoJump extends MethodPatcher {
+
+        public UpdateAutoJump() {
+            // Normal patches
+
+            // Root node
+            // aka foundFirstBlockPosGetY
+            // No children
+            this.addInsnPatch((node, iterator) -> {
+                if (Ref.BlockPos$getY.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$getRelativeYOfBlockPos.addTo(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            // Root node
+            InsnPatcher patch1 = this.addInsnPatch((node, iterator) -> {
+                if (node.getOpcode() == Opcodes.NEW && node instanceof TypeInsnNode && ((TypeInsnNode)node).desc.equals(Ref.Vec3d.toString())) {
+                    iterator.remove();
+                    while (true) {
+                        node = iterator.next();
+                        if (node instanceof MethodInsnNode && node.getOpcode() == INVOKESPECIAL) {
+                            iterator.remove();
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            Ref.Hooks$getBottomOfEntity.addTo(iterator);
+                            return true;
                         }
                         else {
-                            Transformer.die("Unexpected instruction after EntityPlayerSP::getEntityBoundingBox");
+                            iterator.remove();
                         }
                     }
                 }
-                Transformer.dieIfFalse(!error, "Patch failed");
-                methodPatches++;
-                Transformer.logPatchComplete(Transformer.EntityLivingBase$onLivingUpdate_name);
-            }
-            // isHeadSpaceFree checks upwards, it's changed to check upwards relative to the player (the method is small,
-            //      I deleted the original entirely for the time being.
-            else if (Transformer.EntityPlayerSP$isHeadspaceFree_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.EntityPlayerSP$isHeadspaceFree_name);
-                InsnList instructions = methodNode.instructions;
-                AbstractInsnNode label = instructions.get(0);
-                AbstractInsnNode lineNumber = instructions.get(1);
-                AbstractInsnNode labelEnd = instructions.getLast();
-                AbstractInsnNode returnNode = labelEnd.getPrevious();
+                return false;
+            });
 
-                //TODO: Rewrite this so that it doesn't straight up delete all the existing instructions
-                instructions.clear();
-                instructions.add(label);
-                instructions.add(lineNumber);
-                instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                //TODO: Introduce a way to grab the localvariable indices
-                instructions.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                instructions.add(new VarInsnNode(Opcodes.ILOAD, 2));
-                Transformer.Hooks$isHeadspaceFree.addTo(instructions);
-                instructions.add(new InsnNode(Opcodes.IRETURN));
-                instructions.add(labelEnd);
-                methodPatches++;
-                Transformer.logPatchComplete(Transformer.EntityPlayerSP$isHeadspaceFree_name);
-            }
-            // updateAutoJump assumes the player has normal gravity in a lot of places, a few patches may not be neccessary now
-            //      that player pitch and yaw is absolute, but it will likely still be the largest patch by far // TODO: 2016-10-19 Update for absolute pitch/yaw.
-            //
-            //      DEBUG_AUTO_JUMP instead makes the method call super.updateAutoJump(...), which doesn't exist normally, but
-            //      EntityPlayerWithGravity (the class we insert into the hierarchy) can be given its own updateAutoJump method.
-            //      This can copy the vanilla code with changes that take into account the gravity direction. This method is then
-            //      used to create the patches for the vanilla method
-            else if (Transformer.EntityPlayerSP$updateAutoJump_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.EntityPlayerSP$updateAutoJump_name);
-                int addVectorReplacements = 0;
-                int blockPosUPCount = 0;
-                int blockPosUPCountI = 0;
-                boolean foundFirstBlockPosGetY = false;
-                //newPATCH #1
-                boolean patch1Complete = false;
-                //newPATCH #2
-                boolean patch2Complete = false;
-                //newPATCH #3
-                boolean patch3Complete = false;
-                //newPATCH #4
-                boolean patch4Complete = false;
-                //newPATCH #4.5
-                boolean patch4Point5Complete = false;
-                int patch4Point5ReplacementCount = 0;
-                //newPATCH #5 and #6.5
-                boolean patch5Complete = false;
-                int vec3d12_var = -1;
-                boolean patch5Point5Complete = false;
-                boolean patch6Complete = false;
-                boolean patch7Complete = false;
-                boolean patch8Complete = false;
-                boolean patch9Complete = false;
-                int axisAlignedBBmaxYCount = 0;
-                int axisAlignedBBminYCount = 0;
+            InsnPatcher patch2 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.EntityPlayerSP$posX_GET.is(node)) {
+                    Ref.Hooks$getOriginRelativePosX.replace(iterator);
+                    return true;
+                }
+                return false;
+            });
 
-                // Used during development
-                if (Transformer.DEBUG_AUTO_JUMP) {
-                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                        AbstractInsnNode next = iterator.next();
-                        if (next instanceof LineNumberNode) {
+            InsnPatcher patch3 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.EntityPlayerSP$posZ_GET.is(node)) {
+                    Ref.Hooks$getOriginRelativePosZ.replace(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch4 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.EntityPlayerSP$getEntityBoundingBox.is(node)) {
+                    iterator.remove();
+                    iterator.next();
+                    iterator.remove(); // GETFIELD net/minecraft/util/math/AxisAlignedBB.minY : D
+                    Ref.Hooks$getOriginRelativePosY.addTo(iterator);
+                    iterator.next(); // DLOAD ? (likely 7)
+                    iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // Have to pass 'this' to adjustVec as well
+                    Ref.Hooks$adjustVec.addTo(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch5 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.EntityPlayerSP$rotationYaw_GET.is(node)) {
+                    Ref.Hooks$getRelativeYaw.replace(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch5Repeat = this.addInsnPatch(patch5.copy());
+
+            final String vec3d12_var_key = "vec3d12_var";
+
+            InsnPatcher patch6 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.Vec3d$scale.is(node)) {
+                    node = iterator.next();
+                    if (node instanceof VarInsnNode) {
+                        // Should also be ASTORE
+                        PatchEntityPlayerSP.this.storeData(vec3d12_var_key, ((VarInsnNode)node).var);
+                        return true;
+                    }
+                    else {
+                        Transformer.die("Expected a VarInsnNode after first usage of Vec3d::scale");
+                    }
+                }
+                return false;
+            });
+
+            InsnPatcher patch7 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.EntityPlayerSP$getForward.is(node)) {
+                    Ref.Hooks$getRelativeLookVec.replace(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch8 = this.addInsnPatch((node, iterator) -> {
+                if (node.getOpcode() == Opcodes.NEW && node instanceof TypeInsnNode && ((TypeInsnNode)node).desc.equals(Ref.BlockPos.toString())) {
+                    int vec3d12_var = (Integer)PatchEntityPlayerSP.this.getData(vec3d12_var_key);
+
+                    iterator.remove();
+                    while (true) {
+                        node = iterator.next();
+                        if (node instanceof MethodInsnNode && node.getOpcode() == INVOKESPECIAL) {
+                            iterator.remove();
                             iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            iterator.add(new VarInsnNode(Opcodes.FLOAD, 1));
-                            iterator.add(new VarInsnNode(Opcodes.FLOAD, 2));
-                            Transformer.AbstractClientPlayer$updateAutoJump_SPECIAL.addTo(iterator);
-                            iterator.add(new InsnNode(Opcodes.RETURN));
+                            Ref.Hooks$getBlockPosAtTopOfPlayer.addTo(iterator);
+
+                            //newPATCH #6.5
+                            iterator.next(); //ASTORE ? (probably 17)
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, vec3d12_var));
+                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            Ref.Hooks$adjustVec.addTo(iterator);
+                            iterator.add(new VarInsnNode(Opcodes.ASTORE, vec3d12_var));
+
+                            return true;
+                        }
+                        else {
+                            iterator.remove();
                         }
                     }
                 }
-                else {
-                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                        AbstractInsnNode next = iterator.next();
-                        if (next instanceof MethodInsnNode) {
-                            MethodInsnNode methodInsnNode = (MethodInsnNode)next;
-                            //newPATCH #4
-                            if (patch3Complete
-                                    && !patch4Complete
-                                    && Transformer.EntityPlayerSP$getEntityBoundingBox.is(methodInsnNode)) {
-                                iterator.remove();
-                                iterator.next();
-                                iterator.remove(); // GETFIELD net/minecraft/util/math/AxisAlignedBB.minY : D
-                                Transformer.Hooks$getOriginRelativePosY.addTo(iterator);
-                                iterator.next(); // DLOAD ? (likely 7)
-                                iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // Have to pass 'this' to adjustVec as well
-                                Transformer.Hooks$adjustVec.addTo(iterator);
-                                patch4Complete = true;
-                            }
-                            //newPatch #5
-                            else if (patch4Point5Complete
-                                    && !patch5Complete
-                                    && Transformer.Vec3d$scale.is(methodInsnNode)) {
-                                next = iterator.next();
-                                if (next instanceof VarInsnNode) {
-                                    // Should also be ASTORE
-                                    vec3d12_var = ((VarInsnNode)next).var;
-                                    patch5Complete = true;
-                                }
-                                else {
-                                    Transformer.die("Expected a VarInsnNode after first usage of Vec3d::scale");
-                                }
-                            }
-                            else if (patch5Complete
-                                    && !patch5Point5Complete
-                                    && Transformer.EntityPlayerSP$getForward.is(methodInsnNode)) {
-                                Transformer.Hooks$getRelativeLookVec.replace(methodInsnNode);
-                                patch5Point5Complete = true;
-                            }
-                            //PATCH #1
-                            else if (Transformer.Vec3d$addVector.is(methodInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$addAdjustedVector.addTo(iterator);
-                                addVectorReplacements++;
-                            }
-                            //newPATCH #8
-                            else if (patch7Complete
-                                    && !patch8Complete
-                                    && Transformer.AxisAlignedBB$INIT.is(methodInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$constructNewGAABBFrom2Vec3d.addTo(iterator);
-                                patch8Complete = true;
-                            }
-                            //PATCH #3
-                            else if (Transformer.BlockPos$up_NO_ARGS.is(methodInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$getRelativeUpblockPos_NO_ARGS.addTo(iterator);
-                                blockPosUPCount++;
-                            }
-                            else if (Transformer.BlockPos$up_INT_ARG.is(methodInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$getRelativeUpblockPos_INT_ARG.addTo(iterator);
-                                blockPosUPCountI++;
-                            }
-                            //PATCH #4
-                            else if (!foundFirstBlockPosGetY
-                                    && Transformer.BlockPos$getY.is(methodInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$getRelativeYOfBlockPos.addTo(iterator);
-                                foundFirstBlockPosGetY = true;
-                            }
+                return false;
+            });
 
-                        }
-                        else if (next instanceof TypeInsnNode
-                                && next.getOpcode() == Opcodes.NEW) {
-                            TypeInsnNode typeInsnNode = (TypeInsnNode)next;
-                            //newPATCH #1
-                            if (!patch1Complete
-//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(Transformer.Vec3d.toString())) {
-                                iterator.remove();
-                                while (!patch1Complete) {
-                                    next = iterator.next();
-                                    if (next instanceof MethodInsnNode && next.getOpcode() == INVOKESPECIAL) {
-                                        iterator.remove();
-                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        Transformer.Hooks$getBottomOfEntity.addTo(iterator);
-                                        patch1Complete = true;
-                                    }
-                                    else {
-                                        iterator.remove();
-                                    }
-                                }
-                            }
-                            //newPATCH #7
-                            else if (!patch7Complete
-                                    && patch6Complete
-//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(Transformer.AxisAlignedBB.toString())) {
-                                iterator.remove();
-                                next = iterator.next();
-                                if (next instanceof InsnNode && next.getOpcode() == Opcodes.DUP) {
-                                    iterator.remove();
-                                    patch7Complete = true;
-                                }
-                                else {
-                                    //what
-                                    Transformer.die("DUP instruction not found after expected NEW AxisAlignedBB");
-                                }
-                            }
-                            //newPATCH #6
-                            else if (patch5Point5Complete
-                                    && !patch6Complete
-//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(Transformer.BlockPos.toString())) {
-                                iterator.remove();
-                                while (!patch6Complete) {
-                                    next = iterator.next();
-                                    if (next instanceof MethodInsnNode && next.getOpcode() == INVOKESPECIAL) {
-                                        iterator.remove();
-                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        Transformer.Hooks$getBlockPosAtTopOfPlayer.addTo(iterator);
-
-                                        //newPATCH #6.5
-                                        iterator.next(); //ASTORE ? (probably 17)
-                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, vec3d12_var));
-                                        iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        Transformer.Hooks$adjustVec.addTo(iterator);
-                                        iterator.add(new VarInsnNode(Opcodes.ASTORE, vec3d12_var));
-
-                                        patch6Complete = true;
-                                    }
-                                    else {
-                                        iterator.remove();
-                                    }
-                                }
-                            }
-                            //newPATCH #9
-                            else if (patch8Complete
-                                    && !patch9Complete
-//                                    && typeInsnNode.getOpcode() == Opcodes.NEW
-                                    && typeInsnNode.desc.equals(Transformer.Vec3d.toString())) {
-                                iterator.next(); // DUP
-                                iterator.next(); // DCONST_0
-                                next = iterator.next();
-                                if (next.getOpcode() == Opcodes.DCONST_1) {
-                                    iterator.remove();
-                                    iterator.add(new InsnNode(Opcodes.DCONST_0));
-                                }
-                                else {
-                                    Transformer.die("Expecting DCONST_0 followed by DCONST_1, but instead got " + next);
-                                }
-                                iterator.next(); // DCONST_0
-                                iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
-
-                                iterator.add(new InsnNode(Opcodes.DCONST_0));
-                                iterator.add(new InsnNode(Opcodes.DCONST_1));
-                                iterator.add(new InsnNode(Opcodes.DCONST_0));
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$addAdjustedVector.addTo(iterator);
-
-                                patch9Complete = true;
-                            }
-
-                        }
-                        else if (next instanceof FieldInsnNode) {
-                            FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                            //newPATCH #2
-                            if (patch1Complete
-                                    && !patch2Complete
-                                    && Transformer.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
-                                Transformer.Hooks$getOriginRelativePosX.replace(iterator);
-                                patch2Complete = true;
-                            }
-                            //newPATCH #3
-                            else if (patch2Complete
-                                    && !patch3Complete
-                                    && Transformer.EntityPlayerSP$posZ_GET.is(fieldInsnNode)) {
-                                Transformer.Hooks$getOriginRelativePosZ.replace(iterator);
-                                patch3Complete = true;
-                            }
-                            else if (patch4Complete
-                                    && !patch4Point5Complete
-                                    && Transformer.EntityPlayerSP$rotationYaw_GET.is(fieldInsnNode)) {
-                                Transformer.Hooks$getRelativeYaw.replace(iterator);
-                                patch4Point5ReplacementCount++;
-                                if (patch4Point5ReplacementCount >= 2) {
-                                    patch4Point5Complete = true;
-                                }
-                            }
-                            //newPATCH #10
-                            else if (patch9Complete
-                                    && axisAlignedBBmaxYCount < 2
-                                    && Transformer.AxisAlignedBB$maxY_GET.is(fieldInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$getRelativeTopOfBB.addTo(iterator);
-                                axisAlignedBBmaxYCount++;
-                            }
-                            //newPATCH #11
-                            else if (axisAlignedBBmaxYCount == 2
-                                    && axisAlignedBBminYCount < 2
-                                    && Transformer.AxisAlignedBB$minY_GET.is(fieldInsnNode)) {
-                                iterator.remove();
-                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                Transformer.Hooks$getRelativeBottomOfBB.addTo(iterator);
-                                axisAlignedBBminYCount++;
-                            }
-                        }
+            InsnPatcher patch9 = this.addInsnPatch((node, iterator) -> {
+                if (node.getOpcode() == Opcodes.NEW && node instanceof TypeInsnNode && ((TypeInsnNode)node).desc.equals(Ref.AxisAlignedBB.toString())) {
+                    iterator.remove();
+                    node = iterator.next();
+                    if (node instanceof InsnNode && node.getOpcode() == Opcodes.DUP) {
+                        iterator.remove();
+                        return true;
                     }
-//                    addVectorReplacements
-//                    axisAlignedBBmaxYCount
-//                    axisAlignedBBminYCount
-//                    blockPosUPCount
-//                    blockPosUPCountI
-                    Transformer.log("addVector: " + addVectorReplacements
-                            + ", maxY: " + axisAlignedBBmaxYCount
-                            + ", minY: " + axisAlignedBBminYCount
-                            + ", up(): " + blockPosUPCount
-                            + ", up(int): " + blockPosUPCountI);
-                }
-
-                if (!patch9Complete && !Transformer.DEBUG_AUTO_JUMP) {
-                    Transformer.die("Unknown error occurred while patching EntityPlayerSP");
-                }
-                Transformer.logPatchComplete(Transformer.EntityPlayerSP$updateAutoJump_name);
-                methodPatches++;
-            }
-            // moveEntity passes the change in X and Z movement to the updateAutoJump method, we need to pass the change in
-            //      X and Z relative to the player's view instead
-            //
-            //      DEBUG_AUTO_JUMP instead calls super to help with debugging EntityPlayerWithGravity::updateAutoJump
-            else if (Transformer.Entity$moveEntity_name.is(methodNode)) {
-                Transformer.logPatchStarting(Transformer.Entity$moveEntity_name);
-                if (Transformer.DEBUG_AUTO_JUMP) {
-                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                        AbstractInsnNode next = iterator.next();
-                        if (next instanceof LineNumberNode) {
-                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            iterator.add(new VarInsnNode(Opcodes.DLOAD, 1));
-                            iterator.add(new VarInsnNode(Opcodes.DLOAD, 3));
-                            iterator.add(new VarInsnNode(Opcodes.DLOAD, 5));
-                            Transformer.AbstractClientPlayer$moveEntity_SPECIAL.addTo(iterator);
-                            iterator.add(new InsnNode(Opcodes.RETURN));
-                        }
+                    else {
+                        //what
+                        Transformer.die("DUP instruction not found after expected NEW AxisAlignedBB");
                     }
                 }
-                else {
-                    int prevRelativeXPos_var = -1;
-                    int prevRelativeZPos_var = -1;
+                return false;
+            });
 
-                    outerfor:
-                    for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); ) {
-                        AbstractInsnNode next = iterator.next();
-                        if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ALOAD) {
-                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            iterator.next(); // GETFIELD net/minecraft/client/entity/EntityPlayerSP.posX : D
-                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            Transformer.EntityPlayerSP$posY_GET.addTo(iterator);
-                            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            Transformer.EntityPlayerSP$posZ_GET.addTo(iterator);
-                            Transformer.Hooks$inverseAdjustXYZ.addTo(iterator);
-                            iterator.add(new InsnNode(Opcodes.DUP));
-                            iterator.add(new InsnNode(Opcodes.ICONST_0));
-                            iterator.add(new InsnNode(Opcodes.DALOAD));
-                            //next is DSTORE 7
-                            next = iterator.next();
-                            if (next instanceof VarInsnNode) {
-                                prevRelativeXPos_var = ((VarInsnNode)next).var;
-                            }
-                            else {
-                                Transformer.die("Was expecting DSTORE _ after GETFIELD posX, instead got " + next);
-                            }
-
-                            while (true) {
-                                next = iterator.next();
-                                if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.ALOAD) {
-                                    //ALOAD 0
-                                    iterator.remove();
-                                    iterator.next(); //GETFIELD net/minecraft/client/entity/EntityPlayerSP.posZ : D
-                                    iterator.remove();
-                                    iterator.add(new InsnNode(Opcodes.ICONST_2));
-                                    iterator.add(new InsnNode(Opcodes.DALOAD));
-                                    //next is DSTORE 9
-                                    next = iterator.next();
-                                    if (next instanceof VarInsnNode) {
-                                        prevRelativeZPos_var = ((VarInsnNode)next).var;
-                                    }
-                                    else {
-                                        Transformer.die("Was expecting DSTORE _ after GETFIELD posZ, instead got " + next);
-                                    }
-
-                                    while (true) {
-                                        next = iterator.next();
-                                        if (next instanceof FieldInsnNode) {
-                                            FieldInsnNode fieldInsnNode = (FieldInsnNode)next;
-                                            if (Transformer.EntityPlayerSP$posX_GET.is(fieldInsnNode)) {
-                                                iterator.previous();
-                                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                                iterator.next(); // same GETFIELD instruction
-                                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                                Transformer.EntityPlayerSP$posY_GET.addTo(iterator);
-                                                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                                Transformer.EntityPlayerSP$posZ_GET.addTo(iterator);
-                                                Transformer.Hooks$inverseAdjustXYZ.addTo(iterator);
-                                                iterator.add(new InsnNode(Opcodes.DUP));
-                                                iterator.add(new InsnNode(Opcodes.ICONST_2));
-                                                iterator.add(new InsnNode(Opcodes.DALOAD));
-                                                iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var));
-                                                iterator.add(new InsnNode(Opcodes.DSUB));
-                                                iterator.add(new VarInsnNode(Opcodes.DSTORE, prevRelativeZPos_var));
-                                                iterator.add(new InsnNode(Opcodes.ICONST_0));
-                                                iterator.add(new InsnNode(Opcodes.DALOAD));
-                                                iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeXPos_var));
-                                                iterator.add(new InsnNode(Opcodes.DSUB));
-                                                iterator.add(new InsnNode(Opcodes.D2F));
-                                                iterator.add(new VarInsnNode(Opcodes.DLOAD, prevRelativeZPos_var));
-                                                iterator.add(new InsnNode(Opcodes.D2F));
-
-                                                while (true) {
-                                                    next = iterator.next();
-                                                    if (next.getOpcode() == INVOKEVIRTUAL) {
-                                                        //INVOKEVIRTUAL net/minecraft/client/entity/EntityPlayerSP.func_189810_i (FF)V // Auto-jump method
-                                                        break outerfor;
-                                                    }
-                                                    else {
-                                                        iterator.remove();
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    /*
-                    // access flags 0x1
-                      public moveEntity(DDD)V
-                       L0
-                        LINENUMBER 602 L0
-                        ALOAD 0
-                        ALOAD 0
-                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posX : D
-                        ALOAD 0
-                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posY : D
-                        ALOAD 0
-                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posZ : D
-                        INVOKESTATIC uk/co/mysterymayhem/gravitymod/asm/Hooks.inverseAdjustXYZ (Lnet/minecraft/entity/Entity;DDD)[D
-                        DUP
-                        ICONST_0
-                        DALOAD
-                        DSTORE 7
-                       L1
-                        LINENUMBER 604 L2
-                        ICONST_2
-                        DALOAD
-                        DSTORE 9
-                       L2
-                        LINENUMBER 605 L3
-                        ALOAD 0
-                        DLOAD 1
-                        DLOAD 3
-                        DLOAD 5
-                        INVOKESPECIAL net/minecraft/entity/player/EntityPlayer.moveEntity (DDD)V
-                       L3
-                        LINENUMBER 606 L4
-                        ALOAD 0
-                          this
-                        ALOAD 0
-                          this, this
-                        ALOAD 0
-                          this, this, this
-                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posX : D
-                          this, this, posX
-                        ALOAD 0
-                          this, this, posX, this
-                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posY : D
-                          this, this, posX, posY
-                        ALOAD 0
-                          this, this, posX, posY, this
-                        GETFIELD uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.posZ : D
-                          this, this, posX, posY, posZ
-                        INVOKESTATIC uk/co/mysterymayhem/gravitymod/asm/Hooks.inverseAdjustXYZ (Lnet/minecraft/entity/Entity;DDD)[D
-                          this, doubles
-                        DUP
-                          this, doubles, doubles
-                        ICONST_2
-                          this, doubles, doubles, 2
-                        DALOAD
-                          this, doubles, doubles[2](newRelZ)
-                        DLOAD 9
-                          this, doubles, doubles[2](newRelZ), d1(oldRelZ)
-                        DSUB
-                          this, doubles, doubles[2](newRelZ)-d1(oldRelZ)
-                        DSTORE 9
-                          this, doubles
-                        ICONST_0
-                          this, doubles, 0
-                        DALOAD
-                          this, doubles[0](newRelX)
-                        DLOAD 7
-                          this, doubles[0](newRelX), d0(oldRelX)
-                        DSUB
-                          this, doubles[0](newRelX)-d0(oldRelX)
-                        D2F
-                          this, (float)doubles[0](newRelX)-d0(oldRelX)
-                        DLOAD 9
-                          this, (float)doubles[0](newRelX)-d0(oldRelX), doubles[2](newRelZ)-d1(oldRelZ)
-                        D2F
-                          this, (float)doubles[0](newRelX)-d0(oldRelX), (float)doubles[2](newRelZ)-d1(oldRelZ)
-                        INVOKEVIRTUAL uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity.func_189810_i (FF)V
-                          <empty>
-                       L4
-                        LINENUMBER 608 L6
-                        RETURN
-                       L5
-                     */
+            InsnPatcher patch10 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.AxisAlignedBB$INIT.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$constructNewGAABBFrom2Vec3d.addTo(iterator);
+                    return true;
                 }
-                Transformer.logPatchComplete(Transformer.Entity$moveEntity_name);
-                methodPatches++;
-            }
-            // TODO: Patch pushOutOfBlocks
+                return false;
+            });
+
+            InsnPatcher patch11 = this.addInsnPatch((node, iterator) -> {
+                if (node.getOpcode() == Opcodes.NEW && node instanceof TypeInsnNode && ((TypeInsnNode)node).desc.equals(Ref.Vec3d.toString())) {
+                    iterator.next(); // DUP
+                    iterator.next(); // DCONST_0
+                    node = iterator.next();
+                    if (node.getOpcode() == Opcodes.DCONST_1) {
+                        iterator.remove();
+                        iterator.add(new InsnNode(Opcodes.DCONST_0));
+                    }
+                    else {
+                        Transformer.die("Expecting DCONST_0 followed by DCONST_1, but instead got " + node);
+                    }
+                    iterator.next(); // DCONST_0
+                    iterator.next(); // INVOKESPECIAL net/minecraft/util/math/Vec3d.<init> (DDD)V
+
+                    iterator.add(new InsnNode(Opcodes.DCONST_0));
+                    iterator.add(new InsnNode(Opcodes.DCONST_1));
+                    iterator.add(new InsnNode(Opcodes.DCONST_0));
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$addAdjustedVector.addTo(iterator);
+
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch12 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.AxisAlignedBB$maxY_GET.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$getRelativeTopOfBB.addTo(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch12Repeat = this.addInsnPatch(patch12.copy());
+
+            InsnPatcher patch13 = this.addInsnPatch((node, iterator) -> {
+                if (Ref.AxisAlignedBB$minY_GET.is(node)) {
+                    iterator.remove();
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    Ref.Hooks$getRelativeBottomOfBB.addTo(iterator);
+                    return true;
+                }
+                return false;
+            });
+
+            InsnPatcher patch13Repeat = this.addInsnPatch(patch13.copy());
+
+            // Patch relations (all just sequential)
+            patch1.addChildPatch(patch2);
+            patch2.addChildPatch(patch3);
+            patch3.addChildPatch(patch4);
+            patch4.addChildPatch(patch5);
+            patch5.addChildPatch(patch5Repeat);
+            patch5Repeat.addChildPatch(patch6);
+            patch6.addChildPatch(patch7);
+            patch7.addChildPatch(patch8);
+            patch8.addChildPatch(patch9);
+            patch9.addChildPatch(patch10);
+            patch10.addChildPatch(patch11);
+            patch11.addChildPatch(patch12);
+            patch12.addChildPatch(patch12Repeat);
+            patch12Repeat.addChildPatch(patch13);
+            patch13.addChildPatch(patch13Repeat);
         }
 
-        Transformer.dieIfFalse(methodPatches == expectedMethodPatches, classNode);
-
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-//            ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        classNode.accept(classWriter);
-
-        return classWriter.toByteArray();
-
+        @Override
+        protected boolean shouldPatchMethod(MethodNode methodNode) {
+            return Ref.EntityPlayerSP$updateAutoJump_name.is(methodNode);
+        }
     }
 }

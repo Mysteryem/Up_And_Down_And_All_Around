@@ -5,7 +5,7 @@ package uk.co.mysterymayhem.gravitymod.asm.util.obfuscation;
  */
 public interface IDeobfAware {
 
-    default boolean isRuntimeDeobfEnabled() {
+    default boolean isDeobfEnvironment() {
         return ObfuscationHelper.IS_DEV_ENVIRONMENT;
     }
 }
