@@ -229,6 +229,11 @@ public class MultiMetaMapper<BLOCK extends Block> extends AbstractMetaMapper<BLO
 
             // Compressed the above
             final int index = this.getIndex(entry.getKey());
+            if (index == -1) {
+                // If the properties used by the blockstate would use > 4 bits, all values of the blockstate get passed to this method
+                // If the properties used take up <= 4 bits, then only those which get stored to metadata get passed to this method
+                continue;
+            }
             meta |= (propertyIndexToValueIndexLookup[index].get(entry.getValue()) << this.getShift(index));
         }
         return meta;
