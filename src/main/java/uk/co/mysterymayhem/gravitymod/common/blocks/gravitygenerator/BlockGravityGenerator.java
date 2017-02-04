@@ -12,6 +12,7 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -55,9 +56,10 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     // Direction the block is faced
     public static final PropertyDirection FACING = BlockDirectional.FACING;
     public static final PropertyEnum<EnumGravityTier> TIER = PropertyEnum.create("tier", EnumGravityTier.class);
+    public static final PropertyBool REVERSED = PropertyBool.create("reversed");
 
     public BlockGravityGenerator() {
-        super(Material.IRON, MapColor.IRON, new MetaHelper().addMeta(TIER).addNonMeta(FACING, ENABLED));
+        super(Material.IRON, MapColor.IRON, new MetaHelper().addMeta(TIER, REVERSED).addNonMeta(FACING, ENABLED));
         this.setHardness(5F).setResistance(10f).setSoundType(SoundType.METAL);
     }
 
@@ -86,12 +88,25 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 int itemDamage = stack.getItemDamage();
                 IBlockState stateFromMeta = getStateFromMeta(itemDamage);
                 String extra = TIER.getName(stateFromMeta.getValue(TIER));
+//                if (stateFromMeta.getValue(REVERSED)) {
+//                    extra += ".reversed";
+//                }
                 return this.getBlock().getUnlocalizedName() + '.' + extra;
 //                return super.getUnlocalizedName(stack);
             }
         };
         itemBlock.setHasSubtypes(true);
         return itemBlock;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+        int itemDamage = stack.getItemDamage();
+        IBlockState stateFromMeta = getStateFromMeta(itemDamage);
+        if (stateFromMeta.getValue(REVERSED)) {
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitygenerator.reversed"));
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -177,8 +192,11 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
 
     @Override
     public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
-        for (EnumGravityTier tier : EnumGravityTier.values()) {
-            list.add(new ItemStack(this, 1, tier.ordinal()/*this.getMetaFromState(defaultState.withProperty(TIER, tier))*/));
+        for (Boolean isReversed : REVERSED.getAllowedValues()) {
+            for (EnumGravityTier tier : EnumGravityTier.values()) {
+//                list.add(new ItemStack(this, 1, tier.ordinal()/*this.getMetaFromState(defaultState.withProperty(TIER, tier))*/));
+                list.add(new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier).withProperty(REVERSED, isReversed))));
+            }
         }
     }
 
@@ -191,7 +209,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     public TileEntity createTileEntity(World world, IBlockState state) {
         Collection<IProperty<?>> propertyNames = state.getPropertyNames();
         if (propertyNames.contains(FACING)) {
-            return new TileGravityGenerator(state.getValue(TIER), state.getValue(FACING));
+            return new TileGravityGenerator(state.getValue(TIER), state.getValue(FACING), state.getValue(REVERSED));
         }
         else {
             GravityMod.logWarning("Failed to create tile entity in %s due to invalid blockstate %s", world, state);
@@ -258,17 +276,23 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     @Override
     public void preInitClient() {
 
-        for (EnumGravityTier tier : EnumGravityTier.values()) {
-            int meta = this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier));
-            ModelResourceLocation modelResourceLocation = new ModelResourceLocation(this.getRegistryName(), ENABLED.getName() + "=" + ENABLED.getName(false) + "," + FACING.getName() + "=" + FACING.getName(EnumFacing.NORTH) + "," + TIER.getName() + "=" + TIER.getName(tier));
-            ModelLoader.registerItemVariants(item, modelResourceLocation);
-            ModelLoader.setCustomModelResourceLocation(item, meta, modelResourceLocation);
+        for (Boolean isReversed : REVERSED.getAllowedValues()) {
+            for (EnumGravityTier tier : EnumGravityTier.values()) {
+                int meta = this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier).withProperty(REVERSED, isReversed));
+                ModelResourceLocation modelResourceLocation = new ModelResourceLocation(this.getRegistryName(),
+                        ENABLED.getName() + "=" + ENABLED.getName(false) + ","
+                                + FACING.getName() + "=" + FACING.getName(EnumFacing.NORTH) + ","
+                                + REVERSED.getName() + "=" + REVERSED.getName(isReversed) + ","
+                                + TIER.getName() + "=" + TIER.getName(tier));
+                ModelLoader.registerItemVariants(item, modelResourceLocation);
+                ModelLoader.setCustomModelResourceLocation(item, meta, modelResourceLocation);
+            }
         }
     }
 
     @Override
     public void preInit() {
-        this.setDefaultState(this.getDefaultState().withProperty(FACING, EnumFacing.UP));
+        this.setDefaultState(this.getDefaultState().withProperty(FACING, EnumFacing.UP).withProperty(REVERSED, Boolean.FALSE));
 
         super.preInit();
     }

@@ -51,14 +51,15 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     private static final String REL_XRADIUS_KEY = "relxrad";
     private static final String REL_ZRADIUS_KEY = "relzrad";
     private static final String TIER_NBT_KEY = "tier";
+    private static final String REVERSE_KEY = "reverse";
     private static final Random sharedRandom = new Random();
 
     private int clientTicksLived = 0;
     // Shouldn't be changed once set
-    private EnumFacing facing = null;
+    private EnumFacing facing = EnumFacing.NORTH;
     private EnumGravityDirection gravityDirection = null;
     // Shouldn't be changed once set
-    private EnumGravityTier gravityTier = null;
+    private EnumGravityTier gravityTier = EnumGravityTier.NORMAL;
     private boolean powered = false;
     private int relativeXRadius = MAX_RADIUS;
     private int relativeYHeight = MAX_HEIGHT;
@@ -76,11 +77,13 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     private VolumeParticle volumeParticle;
     // Effectively final
     private Vec3d volumeSpawnPoint = null;
+    private boolean reverseDirection = false;
 
-    public TileGravityGenerator(EnumGravityTier gravityTier, EnumFacing facing) {
+    public TileGravityGenerator(EnumGravityTier gravityTier, EnumFacing facing, Boolean reverseDirection) {
         this.gravityTier = gravityTier;
         this.facing = facing;
         this.gravityDirection = EnumGravityDirection.fromEnumFacing(facing.getOpposite());
+        this.reverseDirection = reverseDirection;
     }
 
     @UsedReflexively
@@ -142,12 +145,12 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     private void updateSearchVolume() {
 //        Vec3d centreBlockPos = new Vec3d(this.getPos()).addVector(0.5, 0.5, 0.5);
         final AxisAlignedBB offset = Block.FULL_BLOCK_AABB.offset(this.getPos());
-        final EnumGravityDirection direction = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
+//        final EnumGravityDirection direction = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
         // 0 -> +0 either side, 2 -> +0.5 either side = +1, 3 -> +1 either side = +2 etc.
         double yIncrease = (relativeYHeight - 1) * 0.5d;
-        double[] relativeXYZExpansion = direction.adjustXYZValuesMaintainSigns(relativeXRadius, yIncrease,
+        double[] relativeXYZExpansion = this.gravityDirection.adjustXYZValuesMaintainSigns(relativeXRadius, yIncrease,
                 relativeZRadius);
-        double[] relativeYMovement = direction.adjustXYZValues(0, yIncrease + 1, 0);
+        double[] relativeYMovement = this.gravityDirection.adjustXYZValues(0, yIncrease + 1, 0);
         this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
                 .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
         this.maxDistance = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
@@ -266,62 +269,104 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         return this.powered;
     }
 
+    // Can't call this.markDirty() while being read from NBT, so got to store some state so that we know to call this.markDirty() as soon as possible
+    // I could schedule a task for the next world tick, but I don't want to schedule multiple tasks
+    private boolean missingTagsOnLoad = false;
+
     @Override
     public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
 //        if (compound.hasKey(INVENTORY_KEY, TAG_LIST)) {
 //            ITEM_HANDLER_CAPABILITY.readNBT(this.inventory, null, compound.getTagList(INVENTORY_KEY, TAG_COMPOUND));
 //        }
-        if (compound.hasKey(TIER_NBT_KEY, TAG_BYTE)
-                && compound.hasKey(FACING_NBT_KEY, TAG_BYTE)
-                && compound.hasKey(REL_XRADIUS_KEY, TAG_INT)
-                && compound.hasKey(REL_ZRADIUS_KEY, TAG_INT)
-                && compound.hasKey(REL_HEIGHT_KEY, TAG_INT)) {
-            int gravityTier = compound.getByte(TIER_NBT_KEY);
+
+        // Gravity Tier
+        if (compound.hasKey(TIER_NBT_KEY, TAG_BYTE)) {
+            int gravityTierOrdinal = compound.getByte(TIER_NBT_KEY);
             EnumGravityTier[] tierValues = EnumGravityTier.values();
             int length = tierValues.length;
-            if (gravityTier < 0) {
+            if (gravityTierOrdinal < 0) {
                 GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
-                        this, gravityTier, length);
-                gravityTier = 0;
-                this.invalidate();
+                        this, gravityTierOrdinal, length);
+                gravityTierOrdinal = 0;
+                this.missingTagsOnLoad = true;
             }
-            else if (gravityTier >= length) {
+            else if (gravityTierOrdinal >= length) {
                 GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
-                        this, gravityTier, length);
-                gravityTier = length - 1;
-                this.invalidate();
+                        this, gravityTierOrdinal, length);
+                gravityTierOrdinal = length - 1;
+                this.missingTagsOnLoad = true;
             }
-            this.gravityTier = tierValues[gravityTier];
+            this.gravityTier = tierValues[gravityTierOrdinal];
+        }
+        else {
+            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", TIER_NBT_KEY, this);
+            this.missingTagsOnLoad = true;
+        }
 
+        // Facing
+        if (compound.hasKey(FACING_NBT_KEY, TAG_BYTE)) {
             int facingOrdinal = compound.getByte(FACING_NBT_KEY);
             EnumFacing[] facingValues = EnumFacing.values();
-            length = facingValues.length;
+            int length = facingValues.length;
             if (facingOrdinal < 0) {
                 GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
                         this, gravityTier, length);
                 facingOrdinal = 0;
-                this.invalidate();
+                this.missingTagsOnLoad = true;
             }
             else if (facingOrdinal >= length) {
                 GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
                         this, gravityTier, length);
                 facingOrdinal = length - 1;
-                this.invalidate();
+                this.missingTagsOnLoad = true;
             }
             this.facing = facingValues[facingOrdinal];
             this.gravityDirection = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
-
-            this.relativeXRadius = clampRadius(compound.getInteger(REL_XRADIUS_KEY));
-            this.relativeZRadius = clampRadius(compound.getInteger(REL_ZRADIUS_KEY));
-            this.relativeYHeight = clampHeight(compound.getInteger(REL_HEIGHT_KEY));
-            this.updateSearchVolume();
         }
         else {
-            GravityMod.logWarning("Reading facing from nbt for %s failed. Tier tag present: %s, facing tag present: %s",
-                    this, compound.hasKey(TIER_NBT_KEY, TAG_BYTE), compound.hasKey(FACING_NBT_KEY, TAG_BYTE));
-            this.invalidate();
+            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", FACING_NBT_KEY, this);
+            this.missingTagsOnLoad = true;
         }
-        super.readFromNBT(compound);
+
+        // Relative X radius
+        if (compound.hasKey(REL_XRADIUS_KEY, TAG_INT)) {
+            this.relativeXRadius = clampRadius(compound.getInteger(REL_XRADIUS_KEY));
+        }
+        else {
+            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_XRADIUS_KEY, this);
+            this.missingTagsOnLoad = true;
+        }
+
+        // Relative Z radius
+        if (compound.hasKey(REL_ZRADIUS_KEY, TAG_INT)) {
+            this.relativeZRadius = clampRadius(compound.getInteger(REL_ZRADIUS_KEY));
+        }
+        else {
+            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_ZRADIUS_KEY, this);
+            this.missingTagsOnLoad = true;
+        }
+
+        // Relative Y height
+        if (compound.hasKey(REL_HEIGHT_KEY, TAG_INT)) {
+            this.relativeYHeight = clampHeight(compound.getInteger(REL_HEIGHT_KEY));
+        }
+        else {
+            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_HEIGHT_KEY, this);
+            this.missingTagsOnLoad = true;
+        }
+
+        // Reverse
+        if (compound.hasKey(REVERSE_KEY, TAG_BYTE)) {
+            this.reverseDirection = compound.getBoolean(REVERSE_KEY);
+        }
+        else {
+            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REVERSE_KEY, this);
+            this.missingTagsOnLoad = true;
+        }
+
+        // Apply any changes
+        this.updateSearchVolume();
     }
 
     @Nullable
@@ -334,6 +379,15 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         return this.writeToNBT(new NBTTagCompound());
     }
 
+    //TODO: Is this safe?
+    @Override
+    public void onLoad() {
+        if (this.missingTagsOnLoad && !this.worldObj.isRemote) {
+            Minecraft.getMinecraft().addScheduledTask(this::markDirty);
+            this.missingTagsOnLoad = false;
+        }
+    }
+
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setByte(TIER_NBT_KEY, (byte)this.gravityTier.ordinal());
@@ -341,6 +395,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         compound.setInteger(REL_XRADIUS_KEY, this.relativeXRadius);
         compound.setInteger(REL_ZRADIUS_KEY, this.relativeZRadius);
         compound.setInteger(REL_HEIGHT_KEY, this.relativeYHeight);
+        compound.setBoolean(REVERSE_KEY, this.reverseDirection);
 //        compound.setTag(INVENTORY_KEY, ITEM_HANDLER_CAPABILITY.writeNBT(this.inventory, null));
         return super.writeToNBT(compound);
     }
@@ -388,6 +443,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             if (this.powered) {
 //                EnumFacing facing = blockState.getValue(BlockGravityGenerator.FACING).getOpposite();
                 EnumGravityDirection enumGravityDirection = this.gravityDirection;
+                if (this.reverseDirection) {
+                    enumGravityDirection = enumGravityDirection.getOpposite();
+                }
                 AxisAlignedBB volumeToCheck = this.searchVolume;
 //                RenderGlobal.renderFilledBox(volumeToCheck, 1f, 1f, 1f, 0.5f);
 
@@ -463,9 +521,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         if (particleSetting != 2) {
             if (this.powered) {
 //                if (this.playerCanSeeRange()) {
-                if ((this.clientTicksLived + (sharedRandom.nextBoolean() ? 1 : 0)) % (particleSetting == 0 ? this
-                        .ticksPerSpawn : this.ticksPerSpawn * 2) == 0) {
-                    Minecraft.getMinecraft().effectRenderer.addEffect(new GravityParticle(this.gravityDirection, this
+                EnumGravityDirection direction = this.reverseDirection ? this.gravityDirection.getOpposite() : this.gravityDirection;
+                if ((this.clientTicksLived + (sharedRandom.nextBoolean() ? 1 : 0)) % (particleSetting == 0 ? this.ticksPerSpawn : this.ticksPerSpawn * 2) == 0) {
+                    Minecraft.getMinecraft().effectRenderer.addEffect(new GravityParticle(direction, this
                             .searchVolume, this.gravityTier, this.worldObj));
                 }
 //                }
@@ -564,4 +622,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 //        return new Vec3d(closestX, closestY, closestZ);
 //    }
 
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + " at (" + this.pos.getX() + ",";
+    }
 }

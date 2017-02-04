@@ -69,6 +69,7 @@ mouseovertext.mysttmtgravitymod.presskeyfordetails= for details
 mouseovertext.mysttmtgravitymod.ultimategravitycontroller=Emits §9strong§7 gravity
 mouseovertext.mysttmtgravitymod.weakgravitycontroller=Emits §fweak§r§7 gravity
 mouseovertext.mysttmtgravitymod.weaktooltip=§%s%d§7/%d for §fweak§7 gravity
+mouseovertext.mysttmtgravitymod.gravitygenerator.reversed=Reversed
 mysttmtgravitymod.down=Down
 mysttmtgravitymod.east=East
 mysttmtgravitymod.north=North

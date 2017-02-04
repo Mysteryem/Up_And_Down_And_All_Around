@@ -28,11 +28,27 @@
         "model": "mysttmtgravitymod:gravitygenerator_on"
       }
     },
+    "reversed": {
+      "false": {
+        "textures": {
+          "side": "#side_normal",
+          "side_on": "#side_normal_on"
+        }
+      },
+      "true": {
+        "textures": {
+          "side": "#side_reverse",
+          "side_on": "#side_reverse_on"
+        }
+      }
+    },
     "tier": {
       "weak": {
         "textures": {
-          "side": "mysttmtgravitymod:blocks/weakgravitygenerator_side",
-          "side_on": "mysttmtgravitymod:blocks/weakgravitygenerator_side_on",
+          "side_normal": "mysttmtgravitymod:blocks/weakgravitygenerator_side",
+          "side_normal_on": "mysttmtgravitymod:blocks/weakgravitygenerator_side_on",
+          "side_reverse": "mysttmtgravitymod:blocks/weakgravitygenerator_side_reverse",
+          "side_reverse_on": "mysttmtgravitymod:blocks/weakgravitygenerator_side_on_reverse",
           "front": "mysttmtgravitymod:blocks/weakgravitygenerator_front",
           "front_on": "mysttmtgravitymod:blocks/weakgravitygenerator_front_on",
           "back": "mysttmtgravitymod:blocks/weakgravitygenerator_base",
@@ -41,8 +57,10 @@
       },
       "normal": {
         "textures": {
-          "side": "mysttmtgravitymod:blocks/normalgravitygenerator_side",
-          "side_on": "mysttmtgravitymod:blocks/normalgravitygenerator_side_on",
+          "side_normal": "mysttmtgravitymod:blocks/normalgravitygenerator_side",
+          "side_normal_on": "mysttmtgravitymod:blocks/normalgravitygenerator_side_on",
+          "side_reverse": "mysttmtgravitymod:blocks/normalgravitygenerator_side_reverse",
+          "side_reverse_on": "mysttmtgravitymod:blocks/normalgravitygenerator_side_on_reverse",
           "front": "mysttmtgravitymod:blocks/normalgravitygenerator_front",
           "front_on": "mysttmtgravitymod:blocks/normalgravitygenerator_front_on",
           "back": "mysttmtgravitymod:blocks/normalgravitygenerator_base",
@@ -51,8 +69,10 @@
       },
       "strong": {
         "textures": {
-          "side": "mysttmtgravitymod:blocks/stronggravitygenerator_side",
-          "side_on": "mysttmtgravitymod:blocks/stronggravitygenerator_side_on",
+          "side_normal": "mysttmtgravitymod:blocks/stronggravitygenerator_side",
+          "side_normal_on": "mysttmtgravitymod:blocks/stronggravitygenerator_side_on",
+          "side_reverse": "mysttmtgravitymod:blocks/stronggravitygenerator_side_reverse",
+          "side_reverse_on": "mysttmtgravitymod:blocks/stronggravitygenerator_side_on_reverse",
           "front": "mysttmtgravitymod:blocks/stronggravitygenerator_front",
           "front_on": "mysttmtgravitymod:blocks/stronggravitygenerator_front_on",
           "back": "mysttmtgravitymod:blocks/stronggravitygenerator_base",
