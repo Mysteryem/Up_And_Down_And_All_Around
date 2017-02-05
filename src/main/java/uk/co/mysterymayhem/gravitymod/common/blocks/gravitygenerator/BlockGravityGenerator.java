@@ -132,6 +132,11 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 blockPowered = tileGravityGenerator.isPowered();
             }
             facing = tileGravityGenerator.getFacing();
+
+            // The tile entity might not match the blockstate in the case that the stored tile entity nbt gets messed up, so we'll allow the tile entity to
+            // override the REVERSED property
+            boolean reversed = tileGravityGenerator.isReversed();
+            state = state.withProperty(REVERSED, reversed);
         }
         return state.withProperty(FACING, facing).withProperty(ENABLED, blockPowered);
     }

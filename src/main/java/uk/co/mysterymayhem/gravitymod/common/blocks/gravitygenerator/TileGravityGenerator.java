@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -14,6 +15,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -30,6 +32,8 @@ import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import static net.minecraftforge.common.util.Constants.NBT.TAG_BYTE;
 import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
@@ -78,6 +82,8 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     // Effectively final
     private Vec3d volumeSpawnPoint = null;
     private boolean reverseDirection = false;
+    // I can't call this.markDirty() while reading from NBT, so I've got to store some state so that we know to call this.markDirty() as soon as possible
+    private boolean missingTagsOnLoad = false;
 
     public TileGravityGenerator(EnumGravityTier gravityTier, EnumFacing facing, Boolean reverseDirection) {
         this.gravityTier = gravityTier;
@@ -103,6 +109,10 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 
     public static int widthToRadius(int width) {
         return (width - 1) / 2;
+    }
+
+    public boolean isReversed() {
+        return this.reverseDirection;
     }
 
     public EnumFacing getFacing() {
@@ -195,10 +205,6 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         }
     }
 
-    public int getRelativeYHeight() {
-        return relativeYHeight;
-    }
-
     // Possible future feature whereby items must be inserted in order to unlock additional features of the gravity
     // generator
 //    private static final String INVENTORY_KEY = "inventory";
@@ -229,6 +235,10 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 //            return super.getCapability(capability, facing);
 //        }
 //    }
+
+    public int getRelativeYHeight() {
+        return relativeYHeight;
+    }
 
     public void setRelativeYHeight(int relativeYHeight) {
         int newHeight = clampHeight(relativeYHeight);
@@ -269,10 +279,6 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         return this.powered;
     }
 
-    // Can't call this.markDirty() while being read from NBT, so got to store some state so that we know to call this.markDirty() as soon as possible
-    // I could schedule a task for the next world tick, but I don't want to schedule multiple tasks
-    private boolean missingTagsOnLoad = false;
-
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
@@ -286,21 +292,29 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             EnumGravityTier[] tierValues = EnumGravityTier.values();
             int length = tierValues.length;
             if (gravityTierOrdinal < 0) {
-                GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
-                        this, gravityTierOrdinal, length);
+                // this.worldObj is null currently, so can't use that to determine the side
+                if (isServerSideNoWorldObjAvailable()) {
+                    GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
+                            this, gravityTierOrdinal, length);
+                }
                 gravityTierOrdinal = 0;
+                // I could schedule a task for the next server tick here, but I don't want to run the risk of scheduling multiple duplicate tasks
                 this.missingTagsOnLoad = true;
             }
             else if (gravityTierOrdinal >= length) {
-                GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
-                        this, gravityTierOrdinal, length);
+                if (isServerSideNoWorldObjAvailable()) {
+                    GravityMod.logWarning("Reading tier from nbt for %s failed. Got %s, expected value between 0 and %s",
+                            this, gravityTierOrdinal, length);
+                }
                 gravityTierOrdinal = length - 1;
                 this.missingTagsOnLoad = true;
             }
             this.gravityTier = tierValues[gravityTierOrdinal];
         }
         else {
-            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", TIER_NBT_KEY, this);
+            if (isServerSideNoWorldObjAvailable()) {
+                GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", TIER_NBT_KEY, this);
+            }
             this.missingTagsOnLoad = true;
         }
 
@@ -310,14 +324,18 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             EnumFacing[] facingValues = EnumFacing.values();
             int length = facingValues.length;
             if (facingOrdinal < 0) {
-                GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
-                        this, gravityTier, length);
+                if (isServerSideNoWorldObjAvailable()) {
+                    GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
+                            this, gravityTier, length);
+                }
                 facingOrdinal = 0;
                 this.missingTagsOnLoad = true;
             }
             else if (facingOrdinal >= length) {
-                GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
-                        this, gravityTier, length);
+                if (isServerSideNoWorldObjAvailable()) {
+                    GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
+                            this, gravityTier, length);
+                }
                 facingOrdinal = length - 1;
                 this.missingTagsOnLoad = true;
             }
@@ -325,7 +343,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             this.gravityDirection = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
         }
         else {
-            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", FACING_NBT_KEY, this);
+            if (isServerSideNoWorldObjAvailable()) {
+                GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", FACING_NBT_KEY, this);
+            }
             this.missingTagsOnLoad = true;
         }
 
@@ -334,7 +354,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             this.relativeXRadius = clampRadius(compound.getInteger(REL_XRADIUS_KEY));
         }
         else {
-            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_XRADIUS_KEY, this);
+            if (isServerSideNoWorldObjAvailable()) {
+                GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_XRADIUS_KEY, this);
+            }
             this.missingTagsOnLoad = true;
         }
 
@@ -343,7 +365,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             this.relativeZRadius = clampRadius(compound.getInteger(REL_ZRADIUS_KEY));
         }
         else {
-            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_ZRADIUS_KEY, this);
+            if (isServerSideNoWorldObjAvailable()) {
+                GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_ZRADIUS_KEY, this);
+            }
             this.missingTagsOnLoad = true;
         }
 
@@ -352,7 +376,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             this.relativeYHeight = clampHeight(compound.getInteger(REL_HEIGHT_KEY));
         }
         else {
-            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_HEIGHT_KEY, this);
+            if (isServerSideNoWorldObjAvailable()) {
+                GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REL_HEIGHT_KEY, this);
+            }
             this.missingTagsOnLoad = true;
         }
 
@@ -361,12 +387,23 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             this.reverseDirection = compound.getBoolean(REVERSE_KEY);
         }
         else {
-            GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REVERSE_KEY, this);
+            if (isServerSideNoWorldObjAvailable()) {
+                GravityMod.logWarning("Missing \"%s\" tag from loaded nbt for %s", REVERSE_KEY, this);
+            }
             this.missingTagsOnLoad = true;
         }
 
         // Apply any changes
         this.updateSearchVolume();
+    }
+
+    private static boolean isServerSideNoWorldObjAvailable() {
+        MinecraftServer serverInstance = FMLCommonHandler.instance().getMinecraftServerInstance();
+        // On the client side:
+        //      Connected to a server -> null
+        //      Singleplayer -> instance of Integrated server (returns false for ::isDedicatedServer)
+        // I'm unsure of when the serverInstance may be null on a dedicated server
+        return serverInstance != null && serverInstance.isDedicatedServer();
     }
 
     @Nullable
@@ -379,15 +416,6 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         return this.writeToNBT(new NBTTagCompound());
     }
 
-    //TODO: Is this safe?
-    @Override
-    public void onLoad() {
-        if (this.missingTagsOnLoad && !this.worldObj.isRemote) {
-            Minecraft.getMinecraft().addScheduledTask(this::markDirty);
-            this.missingTagsOnLoad = false;
-        }
-    }
-
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setByte(TIER_NBT_KEY, (byte)this.gravityTier.ordinal());
@@ -398,6 +426,29 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         compound.setBoolean(REVERSE_KEY, this.reverseDirection);
 //        compound.setTag(INVENTORY_KEY, ITEM_HANDLER_CAPABILITY.writeNBT(this.inventory, null));
         return super.writeToNBT(compound);
+    }
+
+    @Override
+    public void onLoad() {
+        if (this.missingTagsOnLoad && !this.worldObj.isRemote) {
+            // Stack overflow as markDirty tries to load the chunk again, which loads the tile entities again, which calls this method again...
+            // This is because addScheduledTask will immediately execute the task
+//            ((WorldServer)this.worldObj).addScheduledTask(this::markDirty);
+            // Stack overflow for the same reason (calls the same method)
+//            FMLCommonHandler.instance().getMinecraftServerInstance().addScheduledTask(this::markDirty);
+
+            // This seems to be safe, since the task is not executed immediately, instead added to a queue that will be emptied during
+            // MinecraftServer::updateTimeLightAndEntities or IntegratedServer::tick
+            MinecraftServer minecraftServer = this.worldObj.getMinecraftServer();
+            // Probably can't be null. Probably. I hope.
+            if (minecraftServer != null) {
+                minecraftServer.futureTaskQueue.add(new FutureTask<>(Executors.callable(() -> {
+                    GravityMod.logInfo("Loaded nbt for %s was invalid, its invalid tags have been set to defaults", this);
+                    this.markDirty();
+                })));
+            }
+            this.missingTagsOnLoad = false;
+        }
     }
 
     @Override
@@ -625,6 +676,6 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " at (" + this.pos.getX() + ",";
+        return this.getClass().getSimpleName() + " at (" + this.pos.getX() + ", " + this.pos.getY() + ", " + this.pos.getZ() + ")";
     }
 }
