@@ -96,9 +96,16 @@ public class GravityDirectionCapability {
                 player.fallDistance *= otherDirectionsFallDistanceMultiplier;
             }
         }
-        else {
+        // This CAN occur on the client (so I'm only logging it on the server side)
+        // Client is connected to server,
+        // Server tells client to create an EntityOtherPlayerMP,
+        // New player's direction is DOWN by default
+        // Client requests gravity direction of player from server
+        // Client receives the other player's direction
+        // If DOWN, we would get this message (or whatever the default direction happens to be)
+        else if (!clientSide) {
             GravityMod.logInfo("Tried to set gravity direction of %s to %s, but it was already %s." +
-                    " This _probably_ shouldn't happen, but I'm not sure.", player.getName(), oldDirection.name(), newDirection.name());
+                    " I'm pretty sure this shouldn't happen.", player.getName(), oldDirection.name(), newDirection.name());
         }
 
         // This information is used in rendering, there's no reason to do it if we're a server
