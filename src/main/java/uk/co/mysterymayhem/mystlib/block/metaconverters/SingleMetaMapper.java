@@ -5,6 +5,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
+import net.minecraftforge.fml.common.FMLLog;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +40,10 @@ public class SingleMetaMapper<BLOCK extends Block, PROPERTY extends IProperty<VA
 
     @Override
     public IBlockState apply(int meta) {
+        if (meta < 0 || meta >= indexToValueMap.length) {
+            FMLLog.warning("MystLib: SingleMetaMapper: Invalid meta passed to 'getStateFromMeta' delegate (SingleMetaMapper::apply). Using default state.");
+            return this.block.getDefaultState();
+        }
         return this.block.getDefaultState().withProperty(this.property, indexToValueMap[meta]);
     }
 

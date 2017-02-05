@@ -5,6 +5,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
+import net.minecraftforge.fml.common.FMLLog;
 
 import java.util.*;
 
@@ -180,10 +181,15 @@ public class MultiMetaMapper<BLOCK extends Block> extends AbstractMetaMapper<BLO
 
 //        return iBlockState.withProperty(property, (VALUE)comparable);
 
-        // Compressed the above
-        return iBlockState.withProperty(
-                property,
-                (VALUE)this.propertyIndexToValueArray[index][(meta >> this.getShift(index)) & getMask(this.getBits(index))]);
+        // Compressed the above, now with safety
+        Comparable<?>[] innerArray = this.propertyIndexToValueArray[index];
+        int innerIndex = (meta >> this.getShift(index)) & getMask(this.getBits(index));
+        if (innerIndex < 0 || innerIndex >= innerArray.length) {
+            FMLLog.warning("MystLib: MultiMetaMapper: Invalid meta passed to 'getStateFromMeta' delegate (MultiMetaMapper::apply). Using default state for " +
+                    "property %s", property);
+            return iBlockState;
+        }
+        return iBlockState.withProperty(property, (VALUE)innerArray[innerIndex]);
     }
 
     private int getIndex(IProperty<?> property) {
