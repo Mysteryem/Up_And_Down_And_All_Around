@@ -3,10 +3,12 @@ package uk.co.mysterymayhem.gravitymod.common.listeners;
 import baubles.api.BaublesApi;
 import baubles.api.cap.IBaublesItemHandler;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityTracker;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -19,6 +21,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
@@ -35,6 +38,7 @@ import uk.co.mysterymayhem.gravitymod.common.packets.config.ModCompatConfigCheck
 import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChangeMessage;
 
 import javax.annotation.Nonnull;
+import java.util.Set;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -260,20 +264,34 @@ public class GravityManagerCommon {
             if (!MinecraftForge.EVENT_BUS.post(event)) {
                 GravityDirectionCapability.setGravityDirection(event.player, event.newGravityDirection, noTimeout);
                 player.connection.update();
-                this.sendUpdatePacketToDimension(event.player, event.newGravityDirection, noTimeout);
+                this.sendUpdatePacketToTrackingPlayers(event.player, event.newGravityDirection, noTimeout);
                 MinecraftForge.EVENT_BUS.post(new GravityTransitionEvent.Server.Post(newDirection, oldDirection, player));
             }
         }
     }
 
-    //TODO: Replace with sending packet to only players that are tracking the player whose gravity is changing
     //Dedicated/Integrated Server only
-    private void sendUpdatePacketToDimension(EntityPlayerMP player, EnumGravityDirection newGravityDirection, boolean noTimeout) {
+    @SuppressWarnings("unchecked")
+    private void sendUpdatePacketToTrackingPlayers(@Nonnull EntityPlayerMP player, @Nonnull EnumGravityDirection newGravityDirection, boolean noTimeout) {
         //DEBUG
-        //FMLLog.info("Sending gravity data for %s to all players in the same dimension", player.getName());
-        PacketHandler.INSTANCE.sendToDimension(new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout), player.dimension);
+        if (GravityMod.GENERAL_DEBUG) {
+            GravityMod.logInfo("Sending gravity data for %s to players", player.getName());
+        }
 
-        //TODO: see if it works
+        // Don't know why it wouldn't be a WorldServer, but may as well check
+        if (player.worldObj instanceof WorldServer) {
+            WorldServer worldServer = (WorldServer)player.worldObj;
+            EntityTracker entityTracker = worldServer.getEntityTracker();
+            // For some reason, the Forge guys made the method return a Set<? extends EntityPlayer> instead of Set<? extends EntityPlayerMP>
+            Set<? extends EntityPlayerMP> trackingPlayers = (Set<? extends EntityPlayerMP>)entityTracker.getTrackingPlayers(player);
+            for (EntityPlayerMP trackingPlayer : trackingPlayers) {
+                PacketHandler.INSTANCE.sendTo(new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout), trackingPlayer);
+            }
+            // Players don't track themselves, so they need to be sent the packet too
+            PacketHandler.INSTANCE.sendTo(new GravityChangeMessage(player.getName(), newGravityDirection, noTimeout), player);
+        }
+
+        //Leaving this here for the time being, it might be useful for sending block related packets (assuming it works as I expect)
 //        if (player.worldObj instanceof WorldServer) {
 //            WorldServer worldServer = (WorldServer)player.worldObj;
 //            Chunk chunkFromBlockCoords = worldServer.getChunkFromBlockCoords(new BlockPos(player));
