@@ -8,11 +8,14 @@ import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 /**
  * Created by Mysteryem on 2017-01-25.
  */
+@SideOnly(Side.CLIENT)
 public class ModelGravityGoggles extends ModelBiped {
     public static final ModelGravityGoggles INSTANCE = new ModelGravityGoggles();
     private static final ItemStack STACK = new ItemStack(StaticItems.GRAVITY_FIELD_GOGGLES);

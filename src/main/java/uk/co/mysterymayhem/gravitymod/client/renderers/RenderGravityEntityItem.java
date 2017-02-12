@@ -10,6 +10,8 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
 
@@ -18,6 +20,7 @@ import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
  * rotated to take into account their gravity direction
  * Created by Mysteryem on 2016-11-07.
  */
+@SideOnly(Side.CLIENT)
 public class RenderGravityEntityItem extends RenderEntityItem {
     public RenderGravityEntityItem(RenderManager renderManagerIn) {
         super(renderManagerIn, Minecraft.getMinecraft().getRenderItem());
