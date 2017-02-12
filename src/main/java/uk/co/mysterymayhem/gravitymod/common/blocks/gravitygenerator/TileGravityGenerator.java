@@ -48,6 +48,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     public static final int MAX_TICKS_PER_PARTICLE_SPAWN = 10;
     public static final int MAX_VOLUME = MAX_HEIGHT * (2 * MAX_RADIUS + 1) * (2 * MAX_RADIUS + 1);
     public static final int MIN_HEIGHT = 1;
+    // 0 -> 1, 1 -> 3, 2 -> 5
     public static final int MIN_RADIUS = 0;
     public static final int MIN_TICKS_PER_PARTICLE_SPAWN = 1;
     private static final String FACING_NBT_KEY = "facing";
@@ -68,7 +69,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     private int relativeXRadius = MAX_RADIUS;
     private int relativeYHeight = MAX_HEIGHT;
     private int relativeZRadius = MAX_RADIUS;
-    private double maxDistance = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
+    private static final double MAX_DISTANCE = (MAX_RADIUS + 0.5) * (MAX_RADIUS + 0.5) + (MAX_RADIUS + 0.5) * (MAX_RADIUS + 0.5) + MAX_HEIGHT * MAX_HEIGHT;
     private double percentOfMaxVolume = this.getVolume() / MAX_VOLUME;
     //Initial value should never be used
     private AxisAlignedBB searchVolume = Block.FULL_BLOCK_AABB;
@@ -163,7 +164,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         double[] relativeYMovement = this.gravityDirection.adjustXYZValues(0, yIncrease + 1, 0);
         this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
                 .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
-        this.maxDistance = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
+//        this.MAX_DISTANCE = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
         this.percentOfMaxVolume = this.getVolume() / (double)MAX_VOLUME;
         this.ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - this.extendPercentageOfMaxVolume() *
                 (MAX_TICKS_PER_PARTICLE_SPAWN - MIN_TICKS_PER_PARTICLE_SPAWN));
@@ -522,7 +523,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 //                    }
                     double squareDistance = this.volumeSpawnPoint.squareDistanceTo(bbOrigin);
 //                    Vec3d bbCentre = new Vec3d(player.posX, player.posY, player.posZ);
-                    int priority = this.getPriority(1 - squareDistance / this.maxDistance);
+                    float widthOver2 = player.width / 2;
+                    double percent = 1 - squareDistance / (MAX_DISTANCE + widthOver2 * widthOver2);
+                    int priority = this.getPriority(percent);
                     API.setPlayerGravity(enumGravityDirection, player, priority);
                 }
             }
