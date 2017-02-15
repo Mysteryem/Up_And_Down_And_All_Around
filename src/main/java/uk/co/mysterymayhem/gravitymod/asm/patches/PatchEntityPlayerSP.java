@@ -571,21 +571,24 @@ public class PatchEntityPlayerSP extends ClassPatcher {
             InsnPatcher patch13Repeat = this.addInsnPatch(patch13.copy());
 
             // Patch relations (all just sequential)
-            patch1.addChildPatch(patch2);
-            patch2.addChildPatch(patch3);
-            patch3.addChildPatch(patch4);
-            patch4.addChildPatch(patch5);
-            patch5.addChildPatch(patch5Repeat);
-            patch5Repeat.addChildPatch(patch6);
-            patch6.addChildPatch(patch7);
-            patch7.addChildPatch(patch8);
-            patch8.addChildPatch(patch9);
-            patch9.addChildPatch(patch10);
-            patch10.addChildPatch(patch11);
-            patch11.addChildPatch(patch12);
-            patch12.addChildPatch(patch12Repeat);
-            patch12Repeat.addChildPatch(patch13);
-            patch13.addChildPatch(patch13Repeat);
+            InsnPatcher.sequentialOrder(
+                    patch1,
+                    patch2,
+                    patch3,
+                    patch4,
+                    patch5,
+                    patch5Repeat,
+                    patch6,
+                    patch7,
+                    patch8,
+                    patch9,
+                    patch10,
+                    patch11,
+                    patch12,
+                    patch12Repeat,
+                    patch13,
+                    patch13Repeat
+            );
         }
 
         @Override

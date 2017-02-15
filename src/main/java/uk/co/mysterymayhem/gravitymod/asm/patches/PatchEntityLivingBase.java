@@ -238,14 +238,17 @@ public class PatchEntityLivingBase extends ClassPatcher {
             });
 
             // Patch order
-            replaceGetLookVec.addChildPatch(replaceRotationPitch);
-            replaceRotationPitch.addChildPatch(replaceBlockPos$PooledMutableBlockPos$retain);
-            replaceBlockPos$PooledMutableBlockPos$retain.addChildPatch(replaceBlockPos$PooledMutableBlockPos$setPos);
-            replaceBlockPos$PooledMutableBlockPos$setPos.addChildPatch(replaceGetPosX);
-            replaceGetPosX.addChildPatch(skipPreviouslyFoundIsOffsetPositionInLiquid);
-            skipPreviouslyFoundIsOffsetPositionInLiquid.addChildPatch(replaceGetPosX_Second);
-            replaceGetPosX_Second.addChildPatch(makePositionRelativeBeforeLimbSwing);
-            makePositionRelativeBeforeLimbSwing.addChildPatch(makePositionNormalAgainAfterLimbSwing);
+            InsnPatcher.sequentialOrder(
+                    replaceGetLookVec,
+                    replaceRotationPitch,
+                    replaceBlockPos$PooledMutableBlockPos$retain,
+                    replaceBlockPos$PooledMutableBlockPos$setPos,
+                    replaceGetPosX,
+                    skipPreviouslyFoundIsOffsetPositionInLiquid,
+                    replaceGetPosX_Second,
+                    makePositionRelativeBeforeLimbSwing,
+                    makePositionNormalAgainAfterLimbSwing
+            );
         }
 
         @Override

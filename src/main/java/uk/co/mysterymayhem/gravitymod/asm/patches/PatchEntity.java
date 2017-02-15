@@ -195,7 +195,6 @@ public class PatchEntity extends ClassPatcher {
             return false;
         });
 
-        findNewBlockPos.addChildPatch(findBlockPos$down);
-        findBlockPos$down.addChildPatch(findBlocks$LADDERFound);
+        InsnPatcher.sequentialOrder(findNewBlockPos, findBlockPos$down, findBlocks$LADDERFound);
     }
 }

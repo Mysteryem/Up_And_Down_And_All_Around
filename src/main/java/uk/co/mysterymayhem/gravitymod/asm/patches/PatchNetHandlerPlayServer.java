@@ -131,11 +131,14 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
             });
 
             // Child patches only become 'active' once their parent patches have been completed (patcher won't even try to apply inactive patches)
-            findLocalVarIndices.addChildPatch(firstYFound);
-            firstYFound.addChildPatch(secondYFound);
-            secondYFound.addChildPatch(thirdYFound);
-            thirdYFound.addChildPatch(fourthYFound);
-            fourthYFound.addChildPatch(fifthYFound);
+            InsnPatcher.sequentialOrder(
+                    findLocalVarIndices,
+                    firstYFound,
+                    secondYFound,
+                    thirdYFound,
+                    fourthYFound,
+                    fifthYFound
+            );
         }
 
         /**
