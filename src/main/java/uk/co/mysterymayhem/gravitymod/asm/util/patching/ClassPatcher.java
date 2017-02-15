@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import uk.co.mysterymayhem.gravitymod.asm.Transformer;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ObjectName;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +33,14 @@ public abstract class ClassPatcher implements Function<byte[], byte[]> {
 
     public ClassPatcher(String className, MethodPatcher... methodPatches) {
         this(className, 0, 0, methodPatches);
+    }
+
+    public ClassPatcher(ObjectName objectName, MethodPatcher... methodPatches) {
+        this(objectName, 0, 0, methodPatches);
+    }
+
+    public ClassPatcher(ObjectName objectName, int readerMode, int writerMode, MethodPatcher... methodPatches) {
+        this(objectName.asClassName(), readerMode, writerMode, methodPatches);
     }
 
     public ClassPatcher(String className, int readerMode, int writerMode, MethodPatcher... methodPatches) {

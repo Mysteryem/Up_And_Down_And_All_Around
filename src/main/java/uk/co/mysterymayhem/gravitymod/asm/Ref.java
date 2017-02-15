@@ -84,6 +84,7 @@ public class Ref {
     public static final FieldName Entity$posY_name = new FieldName("posY", "field_70163_u");
     public static final FieldName Entity$posZ_name = new FieldName("posZ", "field_70161_v");
     public static final FieldName Entity$prevPosX_name = new FieldName("prevPosX", "field_70169_q");
+    public static final FieldName Entity$prevPosY_name = new FieldName("prevPosY", "field_70167_r");
     public static final FieldName Entity$prevPosZ_name = new FieldName("prevPosZ", "field_70166_s");
     public static final FieldName Entity$prevRotationPitch_name = new FieldName("prevRotationPitch", "field_70127_C");
     public static final FieldName Entity$prevRotationYaw_name = new FieldName("prevRotationYaw", "field_70126_B");
@@ -114,6 +115,7 @@ public class Ref {
     public static final ObjectName EntityPlayer = new ObjectName("net/minecraft/entity/player/EntityPlayer");
     public static final ObjectName EntityPlayerMP = new ObjectName("net/minecraft/entity/player/EntityPlayerMP");
     public static final ObjectName EntityPlayerSP = new ObjectName("net/minecraft/client/entity/EntityPlayerSP");
+    public static final ObjectName EntityOtherPlayerMP = new ObjectName("net/minecraft/client/entity/EntityOtherPlayerMP");
     public static final ObjectName EnumActionResult = new ObjectName("net/minecraft/util/EnumActionResult");
     public static final ObjectName EnumFacing = new ObjectName("net/minecraft/util/EnumFacing");
     public static final ObjectName EnumHand = new ObjectName("net/minecraft/util/EnumHand");
@@ -149,6 +151,12 @@ public class Ref {
     public static final FieldInsn EntityLivingBase$prevPosZ_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$prevPosZ_name, DOUBLE);
     public static final FieldInsn EntityLivingBase$rotationPitch_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$rotationPitch_name, FLOAT);
     public static final FieldInsn EntityLivingBase$rotationYaw_GET = new FieldInsn(GETFIELD, EntityLivingBase, Entity$rotationYaw_name, FLOAT);
+    public static final FieldInsn EntityOtherPlayerMP$posX_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$posX_name, DOUBLE);
+    public static final FieldInsn EntityOtherPlayerMP$posY_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$posY_name, DOUBLE);
+    public static final FieldInsn EntityOtherPlayerMP$posZ_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$posZ_name, DOUBLE);
+    public static final FieldInsn EntityOtherPlayerMP$prevPosX_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$prevPosX_name, DOUBLE);
+    public static final FieldInsn EntityOtherPlayerMP$prevPosY_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$prevPosY_name, DOUBLE);
+    public static final FieldInsn EntityOtherPlayerMP$prevPosZ_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$prevPosZ_name, DOUBLE);
     public static final FieldInsn EntityPlayer$posY_GET = new FieldInsn(GETFIELD, EntityPlayer, Entity$posY_name, DOUBLE);
     public static final FieldInsn EntityPlayerMP$posY_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posY_name, DOUBLE);
     public static final FieldInsn EntityPlayerMP$posZ_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posZ_name, DOUBLE);

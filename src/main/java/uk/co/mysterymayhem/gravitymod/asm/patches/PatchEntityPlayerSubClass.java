@@ -1,7 +1,9 @@
 package uk.co.mysterymayhem.gravitymod.asm.patches;
 
 import org.objectweb.asm.tree.*;
+import uk.co.mysterymayhem.gravitymod.asm.Ref;
 import uk.co.mysterymayhem.gravitymod.asm.Transformer;
+import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.ObjectName;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.ClassPatcher;
 
 import java.util.ListIterator;
@@ -33,11 +35,11 @@ public class PatchEntityPlayerSubClass extends ClassPatcher {
     //      updateSize, (replacing with ASM looks like a good idea)
     //      setSize, (probably can be replaced with ASM?)
     //      setPosition (method pretty much entirely replaced)
-    public static final String classToReplace = "net/minecraft/entity/player/EntityPlayer";
-    public static final String classReplacement = "uk/co/mysterymayhem/gravitymod/asm/EntityPlayerWithGravity";
+    public static final String classToReplace = Ref.EntityPlayer.toString();
+    public static final String classReplacement = Ref.EntityPlayerWithGravity.toString();
 
-    public PatchEntityPlayerSubClass(String className) {
-        super(className);
+    public PatchEntityPlayerSubClass(ObjectName className) {
+        super(className.asClassName());
     }
 
     @Override

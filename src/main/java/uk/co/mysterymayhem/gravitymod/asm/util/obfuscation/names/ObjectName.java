@@ -14,4 +14,8 @@ public class ObjectName extends DeobfAwareString implements IClassName {
     public String asDescriptor() {
         return 'L' + this.toString() + ';';
     }
+
+    public String asClassName() {
+        return this.toString().replace('/', '.');
+    }
 }

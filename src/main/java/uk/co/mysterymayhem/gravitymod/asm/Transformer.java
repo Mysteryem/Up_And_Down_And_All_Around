@@ -14,6 +14,7 @@ import org.objectweb.asm.util.TraceMethodVisitor;
 import uk.co.mysterymayhem.gravitymod.asm.patches.*;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.IClassName;
 import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.names.DeobfAwareString;
+import uk.co.mysterymayhem.gravitymod.asm.util.patching.ClassPatcher;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.PatchFailedException;
 
 import java.io.ByteArrayOutputStream;
@@ -33,7 +34,7 @@ import static org.objectweb.asm.Opcodes.GETFIELD;
 public class Transformer implements IClassTransformer {
 
     // Maps classes to their patch methods
-    private static final HashMap<String, Function<byte[], byte[]>> classNameToMethodMap = new HashMap<>();
+    private static final HashMap<String, ClassPatcher> classNameToMethodMap = new HashMap<>();
 
     public static final boolean DEBUG_AUTO_JUMP = false;
     //Set up bit mask
@@ -48,28 +49,37 @@ public class Transformer implements IClassTransformer {
 
     static {
         // Superclass replaced with EntityPlayerWithGravity
-        classNameToMethodMap.put("net.minecraft.client.entity.AbstractClientPlayer", new PatchEntityPlayerSubClass("net.minecraft.client.entity.AbstractClientPlayer"));
+        addClassPatch(new PatchEntityPlayerSubClass(Ref.AbstractClientPlayer));
         // Superclass replaced with EntityPlayerWithGravity
-        classNameToMethodMap.put("net.minecraft.entity.player.EntityPlayerMP", new PatchEntityPlayerSubClass("net.minecraft.entity.player.EntityPlayerMP"));
+        addClassPatch(new PatchEntityPlayerSubClass(Ref.EntityPlayerMP));
         // Patches setListener
-        classNameToMethodMap.put("net.minecraft.client.audio.SoundManager", new PatchSoundManager());
+        addClassPatch(new PatchSoundManager());
         // Patches onUpdateWalkingPlayer, onLivingUpdate, isHeadspaceFree, updateAutoJump, moveEntity
-        classNameToMethodMap.put("net.minecraft.client.entity.EntityPlayerSP", new PatchEntityPlayerSP());
+        addClassPatch(new PatchEntityPlayerSP());
         // Patches handlePlayerPosLook
-        classNameToMethodMap.put("net.minecraft.client.network.NetHandlerPlayClient", new PatchNetHandlerPlayClient());
+        addClassPatch(new PatchNetHandlerPlayClient());
         // Patches getMouseOver, drawNameplate
-        classNameToMethodMap.put("net.minecraft.client.renderer.EntityRenderer", new PatchEntityRenderer());
+        addClassPatch(new PatchEntityRenderer());
         // Patches doRender
-        classNameToMethodMap.put("net.minecraft.client.renderer.entity.RenderLivingBase", new PatchRenderLivingBase());
+        addClassPatch(new PatchRenderLivingBase());
         // Patches moveEntity, moveRelative
-        classNameToMethodMap.put("net.minecraft.entity.Entity", new PatchEntity());
+        addClassPatch(new PatchEntity());
         // Patches moveEntityWithHeading, updateDistance, onUpdate, jump
-        classNameToMethodMap.put("net.minecraft.entity.EntityLivingBase", new PatchEntityLivingBase());
+        addClassPatch(new PatchEntityLivingBase());
         // Patches onItemUse, useItemRightClick, onPlayerStoppedUsing
         //      (all three are used to add compatibility with other mods, they are not otherwise used by this mod)
-        classNameToMethodMap.put("net.minecraft.item.ItemStack", new PatchItemStack());
+        addClassPatch(new PatchItemStack());
         // Patches processPlayer, processPlayerDigging
-        classNameToMethodMap.put("net.minecraft.network.NetHandlerPlayServer", new PatchNetHandlerPlayServer());
+        addClassPatch(new PatchNetHandlerPlayServer());
+        // Patches onUpdate
+        addClassPatch(new PatchEntityOtherPlayerMP());
+    }
+
+    private static void addClassPatch(ClassPatcher patcher) {
+        ClassPatcher oldVal = classNameToMethodMap.put(patcher.getClassName(), patcher);
+        if (oldVal != null) {
+            die("Duplicate class patch for " + oldVal.getClassName());
+        }
     }
 
     /**

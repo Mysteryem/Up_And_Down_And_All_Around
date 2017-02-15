@@ -41,6 +41,10 @@ public abstract class MethodPatcher implements Predicate<MethodNode> {
         return new MethodPatcherIterativeImpl(shouldPatch);
     }
 
+    public InsnPatcher addInsnPatch(Predicate<AbstractInsnNode> patchMethod) {
+        return this.addInsnPatch((node, iterator) -> patchMethod.test(node));
+    }
+
     public InsnPatcher addInsnPatch(BiPredicate<AbstractInsnNode, ListIterator<AbstractInsnNode>> patchMethod) {
         InsnPatcher patcher = InsnPatcher.create(this, patchMethod);
         return this.addInsnPatch(patcher);

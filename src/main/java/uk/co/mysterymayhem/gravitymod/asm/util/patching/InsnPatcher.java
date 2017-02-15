@@ -103,6 +103,17 @@ public abstract class InsnPatcher implements BiPredicate<AbstractInsnNode, ListI
         }
     }
 
+    public static void sequentialOrder(InsnPatcher... patchers) {
+        if (patchers.length >= 2) {
+            InsnPatcher previous = patchers[0];
+            for (int i = 1; i < patchers.length; i++) {
+                InsnPatcher nextPatcher = patchers[i];
+                previous.addChildPatch(nextPatcher);
+                previous = nextPatcher;
+            }
+        }
+    }
+
     public static class Factory {
         private final MethodPatcher owner;
 
