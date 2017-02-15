@@ -5,7 +5,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import uk.co.mysterymayhem.gravitymod.asm.Ref;
-import uk.co.mysterymayhem.gravitymod.asm.Transformer;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.ClassPatcher;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.InsnPatcher;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.MethodPatcher;
@@ -60,7 +59,5 @@ public class PatchEntityOtherPlayerMP extends ClassPatcher {
                     return false;
                 })
         );
-
-        this.addMethodPatch(Ref.Entity$onUpdate_name::is, Transformer::printMethodToFMLLogger);
     }
 }
