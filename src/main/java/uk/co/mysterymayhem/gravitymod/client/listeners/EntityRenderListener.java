@@ -29,32 +29,32 @@ public class EntityRenderListener {
     private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
     private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
     private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
-    private EntityLivingBase entityBeingRendered = null;
-    private boolean nameplateNeedToPop = false;
-    private boolean playerRotationNeedToPop = false;
+    private static EntityLivingBase entityBeingRendered = null;
+    private static boolean nameplateNeedToPop = false;
+    private static boolean playerRotationNeedToPop = false;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onNameplateRenderPost(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
-        if (this.nameplateNeedToPop) {
-            this.nameplateNeedToPop = false;
+    public static void onNameplateRenderPost(RenderLivingEvent.Specials.Post<EntityLivingBase> event) {
+        if (nameplateNeedToPop) {
+            nameplateNeedToPop = false;
             GlStateManager.popMatrix();
         }
-        this.entityBeingRendered = null;
+        entityBeingRendered = null;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onNameplateRenderPre(RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
-        if (this.playerRotationNeedToPop) {
-            this.playerRotationNeedToPop = false;
+    public static void onNameplateRenderPre(RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
+        if (playerRotationNeedToPop) {
+            playerRotationNeedToPop = false;
             GlStateManager.popMatrix();
         }
         entityBeingRendered = event.getEntity();
 
         GlStateManager.pushMatrix();
-        this.nameplateNeedToPop = true;
+        nameplateNeedToPop = true;
 
         // move nameplate into correct position if the player has been rotated due to non-downwards gravity
-        if (this.entityBeingRendered instanceof EntityPlayer) {
+        if (entityBeingRendered instanceof EntityPlayer) {
             EntityPlayer playerBeingRendered = (EntityPlayer)entityBeingRendered;
             EnumGravityDirection gravityDirection = API.getGravityDirection(playerBeingRendered);
             if (gravityDirection != EnumGravityDirection.DOWN) {
@@ -77,7 +77,7 @@ public class EntityRenderListener {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onRender(RenderPlayerEvent.Pre event) {
+    public static void onRender(RenderPlayerEvent.Pre event) {
         EntityPlayer player = event.getEntityPlayer();
         AxisAlignedBB entityBoundingBox = player.getEntityBoundingBox();
         if (!(entityBoundingBox instanceof GravityAxisAlignedBB)) {
@@ -134,13 +134,13 @@ public class EntityRenderListener {
         gravityDirection.runCameraTransformation();
 
         GlStateManager.translate(-event.getX(), -event.getY(), -event.getZ());
-        this.playerRotationNeedToPop = true;
+        playerRotationNeedToPop = true;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public void onRender(RenderPlayerEvent.Post event) {
-        if (this.playerRotationNeedToPop) {
-            this.playerRotationNeedToPop = false;
+    public static void onRender(RenderPlayerEvent.Post event) {
+        if (playerRotationNeedToPop) {
+            playerRotationNeedToPop = false;
             GlStateManager.popMatrix();
         }
     }

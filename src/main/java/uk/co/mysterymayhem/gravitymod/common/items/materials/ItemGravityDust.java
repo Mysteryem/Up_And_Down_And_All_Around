@@ -204,7 +204,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
         }
 
         @SubscribeEvent(priority = EventPriority.LOWEST)
-        public void onBlockDropItems(BlockEvent.HarvestDropsEvent event) {
+        public static void onBlockDropItems(BlockEvent.HarvestDropsEvent event) {
             EntityPlayer harvester = event.getHarvester();
             // FakePlayers are allowed, custom item entities are not spawned in that case
             if (harvester != null) {

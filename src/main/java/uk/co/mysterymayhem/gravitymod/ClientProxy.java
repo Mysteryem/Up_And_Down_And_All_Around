@@ -40,8 +40,8 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void registerListeners() {
         super.registerListeners();
-        MinecraftForge.EVENT_BUS.register(new PlayerCameraListener());
-        MinecraftForge.EVENT_BUS.register(new EntityRenderListener());
-        MinecraftForge.EVENT_BUS.register(new ItemTooltipListener());
+        MinecraftForge.EVENT_BUS.register(PlayerCameraListener.class);
+        MinecraftForge.EVENT_BUS.register(EntityRenderListener.class);
+        MinecraftForge.EVENT_BUS.register(ItemTooltipListener.class);
     }
 }

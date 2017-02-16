@@ -19,7 +19,7 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
 public class GravityDirectionCapabilityEventHandler {
 
     @SubscribeEvent
-    public void onEntityContruct(AttachCapabilitiesEvent<Entity> event) {
+    public static void onEntityContruct(AttachCapabilitiesEvent<Entity> event) {
         Object ent = event.getObject();
         if (ent instanceof EntityPlayer) {
             final EntityPlayer player = (EntityPlayer)ent;

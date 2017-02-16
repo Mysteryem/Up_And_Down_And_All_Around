@@ -28,7 +28,7 @@ import java.util.List;
 public class ItemTooltipListener {
 
     @SubscribeEvent
-    public void onTooltipDisplay(ItemTooltipEvent event) {
+    public static void onTooltipDisplay(ItemTooltipEvent event) {
         EntityPlayer player = event.getEntityPlayer();
         if (player != null && !(player instanceof FakePlayer)) {
             ItemStack itemStack = event.getItemStack();

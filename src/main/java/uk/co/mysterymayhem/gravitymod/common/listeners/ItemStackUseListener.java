@@ -10,6 +10,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
@@ -278,7 +279,7 @@ public class ItemStackUseListener {
      * @param event
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onAnyItemStackUseEventPost(ItemStackUseEvent event) {
+    public static void onAnyItemStackUseEventPost(ItemStackUseEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             Hooks.popMotionStack(event.getEntityLiving());
         }
@@ -291,14 +292,14 @@ public class ItemStackUseListener {
      * @param event
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onAnyItemStackUseEventPre(ItemStackUseEvent event) {
+    public static void onAnyItemStackUseEventPre(ItemStackUseEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             Hooks.makeMotionAbsolute(event.getEntityLiving());
         }
     }
 
     @SubscribeEvent
-    public void onItemUseGeneral(ItemStackUseEvent.OnUseGeneral event) {
+    public static void onItemUseGeneral(ItemStackUseEvent.OnUseGeneral event) {
         EntityLivingBase entity;
         if ((entity = event.getEntityLiving()) instanceof EntityPlayerWithGravity) {
             EntityPlayerWithGravity player = (EntityPlayerWithGravity)entity;
@@ -325,7 +326,7 @@ public class ItemStackUseListener {
     }
 
     @SubscribeEvent
-    public void onItemUseOnBlock(ItemStackUseEvent.OnUseOnBlock event) {
+    public static void onItemUseOnBlock(ItemStackUseEvent.OnUseOnBlock event) {
         EntityLivingBase entity;
         if ((entity = event.getEntityLiving()) instanceof EntityPlayerWithGravity) {
             EntityPlayerWithGravity player = (EntityPlayerWithGravity)entity;
@@ -337,7 +338,7 @@ public class ItemStackUseListener {
     }
 
     @SubscribeEvent
-    public void onPlayerStoppedUsingItem(ItemStackUseEvent.OnStoppedUsing event) {
+    public static void onPlayerStoppedUsingItem(ItemStackUseEvent.OnStoppedUsing event) {
         EntityLivingBase entity;
         if ((entity = event.getEntityLiving()) instanceof EntityPlayerWithGravity) {
             EntityPlayerWithGravity player = (EntityPlayerWithGravity)entity;
@@ -346,6 +347,30 @@ public class ItemStackUseListener {
                 prePostModifier.modify(event.phase, player);
             }
         }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public static void onRightClickBlockHighest(PlayerInteractEvent.RightClickBlock event) {
+        Hooks.makeMotionAbsolute(event.getEntityPlayer());
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    public static void onRightClickBlockLowest(PlayerInteractEvent.RightClickBlock event) {
+        Hooks.popMotionStack(event.getEntityPlayer());
+    }
+
+
+    // Events that try to allow other mods using these events to modify the player's motion as if they have currently
+    // have downwards gravity
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public static void onRightClickItemHighest(PlayerInteractEvent.RightClickItem event) {
+        Hooks.makeMotionAbsolute(event.getEntityPlayer());
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    public static void onRightClickItemLowest(PlayerInteractEvent.RightClickItem event) {
+        Hooks.popMotionStack(event.getEntityPlayer());
     }
 
     private static class ItemComparator implements Comparator<Item> {

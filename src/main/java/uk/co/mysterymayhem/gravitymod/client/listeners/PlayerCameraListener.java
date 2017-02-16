@@ -30,7 +30,7 @@ public class PlayerCameraListener {
 
     //TODO: Add the movement of the player's eyes to the interpolation between old and new gravity direction
     @SubscribeEvent
-    public void onCameraSetup(CameraSetup event) {
+    public static void onCameraSetup(CameraSetup event) {
 
         Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
         if (renderViewEntity instanceof EntityPlayer) {
