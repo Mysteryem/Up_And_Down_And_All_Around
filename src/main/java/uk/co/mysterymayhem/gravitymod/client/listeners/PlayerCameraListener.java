@@ -23,16 +23,14 @@ import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 @SideOnly(Side.CLIENT)
 public class PlayerCameraListener {
 
-    //TODO: Un-hardcode (remember to force >=1)
     private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
     private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
     private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
 
-    //TODO: Add the movement of the player's eyes to the interpolation between old and new gravity direction
     @SubscribeEvent
     public static void onCameraSetup(CameraSetup event) {
-
-        Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+        Minecraft minecraft = Minecraft.getMinecraft();
+        Entity renderViewEntity = minecraft.getRenderViewEntity();
         if (renderViewEntity instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer)renderViewEntity;
             IGravityDirectionCapability capability = GravityDirectionCapability.getGravityCapability(player);
@@ -121,6 +119,7 @@ public class PlayerCameraListener {
                 xTranslation = eyePosChangeVector.xCoord * multiplierOneToZero;
                 yTranslation = eyePosChangeVector.yCoord * multiplierOneToZero;
                 zTranslation = eyePosChangeVector.zCoord * multiplierOneToZero;
+                minecraft.renderGlobal.setDisplayListEntitiesDirty();
             }
 
             relativeInterpolatedPitch %= 360;
