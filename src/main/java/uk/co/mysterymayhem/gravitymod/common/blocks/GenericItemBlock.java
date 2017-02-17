@@ -17,6 +17,6 @@ public class GenericItemBlock<T extends Block> extends ItemBlock {
 
     @Override
     public T getBlock() {
-        return block;
+        return this.block;
     }
 }

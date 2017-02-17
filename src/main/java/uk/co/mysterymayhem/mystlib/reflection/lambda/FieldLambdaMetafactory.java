@@ -80,14 +80,14 @@ public class FieldLambdaMetafactory {
         this.opType = FieldOpType.getOpType(this.implMethod);
 
         // Sanity checks
-        if (opType == null) {
+        if (this.opType == null) {
             throw new LambdaBuilder.LambdaBuildException("Invalid methodhandle, must be a direct method handle of GET/PUT STATIC/FIELD type");
         }
         this.handleMethodType = handleMethodType;
         this.interfaceMethodType = interfaceMethodType;
         Class<?>[] handleParameters = this.handleMethodType.parameterArray();
         Class<?>[] ifaceParameters = this.interfaceMethodType.parameterArray();
-        int numMethodParameters = opType.getNumMethodParameters();
+        int numMethodParameters = this.opType.getNumMethodParameters();
         if (numMethodParameters != handleParameters.length) {
             throw new LambdaBuilder.LambdaBuildException("MethodHandle has " + handleParameters.length + " parameters, expected " + numMethodParameters + ". Pretty sure this should be impossible.");
         }
@@ -96,7 +96,7 @@ public class FieldLambdaMetafactory {
         }
 
         this.targetClass = caller.lookupClass();
-        this.lambdaClassName = targetClass.getName().replace('.', '/') + "$$Lambda$" + counter.getAndIncrement();
+        this.lambdaClassName = this.targetClass.getName().replace('.', '/') + "$$Lambda$" + counter.getAndIncrement();
 
         this.classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         this.functionalInterfaceClass = invokedType.returnType();
@@ -121,13 +121,13 @@ public class FieldLambdaMetafactory {
 
     private CallSite buildCallSite() throws LambdaBuilder.LambdaBuildException {
         // Create class
-        classWriter.visit(CLASSFILE_VERSION, Opcodes.ACC_SUPER + Opcodes.ACC_FINAL + Opcodes.ACC_SYNTHETIC,
-                lambdaClassName, null,
-                OBJECT_INTERNAL_NAME, new String[]{Type.getInternalName(functionalInterfaceClass)});
+        this.classWriter.visit(CLASSFILE_VERSION, Opcodes.ACC_SUPER + Opcodes.ACC_FINAL + Opcodes.ACC_SYNTHETIC,
+                this.lambdaClassName, null,
+                OBJECT_INTERNAL_NAME, new String[]{Type.getInternalName(this.functionalInterfaceClass)});
 
         //TODO: Add support for instance bound MethodHandles and generating InstanceBinder classes, will take a single ? extends Object argument and store it to a single field
         // Create 0 args constructor
-        MethodVisitor constructorVisitor = classWriter.visitMethod(
+        MethodVisitor constructorVisitor = this.classWriter.visitMethod(
                 Opcodes.ACC_PRIVATE, CONSTRUCTOR_NAME, MethodType.methodType(void.class).toMethodDescriptorString(), null, null);
         constructorVisitor.visitCode();
         constructorVisitor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -387,7 +387,7 @@ public class FieldLambdaMetafactory {
         abstract void visitInterfaceMethod(MethodVisitor mv, MethodType interfaceClassMethodType, MethodHandle fieldMethodHandle, MethodType handleMethodType) throws LambdaBuilder.LambdaBuildException;
 
         public int getNumMethodParameters() {
-            return numMethodParameters;
+            return this.numMethodParameters;
         }
 
         public int getReferenceKind() {

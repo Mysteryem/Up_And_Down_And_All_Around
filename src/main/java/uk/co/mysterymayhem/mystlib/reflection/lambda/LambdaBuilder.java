@@ -696,7 +696,7 @@ public class LambdaBuilder {
         @Override
         public INTERFACE apply(INSTANCE objectToBind) {
             try {
-                return (INTERFACE)factory.invoke(objectToBind);
+                return (INTERFACE)this.factory.invoke(objectToBind);
             } catch (Throwable throwable) {
                 throw new RuntimeException(throwable);
             }

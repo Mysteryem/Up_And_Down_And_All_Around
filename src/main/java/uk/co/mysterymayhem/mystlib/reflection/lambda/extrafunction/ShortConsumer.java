@@ -10,7 +10,7 @@ public interface ShortConsumer {
     default ShortConsumer andThen(ShortConsumer after) {
         Objects.requireNonNull(after);
         return (t) -> {
-            accept(t);
+            this.accept(t);
             after.accept(t);
         };
     }

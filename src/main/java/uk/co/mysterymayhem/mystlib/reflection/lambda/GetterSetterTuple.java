@@ -47,19 +47,19 @@ public class GetterSetterTuple<GETTER, SETTER> {
     }
 
     public Field getField() {
-        return field;
+        return this.field;
     }
 
     public GETTER getGetter() {
-        return getter;
+        return this.getter;
     }
 
     public SETTER getSetter() {
-        return setter;
+        return this.setter;
     }
 
     public Type getType() {
-        return type;
+        return this.type;
     }
 
     enum Type {

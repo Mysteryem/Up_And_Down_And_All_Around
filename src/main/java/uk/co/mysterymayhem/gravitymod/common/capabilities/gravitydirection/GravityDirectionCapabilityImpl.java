@@ -55,6 +55,7 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
         this.pendingDirection = direction;
     }
 
+    @Override
     @Nonnull
     public EnumGravityDirection getDirection() {
         return this.direction;
@@ -67,7 +68,7 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
 
     @Override
     public void setDirection(@Nonnull EnumGravityDirection direction) {
-        updateDirection(direction);
+        this.updateDirection(direction);
         this.timeoutTicks = GravityDirectionCapability.DEFAULT_TIMEOUT;
         this.reverseTimeoutTicks = GravityDirectionCapability.DEFAULT_REVERSE_TIMEOUT;
     }
@@ -172,7 +173,7 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
     @Nonnull
     @Override
     public Vec3d getEyePosChangeVector() {
-        return eyePosChangeVec;
+        return this.eyePosChangeVec;
     }
 
     @Override
@@ -182,7 +183,7 @@ public class GravityDirectionCapabilityImpl implements IGravityDirectionCapabili
 
     @Override
     public void setDirectionNoTimeout(@Nonnull EnumGravityDirection direction) {
-        updateDirection(direction);
+        this.updateDirection(direction);
         this.timeoutTicks = 0;
     }
 }

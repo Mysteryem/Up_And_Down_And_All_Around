@@ -30,7 +30,7 @@ public class GravityDirectionCapabilityEventHandler {
                 // Give the player a GravityAxisAlignedBB as early as possible (can't give them one during the EntityConstructingEvent
                 // as the AttachCapabilitiesEvent is fired after it
                 {
-                    player.setEntityBoundingBox(new GravityAxisAlignedBB(instance, player.getEntityBoundingBox()));
+                    player.setEntityBoundingBox(new GravityAxisAlignedBB(this.instance, player.getEntityBoundingBox()));
                 }
 
                 @Override
@@ -40,17 +40,17 @@ public class GravityDirectionCapabilityEventHandler {
 
                 @Override
                 public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-                    return capability == GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE ? GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.<T>cast(instance) : null;
+                    return capability == GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE ? GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.<T>cast(this.instance) : null;
                 }
 
                 @Override
                 public NBTPrimitive serializeNBT() {
-                    return (NBTPrimitive)GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().writeNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, instance, null);
+                    return (NBTPrimitive)GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().writeNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, this.instance, null);
                 }
 
                 @Override
                 public void deserializeNBT(NBTPrimitive nbt) {
-                    GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().readNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, instance, null, nbt);
+                    GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.getStorage().readNBT(GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE, this.instance, null, nbt);
                 }
             });
             //

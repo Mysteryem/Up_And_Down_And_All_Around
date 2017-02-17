@@ -445,9 +445,9 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
         MeshDefinitions() {
             ItemAbstractGravityController item = ItemAbstractGravityController.this;
-            list = new ArrayList<>();
+            this.list = new ArrayList<>();
             for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
-                list.add(new ModelResourceLocation(item.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
+                this.list.add(new ModelResourceLocation(item.getRegistryName() + "_" + visibleState.getUnlocalizedName(), "inventory"));
             }
 
             for (EnumControllerVisibleState visibleState : EnumControllerVisibleState.values()) {
@@ -460,12 +460,12 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
                             // If the visible direction is the same as the active direction, we don't need to display the extra overlay
                             // that shows the currently active direction
                             String variant = "active=" + EnumControllerActiveDirection.NONE.name().toLowerCase(Locale.ENGLISH) + ",visible=" + visibleState.getUnlocalizedName();
-                            modelLookup.put(getCombinedMetaFor(activeDirection, visibleState), new ModelResourceLocation(item.getRegistryName(), variant));
+                            this.modelLookup.put(getCombinedMetaFor(activeDirection, visibleState), new ModelResourceLocation(item.getRegistryName(), variant));
                         }
                     }
                     else {
                         String variant = "active=" + activeDirection.name().toLowerCase(Locale.ENGLISH) + ",visible=" + visibleState.getUnlocalizedName();
-                        modelLookup.put(getCombinedMetaFor(activeDirection, visibleState), new ModelResourceLocation(item.getRegistryName(), variant));
+                        this.modelLookup.put(getCombinedMetaFor(activeDirection, visibleState), new ModelResourceLocation(item.getRegistryName(), variant));
                     }
                 }
             }
@@ -474,7 +474,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         @Override
         public ModelResourceLocation getModelLocation(ItemStack stack) {
             int metadata = stack.getMetadata();
-            return modelLookup.get(metadata);
+            return this.modelLookup.get(metadata);
 //            int ordinal = EnumControllerVisibleState.getFromCombinedMeta(metadata).ordinal();
 //            return list.get(ordinal);
         }

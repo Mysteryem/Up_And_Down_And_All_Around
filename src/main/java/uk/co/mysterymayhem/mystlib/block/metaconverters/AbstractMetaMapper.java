@@ -78,16 +78,16 @@ public abstract class AbstractMetaMapper<BLOCK extends Block> implements ToIntFu
 
         public MetaHelper addNonMeta(IProperty<?>... nonMetaProperties) {
             for (IProperty<?> property : nonMetaProperties) {
-                allProperties.add(property);
+                this.allProperties.add(property);
             }
             return this;
         }
 
         public MetaHelper addMeta(IProperty<?>... metaProperties) {
             for (IProperty<?> property : metaProperties) {
-                orderedMetaProperties.add(property);
+                this.orderedMetaProperties.add(property);
             }
-            allProperties.addAll(orderedMetaProperties);
+            this.allProperties.addAll(this.orderedMetaProperties);
             return this;
         }
 

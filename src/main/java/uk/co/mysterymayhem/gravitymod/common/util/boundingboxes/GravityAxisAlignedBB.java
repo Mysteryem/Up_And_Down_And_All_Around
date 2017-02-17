@@ -117,7 +117,7 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
     // Do I need to gravity adjust these?
     @Override
     public double calculateXOffset(AxisAlignedBB other, double offsetX) {
-        return offsetFromArray(this.getDirection().adjustXYZValues(1, 0, 0), other, offsetX);
+        return this.offsetFromArray(this.getDirection().adjustXYZValues(1, 0, 0), other, offsetX);
     }
 
     private double offsetFromArray(double[] adjusted, AxisAlignedBB other, double offset) {
@@ -146,13 +146,13 @@ public class GravityAxisAlignedBB extends AxisAlignedBB {
     // Do I need to gravity adjust these?
     @Override
     public double calculateYOffset(AxisAlignedBB other, double offsetY) {
-        return offsetFromArray(this.getDirection().adjustXYZValues(0, 1, 0), other, offsetY);
+        return this.offsetFromArray(this.getDirection().adjustXYZValues(0, 1, 0), other, offsetY);
     }
 
     // Do I need to gravity adjust these?
     @Override
     public double calculateZOffset(AxisAlignedBB other, double offsetZ) {
-        return offsetFromArray(this.getDirection().adjustXYZValues(0, 0, 1), other, offsetZ);
+        return this.offsetFromArray(this.getDirection().adjustXYZValues(0, 0, 1), other, offsetZ);
     }
 
     public GravityAxisAlignedBB expandUp(double y) {

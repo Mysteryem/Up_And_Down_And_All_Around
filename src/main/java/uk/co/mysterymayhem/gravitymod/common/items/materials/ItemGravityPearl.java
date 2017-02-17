@@ -250,6 +250,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
     @Override
     public void preInit() {
         this.addPropertyOverride(new ResourceLocation("use"), new IItemPropertyGetter() {
+            @Override
             @SideOnly(Side.CLIENT)
             public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
                 if (entityIn != null) {

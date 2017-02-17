@@ -97,18 +97,18 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
             entityItem.ticksExisted = age + 1;
         }
         boolean remote;
-        if ((remote = entityItem.worldObj.isRemote) && currentClientEntity == entityItem) {
+        if ((remote = entityItem.worldObj.isRemote) && this.currentClientEntity == entityItem) {
             return false;
         }
-        else if (currentServerEntity == entityItem) {
+        else if (this.currentServerEntity == entityItem) {
             return false;
         }
 
         if (remote) {
-            currentClientEntity = entityItem;
+            this.currentClientEntity = entityItem;
         }
         else {
-            currentServerEntity = entityItem;
+            this.currentServerEntity = entityItem;
         }
 
         if (entityItem.onGround) {
@@ -162,10 +162,10 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
         if (remote) {
             // Smoke trail effect
             entityItem.worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL, entityItem.posX, entityItem.posY, entityItem.posZ, 0, 0, 0);
-            currentClientEntity = null;
+            this.currentClientEntity = null;
         }
         else {
-            currentServerEntity = null;
+            this.currentServerEntity = null;
         }
 
         return true;

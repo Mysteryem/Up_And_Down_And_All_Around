@@ -10,7 +10,7 @@ public abstract class AbstractGuiProvider<S extends Container> implements IModGU
 
     @Override
     public int getModGUIID() {
-        return modGUIID;
+        return this.modGUIID;
     }
 
     @Override

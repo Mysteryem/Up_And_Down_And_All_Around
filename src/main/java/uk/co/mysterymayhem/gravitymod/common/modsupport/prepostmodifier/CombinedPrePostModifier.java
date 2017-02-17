@@ -67,40 +67,40 @@ public class CombinedPrePostModifier implements IPrePostModifier<EntityPlayerWit
     }
 
     public IPrePostModifier<EntityPlayerWithGravity> getFirst() {
-        return first;
+        return this.first;
     }
 
     public ProcessingOrder getProcessingOrder() {
-        return processingOrder;
+        return this.processingOrder;
     }
 
     public IPrePostModifier<EntityPlayerWithGravity> getSecond() {
-        return second;
+        return this.second;
     }
 
     @Override
     public int getUniqueID() {
-        return id;
+        return this.id;
     }
 
     @Override
     public void postModify(EntityPlayerWithGravity thing) {
         switch (this.processingOrder) {
             case PRE_FIRST_SECOND_POST_FIRST_SECOND:
-                first.postModify(thing);
-                second.postModify(thing);
+                this.first.postModify(thing);
+                this.second.postModify(thing);
                 break;
             case PRE_FIRST_SECOND_POST_SECOND_FIRST:
-                second.postModify(thing);
-                first.postModify(thing);
+                this.second.postModify(thing);
+                this.first.postModify(thing);
                 break;
         }
     }
 
     @Override
     public void preModify(EntityPlayerWithGravity thing) {
-        first.preModify(thing);
-        second.preModify(thing);
+        this.first.preModify(thing);
+        this.second.preModify(thing);
     }
 
     public enum ProcessingOrder {

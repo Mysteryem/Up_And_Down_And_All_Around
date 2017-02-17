@@ -53,12 +53,12 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     {
         // starting state is ABSOLUTE
-        motionFieldStateStack.push(FieldState.ABSOLUTE);
+        this.motionFieldStateStack.push(FieldState.ABSOLUTE);
     }
 
     {
         // starting state is ABSOLUTE
-        rotationFieldStateStack.push(FieldState.ABSOLUTE);
+        this.rotationFieldStateStack.push(FieldState.ABSOLUTE);
     }
 
     public EntityPlayerWithGravity(World worldIn, GameProfile gameProfileIn) {
@@ -152,17 +152,17 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     @SuppressWarnings("deprecation")
     public void makeMotionRelative() {
-        FieldState top = motionFieldStateStack.peek();
+        FieldState top = this.motionFieldStateStack.peek();
         if (top == FieldState.ABSOLUTE) {
             this.makeMotionFieldsRelative();
         }
-        motionFieldStateStack.push(FieldState.RELATIVE);
+        this.motionFieldStateStack.push(FieldState.RELATIVE);
     }
 
     @SuppressWarnings("deprecation")
     public void popMotionStack() {
-        FieldState removed = motionFieldStateStack.pop();
-        FieldState top = motionFieldStateStack.peek();
+        FieldState removed = this.motionFieldStateStack.pop();
+        FieldState top = this.motionFieldStateStack.peek();
         if (top != removed) {
             switch (top) {
                 case ABSOLUTE:
@@ -176,7 +176,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     public boolean isMotionRelative() {
-        return motionFieldStateStack.peek() == FieldState.RELATIVE;
+        return this.motionFieldStateStack.peek() == FieldState.RELATIVE;
     }
 
     // Should only ever be used within makeMotionRelative/Absolute and popMotionStack
@@ -212,11 +212,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     @SuppressWarnings("deprecation")
     public void makeMotionAbsolute() {
-        FieldState top = motionFieldStateStack.peek();
+        FieldState top = this.motionFieldStateStack.peek();
         if (top == FieldState.RELATIVE) {
             this.makeMotionFieldsAbsolute();
         }
-        motionFieldStateStack.push(FieldState.ABSOLUTE);
+        this.motionFieldStateStack.push(FieldState.ABSOLUTE);
     }
 
     //TODO: ASM?
@@ -279,11 +279,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             BlockPos blockpos = new BlockPos(gBB.offset(0, 0.001, 0).getOrigin());
             IBlockState iblockstate = this.worldObj.getBlockState(blockpos);
 
-            boolean isOnLadder = net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, worldObj, blockpos, this);
+            boolean isOnLadder = net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, this.worldObj, blockpos, this);
 
             //iblockstate will never be null (will be air or will throw an exception if stuff isn't right)
 //            if (iblockstate != null) {
-            if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
+            if (iblockstate.getBlock().isLadder(iblockstate, this.worldObj, blockpos, this)) {
                 EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
                 if (facing != null) {
                     EnumGravityDirection direction = gBB.getDirection();
@@ -297,12 +297,12 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 iblockstate = this.worldObj.getBlockState(blockpos);
                 //As before, iblockstate will not be null
 //                if (iblockstate != null) {
-                if (iblockstate.getBlock().isLadder(iblockstate, worldObj, blockpos, this)) {
+                if (iblockstate.getBlock().isLadder(iblockstate, this.worldObj, blockpos, this)) {
                     EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
                     if (facing != null) {
                         EnumGravityDirection direction = gBB.getDirection();
                         isOnLadder = facing == direction.getFacingEquivalent() && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate,
-                                worldObj, blockpos,
+                                this.worldObj, blockpos,
                                 this);
                         isMonkeyBars = true;
                     }
@@ -332,7 +332,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             }
             else {
                 // Bypass check for pos.up().getBlock() == Blocks.SNOW_LAYER
-                SoundType soundtype = blockIn.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
+                SoundType soundtype = blockIn.getSoundType(this.worldObj.getBlockState(pos), this.worldObj, pos, this);
 
                 if (!blockIn.getDefaultState().getMaterial().isLiquid()) {
                     this.playSound(soundtype.getStepSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
@@ -401,11 +401,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     @SuppressWarnings("deprecation")
     public void makeRotationAbsolute() {
-        FieldState top = rotationFieldStateStack.peek();
+        FieldState top = this.rotationFieldStateStack.peek();
         if (top == FieldState.RELATIVE) {
             this.makeRotationFieldsAbsolute();
         }
-        rotationFieldStateStack.push(FieldState.ABSOLUTE);
+        this.rotationFieldStateStack.push(FieldState.ABSOLUTE);
     }
 
     /**
@@ -419,11 +419,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     @SuppressWarnings("deprecation")
     public void makeRotationRelative() {
-        FieldState top = rotationFieldStateStack.peek();
+        FieldState top = this.rotationFieldStateStack.peek();
         if (top == FieldState.ABSOLUTE) {
             this.makeRotationFieldsRelative();
         }
-        rotationFieldStateStack.push(FieldState.RELATIVE);
+        this.rotationFieldStateStack.push(FieldState.RELATIVE);
     }
 
     /**
@@ -446,8 +446,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
     @SuppressWarnings("deprecation")
     public void popRotationStack() {
-        FieldState removed = rotationFieldStateStack.pop();
-        FieldState top = rotationFieldStateStack.peek();
+        FieldState removed = this.rotationFieldStateStack.pop();
+        FieldState top = this.rotationFieldStateStack.peek();
         if (top != removed) {
             switch (top) {
                 case ABSOLUTE:

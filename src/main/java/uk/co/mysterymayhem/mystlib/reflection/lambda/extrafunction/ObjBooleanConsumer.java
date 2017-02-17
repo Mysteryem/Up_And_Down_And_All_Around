@@ -10,7 +10,7 @@ public interface ObjBooleanConsumer<T> {
     default ObjBooleanConsumer<T> andThen(ObjBooleanConsumer<? super T> after) {
         Objects.requireNonNull(after);
         return (t, v) -> {
-            accept(t, v);
+            this.accept(t, v);
             after.accept(t, v);
         };
     }

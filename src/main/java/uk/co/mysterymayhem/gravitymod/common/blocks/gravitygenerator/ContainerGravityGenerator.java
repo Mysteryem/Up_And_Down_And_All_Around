@@ -77,7 +77,7 @@ public class ContainerGravityGenerator extends Container {
     }
 
     public TileGravityGenerator getTileGravityGenerator() {
-        return tileGravityGenerator;
+        return this.tileGravityGenerator;
     }
 
     @Nullable

@@ -69,12 +69,7 @@ public class ClientTickListener {
                 }
                 if (foundInHand) {
                     cumulativeTickCount++;
-                    if (cumulativeTickCount >= DELAY_TICKS) {
-                        playerCanSeeGravityFields = true;
-                    }
-                    else {
-                        playerCanSeeGravityFields = false;
-                    }
+                    playerCanSeeGravityFields = cumulativeTickCount >= DELAY_TICKS;
                     return;
                 }
                 cumulativeTickCount = 0;

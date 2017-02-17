@@ -69,6 +69,7 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
     public void preInitClient() {
         IGravityModBlock.super.preInitClient();
         ModelLoader.setCustomStateMapper(this, new StateMapperBase() {
+            @Override
             protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
                 ResourceLocation registryName = BlockLiquidAntiMass.this.getRegistryName();
                 return new ModelResourceLocation(registryName.toString());

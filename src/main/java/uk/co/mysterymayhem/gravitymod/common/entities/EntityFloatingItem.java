@@ -154,9 +154,9 @@ public class EntityFloatingItem extends EntityItem {
             // Smoke trail effect
 //            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, this.posY-0.3, this.posZ, f-this.motionX+f*this.rand.nextFloat(), f-this.motionY+f*this.rand.nextFloat(), f-this.motionZ+f*this.rand.nextFloat());
 
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + randParticleMotion(), 0.1 - this.motionY + randParticleMotion(), -this.motionZ + randParticleMotion());
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + randParticleMotion(), 0.1 - this.motionY + randParticleMotion(), -this.motionZ + randParticleMotion());
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + randParticleMotion(), 0.1 - this.motionY + randParticleMotion(), -this.motionZ + randParticleMotion());
+            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this.randParticleMotion(), -this.motionZ + this.randParticleMotion());
+            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this.randParticleMotion(), -this.motionZ + this.randParticleMotion());
+            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this.randParticleMotion(), -this.motionZ + this.randParticleMotion());
         }
     }
 
@@ -270,7 +270,7 @@ public class EntityFloatingItem extends EntityItem {
 
     // Similar to this.playStepSound
     private void playBounceSound(BlockPos pos, Block blockIn) {
-        SoundType soundtype = blockIn.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
+        SoundType soundtype = blockIn.getSoundType(this.worldObj.getBlockState(pos), this.worldObj, pos, this);
 
         if (!blockIn.getDefaultState().getMaterial().isLiquid()) {
             this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
@@ -281,7 +281,7 @@ public class EntityFloatingItem extends EntityItem {
     private void playBounceSoundSnowCheck(BlockPos pos, Block blockIn) {
 
         if (this.worldObj.getBlockState(pos.up()).getBlock() == Blocks.SNOW_LAYER) {
-            SoundType soundtype = Blocks.SNOW_LAYER.getSoundType(worldObj.getBlockState(pos), worldObj, pos, this);
+            SoundType soundtype = Blocks.SNOW_LAYER.getSoundType(this.worldObj.getBlockState(pos), this.worldObj, pos, this);
             this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
         }
         else {

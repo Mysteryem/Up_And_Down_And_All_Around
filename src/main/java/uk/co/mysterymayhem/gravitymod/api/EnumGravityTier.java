@@ -56,7 +56,7 @@ public enum EnumGravityTier implements IStringSerializable {
     public abstract boolean isPlayerAffected(EntityPlayerMP playerMP);
 
     public float[] getColour() {
-        return colour;
+        return this.colour;
     }
 
     @Override
@@ -65,6 +65,6 @@ public enum EnumGravityTier implements IStringSerializable {
     }
 
     public String getInternalPrefix() {
-        return internalPrefix;
+        return this.internalPrefix;
     }
 }

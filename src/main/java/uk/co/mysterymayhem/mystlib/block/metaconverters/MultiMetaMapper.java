@@ -119,12 +119,12 @@ public class MultiMetaMapper<BLOCK extends Block> extends AbstractMetaMapper<BLO
         // Calculate number of bits needed to store the number of values
         int numberOfBitsNeededToStoreAllValues = Integer.SIZE - Integer.numberOfLeadingZeros(numAllowedValues - 1);
         // Store the calculated amount
-        bitsPerProperty[i] = numberOfBitsNeededToStoreAllValues;
+        this.bitsPerProperty[i] = numberOfBitsNeededToStoreAllValues;
 
         // Calculate the rightshift needed for the current property
         // First property will always have 0 rightshift
         if (i != 0) {
-            this.bitShiftNeeded[i] = this.bitShiftNeeded[i - 1] + bitsPerProperty[i - 1];
+            this.bitShiftNeeded[i] = this.bitShiftNeeded[i - 1] + this.bitsPerProperty[i - 1];
         }
 
         // Sort the values
@@ -162,7 +162,7 @@ public class MultiMetaMapper<BLOCK extends Block> extends AbstractMetaMapper<BLO
     public IBlockState apply(int value) {
         IBlockState blockState = this.block.getDefaultState();
         for (IProperty<?> property : this.metaProperties) {
-            blockState = blockStateWithProperty(value, blockState, property);
+            blockState = this.blockStateWithProperty(value, blockState, property);
         }
         return blockState;
     }
@@ -240,7 +240,7 @@ public class MultiMetaMapper<BLOCK extends Block> extends AbstractMetaMapper<BLO
                 // If the properties used take up <= 4 bits, then only those which get stored to metadata get passed to this method
                 continue;
             }
-            meta |= (propertyIndexToValueIndexLookup[index].get(entry.getValue()) << this.getShift(index));
+            meta |= (this.propertyIndexToValueIndexLookup[index].get(entry.getValue()) << this.getShift(index));
         }
         return meta;
     }

@@ -109,7 +109,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
             boolean isFirstButton = i % 2 == 0;
             String text = isFirstButton ? "+" : "-";
             int buttonWidth = isFirstButton ? firstButtonWidth : secondButtonWidth;
-            this.addButton(new GuiButton(i, this.guiLeft + buttonLeftStart + (i % 2) * (firstButtonWidth + 2), this.guiTop + buttonTopStart + (i / 2) * (buttonHeight + 4), buttonWidth, buttonHeight, text));
+            this.addButton(new GuiButton(i, this.guiLeft + this.buttonLeftStart + (i % 2) * (firstButtonWidth + 2), this.guiTop + buttonTopStart + (i / 2) * (buttonHeight + 4), buttonWidth, buttonHeight, text));
         }
 //        GuiButton textButton = new GuiButton(0, this.guiLeft + buttonLeftStart, this.guiTop + 35, 20, 18, "+");
 //
@@ -274,7 +274,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
 
         colour = 0xFFFFFF;
         textTop = lengthsTextTop;
-        textLeft = valueLeftStart;
+        textLeft = this.valueLeftStart;
         text = "" + this.tileYHeight;
         int valueTextMaxWidth = fontRenderer.getStringWidth(text);
         fontRenderer.drawStringWithShadow(text, textLeft, textTop, colour);

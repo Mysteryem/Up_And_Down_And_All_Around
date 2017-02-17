@@ -10,7 +10,7 @@ public interface ObjShortConsumer<T> {
     default ObjShortConsumer<T> andThen(ObjShortConsumer<? super T> after) {
         Objects.requireNonNull(after);
         return (t, v) -> {
-            accept(t, v);
+            this.accept(t, v);
             after.accept(t, v);
         };
     }

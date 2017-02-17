@@ -72,7 +72,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                     return EnumRarity.RARE;
                 }
                 int itemDamage = stack.getItemDamage();
-                IBlockState stateFromMeta = getStateFromMeta(itemDamage);
+                IBlockState stateFromMeta = BlockGravityGenerator.this.getStateFromMeta(itemDamage);
                 switch (stateFromMeta.getValue(TIER)) {
                     case WEAK:
                         return GravityMod.RARITY_WEAK;
@@ -86,7 +86,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
             @Override
             public String getUnlocalizedName(ItemStack stack) {
                 int itemDamage = stack.getItemDamage();
-                IBlockState stateFromMeta = getStateFromMeta(itemDamage);
+                IBlockState stateFromMeta = BlockGravityGenerator.this.getStateFromMeta(itemDamage);
                 String extra = TIER.getName(stateFromMeta.getValue(TIER));
 //                if (stateFromMeta.getValue(REVERSED)) {
 //                    extra += ".reversed";
@@ -103,7 +103,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     @Override
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
         int itemDamage = stack.getItemDamage();
-        IBlockState stateFromMeta = getStateFromMeta(itemDamage);
+        IBlockState stateFromMeta = this.getStateFromMeta(itemDamage);
         if (stateFromMeta.getValue(REVERSED)) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitygenerator.reversed"));
         }
@@ -289,8 +289,8 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                                 + FACING.getName() + "=" + FACING.getName(EnumFacing.NORTH) + ","
                                 + REVERSED.getName() + "=" + REVERSED.getName(isReversed) + ","
                                 + TIER.getName() + "=" + TIER.getName(tier));
-                ModelLoader.registerItemVariants(item, modelResourceLocation);
-                ModelLoader.setCustomModelResourceLocation(item, meta, modelResourceLocation);
+                ModelLoader.registerItemVariants(this.item, modelResourceLocation);
+                ModelLoader.setCustomModelResourceLocation(this.item, meta, modelResourceLocation);
             }
         }
     }

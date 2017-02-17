@@ -73,7 +73,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     private double percentOfMaxVolume = this.getVolume() / MAX_VOLUME;
     //Initial value should never be used
     private AxisAlignedBB searchVolume = Block.FULL_BLOCK_AABB;
-    private int ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - percentOfMaxVolume *
+    private int ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - this.percentOfMaxVolume *
             (MAX_TICKS_PER_PARTICLE_SPAWN - MIN_TICKS_PER_PARTICLE_SPAWN));
     // SideOnly fields are nasty
     // It's important that the field is not initialised otherwise constructors will attempt to access the field on the
@@ -158,9 +158,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         final AxisAlignedBB offset = Block.FULL_BLOCK_AABB.offset(this.getPos());
 //        final EnumGravityDirection direction = EnumGravityDirection.fromEnumFacing(this.facing.getOpposite());
         // 0 -> +0 either side, 2 -> +0.5 either side = +1, 3 -> +1 either side = +2 etc.
-        double yIncrease = (relativeYHeight - 1) * 0.5d;
-        double[] relativeXYZExpansion = this.gravityDirection.adjustXYZValuesMaintainSigns(relativeXRadius, yIncrease,
-                relativeZRadius);
+        double yIncrease = (this.relativeYHeight - 1) * 0.5d;
+        double[] relativeXYZExpansion = this.gravityDirection.adjustXYZValuesMaintainSigns(this.relativeXRadius, yIncrease,
+                this.relativeZRadius);
         double[] relativeYMovement = this.gravityDirection.adjustXYZValues(0, yIncrease + 1, 0);
         this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
                 .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
@@ -190,11 +190,11 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public EnumGravityTier getGravityTier() {
-        return gravityTier;
+        return this.gravityTier;
     }
 
     public int getRelativeXRadius() {
-        return relativeXRadius;
+        return this.relativeXRadius;
     }
 
     public void setRelativeXRadius(int relativeXRadius) {
@@ -238,7 +238,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 //    }
 
     public int getRelativeYHeight() {
-        return relativeYHeight;
+        return this.relativeYHeight;
     }
 
     public void setRelativeYHeight(int relativeYHeight) {
@@ -255,7 +255,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public int getRelativeZRadius() {
-        return relativeZRadius;
+        return this.relativeZRadius;
     }
 
     public void setRelativeZRadius(int relativeZRadius) {
@@ -268,7 +268,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public AxisAlignedBB getSearchVolume() {
-        return searchVolume;
+        return this.searchVolume;
     }
 
     @SideOnly(Side.CLIENT)
@@ -327,7 +327,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             if (facingOrdinal < 0) {
                 if (isServerSideNoWorldObjAvailable()) {
                     GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
-                            this, gravityTier, length);
+                            this, this.gravityTier, length);
                 }
                 facingOrdinal = 0;
                 this.missingTagsOnLoad = true;
@@ -335,7 +335,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
             else if (facingOrdinal >= length) {
                 if (isServerSideNoWorldObjAvailable()) {
                     GravityMod.logWarning("Reading facing from nbt for %s failed. Got %s, expected value between 0 and %s",
-                            this, gravityTier, length);
+                            this, this.gravityTier, length);
                 }
                 facingOrdinal = length - 1;
                 this.missingTagsOnLoad = true;
@@ -407,6 +407,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         return serverInstance != null && serverInstance.isDedicatedServer();
     }
 
+    @Override
     @Nullable
     public SPacketUpdateTileEntity getUpdatePacket() {
         return new SPacketUpdateTileEntity(this.pos, 0, this.getUpdateTag());

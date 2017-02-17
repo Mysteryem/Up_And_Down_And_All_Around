@@ -50,6 +50,7 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
         return "gravitybauble";
     }
 
+    @Override
     public String getUnlocalizedName(ItemStack stack) {
         int i = stack.getItemDamage();
         if (i < 0 || i >= DAMAGE_TO_NAME_MAP.size()) {
@@ -109,16 +110,16 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
 
         MeshDefinitions() {
             ItemGravityBauble item = ItemGravityBauble.this;
-            list = new ArrayList<>();
+            this.list = new ArrayList<>();
             for (String suffix : DAMAGE_TO_NAME_MAP) {
-                list.add(new ModelResourceLocation(item.getRegistryName() + "_" + suffix, "inventory"));
+                this.list.add(new ModelResourceLocation(item.getRegistryName() + "_" + suffix, "inventory"));
             }
         }
 
         @Override
         public ModelResourceLocation getModelLocation(ItemStack stack) {
             int metadata = stack.getMetadata();
-            return list.get(metadata);
+            return this.list.get(metadata);
         }
     }
 }

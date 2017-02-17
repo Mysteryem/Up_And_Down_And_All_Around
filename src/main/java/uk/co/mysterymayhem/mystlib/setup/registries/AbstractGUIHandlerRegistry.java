@@ -33,7 +33,7 @@ public abstract class AbstractGUIHandlerRegistry<SINGLETON extends IModGUIProvid
 
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-        if (indexInRange(ID)) {
+        if (this.indexInRange(ID)) {
             return this.getCollection().get(ID).getServerSide(player, world, x, y, z);
         }
         return null;
@@ -45,7 +45,7 @@ public abstract class AbstractGUIHandlerRegistry<SINGLETON extends IModGUIProvid
 
     @Override
     public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-        if (indexInRange(ID)) {
+        if (this.indexInRange(ID)) {
             return this.getCollection().get(ID).getClientSide(player, world, x, y, z);
         }
         return null;

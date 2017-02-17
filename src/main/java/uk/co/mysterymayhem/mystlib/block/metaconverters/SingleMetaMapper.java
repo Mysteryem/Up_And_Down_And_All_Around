@@ -40,11 +40,11 @@ public class SingleMetaMapper<BLOCK extends Block, PROPERTY extends IProperty<VA
 
     @Override
     public IBlockState apply(int meta) {
-        if (meta < 0 || meta >= indexToValueMap.length) {
+        if (meta < 0 || meta >= this.indexToValueMap.length) {
             FMLLog.warning("MystLib: SingleMetaMapper: Invalid meta passed to 'getStateFromMeta' delegate (SingleMetaMapper::apply). Using default state.");
             return this.block.getDefaultState();
         }
-        return this.block.getDefaultState().withProperty(this.property, indexToValueMap[meta]);
+        return this.block.getDefaultState().withProperty(this.property, this.indexToValueMap[meta]);
     }
 
     @Override

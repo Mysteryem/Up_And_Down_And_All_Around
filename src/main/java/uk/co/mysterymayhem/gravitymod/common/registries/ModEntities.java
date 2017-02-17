@@ -22,6 +22,7 @@ public class ModEntities extends AbstractEntityRegistry<IModEntityClassWrapper<?
         super(new ArrayList<>());
     }
 
+    @Override
     protected void addToCollection(ArrayList<IModEntityClassWrapper<?>> modObjects) {
         modObjects.add(wrapperEntityFloatingItem = new EntityFloatingItem.Wrapper());
         modObjects.add(wrapperEntityGravityItem = new EntityGravityItem.Wrapper());

@@ -51,7 +51,7 @@ public abstract class MethodPatcher implements Predicate<MethodNode> {
     }
 
     public InsnPatcher addInsnPatch(InsnPatcher patcher) {
-        if (setupComplete) {
+        if (this.setupComplete) {
             Transformer.die("Attempted to add an InsnPatcher to a MethodPatcher that has already completed its setup");
             throw new RuntimeException();
         }
