@@ -88,9 +88,9 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 int itemDamage = stack.getItemDamage();
                 IBlockState stateFromMeta = BlockGravityGenerator.this.getStateFromMeta(itemDamage);
                 String extra = TIER.getName(stateFromMeta.getValue(TIER));
-//                if (stateFromMeta.getValue(REVERSED)) {
-//                    extra += ".reversed";
-//                }
+                if (stateFromMeta.getValue(REVERSED)) {
+                    extra += ".reversed";
+                }
                 return this.getBlock().getUnlocalizedName() + '.' + extra;
 //                return super.getUnlocalizedName(stack);
             }
@@ -248,6 +248,12 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
         ItemStack weakGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.WEAK)));
         ItemStack normalGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.NORMAL)));
         ItemStack strongGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.STRONG)));
+        ItemStack weakReverseGenerator =
+                new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.WEAK).withProperty(REVERSED, true)));
+        ItemStack normalReverseGenerator =
+                new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.NORMAL).withProperty(REVERSED, true)));
+        ItemStack strongReverseGenerator =
+                new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.STRONG).withProperty(REVERSED, true)));
 
         GameRegistry.addRecipe(new ShapedOreRecipe(
                 weakGenerator,
@@ -275,6 +281,13 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 'G', "ingotGold",
                 'N', normalGenerator,
                 'L', "blockLapis"));
+
+        GameRegistry.addShapelessRecipe(weakGenerator, weakReverseGenerator);
+        GameRegistry.addShapelessRecipe(normalGenerator, normalReverseGenerator);
+        GameRegistry.addShapelessRecipe(strongGenerator, strongReverseGenerator);
+        GameRegistry.addShapelessRecipe(weakReverseGenerator, weakGenerator);
+        GameRegistry.addShapelessRecipe(normalReverseGenerator, normalGenerator);
+        GameRegistry.addShapelessRecipe(strongReverseGenerator, strongGenerator);
     }
 
     @SideOnly(Side.CLIENT)
