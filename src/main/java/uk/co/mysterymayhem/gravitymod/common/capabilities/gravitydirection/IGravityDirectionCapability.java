@@ -13,15 +13,19 @@ public interface IGravityDirectionCapability {
 
     void setDirection(@Nonnull EnumGravityDirection direction);
 
-    Vec3d getEyePosChangeVector();
+    @Nonnull Vec3d getEyePosChangeVector();
 
-    void setEyePosChangeVector(Vec3d vec3d);
+    void setEyePosChangeVector(@Nonnull Vec3d vec3d);
 
     EnumGravityDirection getPendingDirection();
 
     EnumGravityDirection getPrevDirection();
 
     int getTimeoutTicks();
+
+    int getReverseTimeoutTicks();
+
+    void setReverseTimeoutTicks(int newReverseTimeout);
 
     void setTimeoutTicks(int newTimeout);
 
@@ -30,6 +34,8 @@ public interface IGravityDirectionCapability {
     void setTransitionAngle(double angle);
 
     boolean hasTransitionAngle();
+
+    boolean timeoutComplete();
 
     /**
      * Used to set client gravity when logging into a server.
@@ -40,6 +46,15 @@ public interface IGravityDirectionCapability {
     void setDirectionNoTimeout(@Nonnull EnumGravityDirection direction);
 
     void setPendingDirection(@Nonnull EnumGravityDirection direction, int priority);
+    void forceSetPendingDirection(@Nonnull EnumGravityDirection direction, int priority);
 
-    void tick();
+    int getPendingPriority();
+
+    int getPreviousTickPriority();
+
+    default void tickCommon() {}
+
+    default void tickServer() {}
+
+    default void tickClient() {}
 }

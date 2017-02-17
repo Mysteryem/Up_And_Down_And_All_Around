@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 public class GravityDirectionCapability {
     public static final EnumGravityDirection DEFAULT_GRAVITY = EnumGravityDirection.DOWN;
     public static final int DEFAULT_TIMEOUT = 20;
+    public static final int DEFAULT_REVERSE_TIMEOUT = 10;
     public static final int MIN_PRIORITY = Integer.MIN_VALUE;
     public static final String RESOURCE_NAME = "IGravityCapability";
     public static final ResourceLocation CAPABILITY_RESOURCE_LOCATION = new ResourceLocation(GravityMod.MOD_ID, RESOURCE_NAME);
@@ -69,7 +70,7 @@ public class GravityDirectionCapability {
 
     public static void registerCapability() {
         CapabilityManager.INSTANCE.register(IGravityDirectionCapability.class, new GravityDirectionCapabilityStorage(), GravityDirectionCapabilityImpl::new);
-        MinecraftForge.EVENT_BUS.register(new GravityDirectionCapabilityEventHandler());
+        MinecraftForge.EVENT_BUS.register(GravityDirectionCapabilityEventHandler.class);
     }
 
     public static void setGravityDirection(EntityPlayer player, EnumGravityDirection newDirection, boolean noTimeout) {

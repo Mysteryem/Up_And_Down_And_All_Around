@@ -36,6 +36,7 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.packets.config.ModCompatConfigCheckMessage;
 import uk.co.mysterymayhem.gravitymod.common.packets.gravitychange.GravityChangeMessage;
+import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
@@ -241,18 +242,66 @@ public class GravityManagerCommon {
             IGravityDirectionCapability gravityCapability = GravityDirectionCapability.getGravityCapability(event.player);
             if (event.side == Side.SERVER) {
                 EntityPlayer player = event.player;
-                int timeOut = gravityCapability.getTimeoutTicks();
-                if (timeOut == 0) {
-                    EnumGravityDirection currentDirection = gravityCapability.getDirection();
-                    EnumGravityDirection newDirection = gravityCapability.getPendingDirection();
-                    if (currentDirection != newDirection) {
-                        doGravityTransition(newDirection, (EntityPlayerMP)player, false);
+
+                EnumGravityDirection currentDirection = gravityCapability.getDirection();
+                EnumGravityDirection pendingDirection = gravityCapability.getPendingDirection();
+
+                if (currentDirection != pendingDirection) {
+                    int reverseTimeOut = gravityCapability.getReverseTimeoutTicks();
+                    // FIXME: Returns false if we set our gravity to downwards (the same as DEFAULT) and then unset it. (the last change was high priority,
+                    // so it returns false)
+                    int previousTickPriority = gravityCapability.getPreviousTickPriority();
+                    if (previousTickPriority == GravityPriorityRegistry.WORLD_DEFAULT) {
+                        reverseTimeOut = 0;
+                    }
+                    // Attempting to change to a different direction, we should decrement the reverseTimeout
+                    if (reverseTimeOut > 0) {
+                        // TODO: Replace with, 'if' higher tier than previous, change quickly
+                        if (gravityCapability.getPendingPriority() > previousTickPriority) {
+                            gravityCapability.setReverseTimeoutTicks(reverseTimeOut - 2);
+                        }
+                        else {
+                            gravityCapability.setReverseTimeoutTicks(reverseTimeOut - 1);
+                        }
+                        // Let the previous tick's priority linger
+                        gravityCapability.forceSetPendingDirection(currentDirection, previousTickPriority);
+                    }
+                    // reverseTimeout is already 0
+                    else {
+                        int timeOut = gravityCapability.getTimeoutTicks();
+                        if (timeOut <= 0) {
+                            // Will reset timeOut and reverseTimeOut
+                            this.doGravityTransition(pendingDirection, (EntityPlayerMP)player, false);
+                            // Immediately after transition to SOUTH, it is claiming we're attempting to switch from world gravity, not sure if this is an issue
+                            // since the timeout blocks any new transition
+                        }
+                        else {
+                            // We recently changed direction, so can't change just yet
+//                            gravityCapability.forceSetPendingDirection(currentDirection, previousTickPriority);
+                        }
                     }
                 }
+                else {
+                    // Same direction as before, so reset reverseTimeout
+                    // gravityCapability::tick will still be called, so timeOut will get decremented
+                    gravityCapability.setReverseTimeoutTicks(GravityDirectionCapability.DEFAULT_REVERSE_TIMEOUT);
+                }
 
+//                // Old code
+//                if (timeOut == 0) {
+//                    if (currentDirection != pendingDirection) {
+//                        doGravityTransition(pendingDirection, (EntityPlayerMP)player, false);
+//                    }
+//                }
+                // Resets pending direction and priority
+                gravityCapability.tickServer();
+            }
+            else {
+                // Does nothing by default
+                gravityCapability.tickClient();
             }
             //decrements timeOut on both client and server
-            gravityCapability.tick();
+            gravityCapability.tickCommon();
             Hooks.makeMotionRelative(event.player);
         }
     }
