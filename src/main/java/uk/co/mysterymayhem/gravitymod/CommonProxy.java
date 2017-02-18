@@ -6,6 +6,7 @@ import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.common.listeners.LootTableListener;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.*;
 import uk.co.mysterymayhem.mystlib.setup.IFMLStaged;
@@ -47,6 +48,7 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         MinecraftForge.EVENT_BUS.register(ItemStackUseListener.class);
         MinecraftForge.EVENT_BUS.register(ItemGravityDust.BlockBreakListener.class);
         MinecraftForge.EVENT_BUS.register(EntityFloatingItem.class);
+        MinecraftForge.EVENT_BUS.register(LootTableListener.class);
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
     }
 

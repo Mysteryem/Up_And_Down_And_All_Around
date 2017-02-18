@@ -67,6 +67,7 @@ public class ConfigHandler {
     public static int numWeakGravityEnablersRequiredForWeakGravity = 1;
     public static float oppositeDirectionFallDistanceMultiplier = 0f;
     public static float otherDirectionFallDistanceMultiplier = 0.5f;
+    public static float anchorChestLootChance = 0.05f; // 1/20
     private static Configuration generalConfig;
     private static Configuration modCompatibilityConfig;
 
@@ -185,6 +186,12 @@ public class ConfigHandler {
         ConfigHandler.destabilisedGravityDustDissipatesWhenDropped = config.getBoolean(
                 "item.destabilisedAnti-Mass.destroyedWhenDropped", Configuration.CATEGORY_GENERAL,
                 true, "Destabilised Anti-Mass should dissipate/be destroyed when dropped out of an inventory");
+
+        ConfigHandler.anchorChestLootChance = config.getFloat(
+                "loot.gravityanchor.chance", Configuration.CATEGORY_GENERAL, 0.05f, 0f, 1f,
+                "Gravity anchors are added to stronghold, dungeon and mineshaft chests, this setting controls" +
+                        "\n\tthe chance that one of those chests will contain an anchor"
+        );
 
         if (config.hasChanged()) {
             config.save();
