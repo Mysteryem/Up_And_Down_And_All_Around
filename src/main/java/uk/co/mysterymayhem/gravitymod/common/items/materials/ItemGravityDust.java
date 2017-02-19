@@ -206,7 +206,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
         @SubscribeEvent(priority = EventPriority.LOWEST)
         public static void onBlockDropItems(BlockEvent.HarvestDropsEvent event) {
             EntityPlayer harvester = event.getHarvester();
-            // FakePlayers are allowed, custom item entities are not spawned in that case
+            // FakePlayers are allowed, custom item entities are not spawned in that case, instead, the anti-mass item is directly added to the drops
             if (harvester != null) {
 
                 World world = event.getWorld();
@@ -216,14 +216,12 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                     block = Blocks.REDSTONE_ORE;
                 }
 
-                boolean blockIsAcceptable = false;
+                boolean blockIsAcceptable = ACCEPTABLE_BLOCKS.contains(block);
 
-                if (!ACCEPTABLE_BLOCKS.contains(block)) {
+                if (!blockIsAcceptable) {
                     TIntHashSet metadataSet = ACCEPTABLE_BLOCKS_WITH_META.get(block);
                     if (metadataSet != null) {
-                        if (metadataSet.contains(block.getMetaFromState(blockState))) {
-                            blockIsAcceptable = true;
-                        }
+                        blockIsAcceptable = metadataSet.contains(block.getMetaFromState(blockState));
                     }
 
                     if (!blockIsAcceptable) {
@@ -231,7 +229,6 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                         Item itemFromBlock = Item.getItemFromBlock(block);
 
                         // OreDictionary will throw an exception if the Item from a Block is null
-                        // This is the case with lit redstone ore
                         if (itemFromBlock != null) {
                             int[] oreIDs = OreDictionary.getOreIDs(new ItemStack(itemFromBlock));
 
@@ -242,81 +239,80 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                                     break;
                                 }
                             }
-                            if (!blockIsAcceptable) {
+                        }
+                    }
+                }
+
+                if (blockIsAcceptable) {
+                    // Block broken is ok, check each of the drops to see if they're acceptable, we may return after the first acceptable drop, dependent on
+                    // config
+
+                    List<ItemStack> drops = event.getDrops();
+                    for (ListIterator<ItemStack> it = drops.listIterator(); it.hasNext(); ) {
+                        ItemStack stack = it.next();
+                        boolean itemIsOk = false;
+                        Item item = stack.getItem();
+
+                        if (ACCEPTABLE_DROPS.contains(item)) {
+                            itemIsOk = true;
+                        }
+                        else {
+                            TIntHashSet metadataSet = ACCEPTABLE_DROPS_WITH_META.get(item);
+                            if (metadataSet != null) {
+                                if (metadataSet.contains(stack.getItemDamage())) {
+                                    itemIsOk = true;
+                                }
+                            }
+
+                            if (!itemIsOk) {
+                                int[] oreIDs = OreDictionary.getOreIDs(stack);
+                                for (int oreID : oreIDs) {
+                                    String oreName = OreDictionary.getOreName(oreID);
+                                    if (ACCEPTABLE_DROPS_ORE_NAMES.contains(oreName)) {
+                                        itemIsOk = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // If item is OK
+                        if (itemIsOk) {
+                            // The order of checks and results of each check have been carefully organised such that
+                            // the chance of the item dropping from the block remains the same as normal
+                            if (world.rand.nextFloat() < ConfigHandler.gravityDustDropChance) {
+                                // Vanilla uses <=, which technically means there is a 1/(pretty big) chance for an item to still drop
+                                // even with a drop chance of 0, in the case that the pseudo-random number generator generates exactly zero
+                                if (world.rand.nextFloat() < event.getDropChance()) {
+                                    if (!(harvester instanceof FakePlayer)) {
+                                        // drop special item
+                                        BlockBreakListener.spawnAsSpecialEntity(world, event.getPos(), stack);
+                                        it.remove();
+                                    }
+                                    else {
+                                        // add dust directly to drops (don't want a quarry to spawn floating items. Quarries
+                                        // should be able to collect the GRAVITY_DUST and send it straight into a storage system
+                                        it.add(new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
+                                    }
+                                }
+                                else {
+                                    if (!(harvester instanceof FakePlayer)) {
+                                        // no drop at all
+                                        it.remove();
+                                    }
+                                    else {
+                                        // do nothing
+                                    }
+                                }
+                            }
+                            else {
+                                // Item should drop as per normal (we'll let vanilla handle if the item drops or not)
+                            }
+                            if (ConfigHandler.gravityDustChanceOncePerBrokenBlock) {
+                                // Only one attempt allowed per block broken
                                 return;
                             }
                         }
                     }
-                }
-                // Block broken is ok
-
-
-                List<ItemStack> drops = event.getDrops();
-                for (ListIterator<ItemStack> it = drops.listIterator(); it.hasNext(); ) {
-                    ItemStack stack = it.next();
-                    boolean itemIsOk = false;
-                    Item item = stack.getItem();
-
-                    if (ACCEPTABLE_DROPS.contains(item)) {
-                        itemIsOk = true;
-                    }
-                    else {
-                        TIntHashSet metadataSet = ACCEPTABLE_DROPS_WITH_META.get(item);
-                        if (metadataSet != null) {
-                            if (metadataSet.contains(stack.getItemDamage())) {
-                                itemIsOk = true;
-                            }
-                        }
-
-                        if (!itemIsOk) {
-                            int[] oreIDs = OreDictionary.getOreIDs(stack);
-                            for (int oreID : oreIDs) {
-                                String oreName = OreDictionary.getOreName(oreID);
-                                if (ACCEPTABLE_DROPS_ORE_NAMES.contains(oreName)) {
-                                    itemIsOk = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    // If item is OK
-                    if (itemIsOk) {
-                        // The order of checks and results of each check have been carefully organised such that
-                        // the chance of the item dropping from the block remains the same as normal
-                        if (world.rand.nextFloat() < ConfigHandler.gravityDustDropChance) {
-                            // Vanilla uses <=, which technically means there is a 1/(pretty big) chance for an item to still drop
-                            // even with a drop chance of 0, in the case that the pseudo-random number generator generates exactly zero
-                            if (world.rand.nextFloat() < event.getDropChance()) {
-                                if (!(harvester instanceof FakePlayer)) {
-                                    // drop special item
-                                    BlockBreakListener.spawnAsSpecialEntity(world, event.getPos(), stack);
-                                    it.remove();
-                                }
-                                else {
-                                    // add dust directly to drops (don't want a quarry to spawn floating items. Quarries
-                                    // should be able to collect the GRAVITY_DUST and send it straight into a storage system
-                                    it.add(new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
-                                }
-                            }
-                            else {
-                                if (!(harvester instanceof FakePlayer)) {
-                                    // no drop at all
-                                    it.remove();
-                                }
-                                else {
-                                    // do nothing
-                                }
-                            }
-                        }
-                        else {
-                            // Item should drop as per normal (we'll let vanilla handle if the item drops or not)
-                        }
-                        if (ConfigHandler.gravityDustChanceOncePerBrokenBlock) {
-                            // Only one attempt allowed per block broken
-                            return;
-                        }
-                    }
-
                 }
             }
         }
