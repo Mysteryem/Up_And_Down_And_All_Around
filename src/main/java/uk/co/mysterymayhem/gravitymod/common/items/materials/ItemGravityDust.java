@@ -27,10 +27,7 @@ import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * Created by Mysteryem on 2016-11-10.
@@ -216,81 +213,42 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                     block = Blocks.REDSTONE_ORE;
                 }
 
-                boolean blockIsAcceptable = ACCEPTABLE_BLOCKS.contains(block);
-
-                if (!blockIsAcceptable) {
-                    TIntHashSet metadataSet = ACCEPTABLE_BLOCKS_WITH_META.get(block);
-                    if (metadataSet != null) {
-                        blockIsAcceptable = metadataSet.contains(block.getMetaFromState(blockState));
-                    }
-
-                    if (!blockIsAcceptable) {
-
-                        Item itemFromBlock = Item.getItemFromBlock(block);
-
-                        // OreDictionary will throw an exception if the Item from a Block is null
-                        if (itemFromBlock != null) {
-                            int[] oreIDs = OreDictionary.getOreIDs(new ItemStack(itemFromBlock));
-
-                            for (int oreID : oreIDs) {
-                                String oreName = OreDictionary.getOreName(oreID);
-                                if (ACCEPTABLE_BLOCK_ORE_NAMES.contains(oreName)) {
-                                    blockIsAcceptable = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (blockIsAcceptable) {
+                if (isBlockAcceptable(block) || isBlockWithMetaAcceptable(block, blockState)
+                        || isBlockWithOreDictAcceptable(block, blockState, world, event.getPos(), event.getHarvester())) {
                     // Block broken is ok, check each of the drops to see if they're acceptable, we may return after the first acceptable drop, dependent on
                     // config
 
                     List<ItemStack> drops = event.getDrops();
+
+                    // Values frequently used inside the loop, get them once, here, outside of the loop
+                    BlockPos pos = event.getPos();
+                    // TODO: Do some proper benchmarking on multiple accesses of final instance field within a method, compared to accessing once and
+                    // storing to a local variable. It may be that extracting such fields from loops is unneeded.
+                    Random worldRand = world.rand;
+                    float dustDropChance = ConfigHandler.gravityDustDropChance;
+                    boolean onlyOneValidAttemptPerBlock = ConfigHandler.gravityDustChanceOncePerBrokenBlock;
+
                     for (ListIterator<ItemStack> it = drops.listIterator(); it.hasNext(); ) {
                         ItemStack stack = it.next();
-                        boolean itemIsOk = false;
                         Item item = stack.getItem();
 
-                        if (ACCEPTABLE_DROPS.contains(item)) {
-                            itemIsOk = true;
-                        }
-                        else {
-                            TIntHashSet metadataSet = ACCEPTABLE_DROPS_WITH_META.get(item);
-                            if (metadataSet != null) {
-                                if (metadataSet.contains(stack.getItemDamage())) {
-                                    itemIsOk = true;
-                                }
-                            }
+                        if (isItemAcceptable(item) || isItemWithMetaAcceptable(item, stack.getItemDamage()) || isItemWithOreDictAcceptable(stack)) {
+                            // The order of checks and results of each check have been carefully organised such that the chance of the item dropping from the
+                            // block remains the same as normal
+                            if (worldRand.nextFloat() < dustDropChance) {
+                                // dustDropChance should be fairly low, so we won't get to this code very often
 
-                            if (!itemIsOk) {
-                                int[] oreIDs = OreDictionary.getOreIDs(stack);
-                                for (int oreID : oreIDs) {
-                                    String oreName = OreDictionary.getOreName(oreID);
-                                    if (ACCEPTABLE_DROPS_ORE_NAMES.contains(oreName)) {
-                                        itemIsOk = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        // If item is OK
-                        if (itemIsOk) {
-                            // The order of checks and results of each check have been carefully organised such that
-                            // the chance of the item dropping from the block remains the same as normal
-                            if (world.rand.nextFloat() < ConfigHandler.gravityDustDropChance) {
-                                // Vanilla uses <=, which technically means there is a 1/(pretty big) chance for an item to still drop
-                                // even with a drop chance of 0, in the case that the pseudo-random number generator generates exactly zero
-                                if (world.rand.nextFloat() < event.getDropChance()) {
+                                // Vanilla uses <=, which technically means there is a 1/(pretty big(2^24?)) chance for an item to still drop even with a
+                                // drop chance of 0, in the case that the pseudo-random number generator generates exactly zero
+                                if (worldRand.nextFloat() < event.getDropChance()) {
                                     if (!(harvester instanceof FakePlayer)) {
                                         // drop special item
-                                        BlockBreakListener.spawnAsSpecialEntity(world, event.getPos(), stack);
+                                        BlockBreakListener.spawnAsSpecialEntity(world, pos, stack);
                                         it.remove();
                                     }
                                     else {
-                                        // add dust directly to drops (don't want a quarry to spawn floating items. Quarries
-                                        // should be able to collect the GRAVITY_DUST and send it straight into a storage system
+                                        // add dust directly to drops (don't want a quarry to spawn floating items. Quarries should be able to collect the
+                                        // GRAVITY_DUST and send it straight into a storage system
                                         it.add(new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
                                     }
                                 }
@@ -307,7 +265,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                             else {
                                 // Item should drop as per normal (we'll let vanilla handle if the item drops or not)
                             }
-                            if (ConfigHandler.gravityDustChanceOncePerBrokenBlock) {
+                            if (onlyOneValidAttemptPerBlock) {
                                 // Only one attempt allowed per block broken
                                 return;
                             }
@@ -315,6 +273,93 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                     }
                 }
             }
+        }
+
+        /**
+         * @param block to check
+         * @return true if the Block is acceptable
+         */
+        private static boolean isBlockAcceptable(Block block) {
+            return ACCEPTABLE_BLOCKS.contains(block);
+        }
+
+        /**
+         * This uses the same values you would use when using the "/setblock" command.
+         *
+         * @param block      to check, it is assumed that blockState.getBlock() == block
+         * @param blockState IBlockState that will be converted to meta
+         * @return true if the block and its metadata value is acceptable
+         */
+        // Replace with checking property names and values?
+        private static boolean isBlockWithMetaAcceptable(Block block, IBlockState blockState) {
+            TIntHashSet metadataSet = ACCEPTABLE_BLOCKS_WITH_META.get(block);
+            return metadataSet != null && metadataSet.contains(block.getMetaFromState(blockState));
+        }
+
+        /**
+         * This attempts to get the Item representation of the Block via block::getPickBlock
+         *
+         * @param block      to check, it is assumed that blockState.getBlock() == block
+         * @param blockState IBlockState that may be converted to meta if getPickBlock is not overridden
+         * @param world      of the broken block
+         * @param pos        of the broken block
+         * @param player     who broke the block
+         * @return true if the 'picked' item from the block has an acceptable ore dictionary name
+         */
+        private static boolean isBlockWithOreDictAcceptable(Block block, IBlockState blockState, World world, BlockPos pos, EntityPlayer player) {
+            // For a block to be in the ore dictionary, it must have an Item registered to it, so we get it through the getPickBlock method
+            ItemStack itemFromBlock = block.getPickBlock(blockState, null, world, pos, player);
+
+            // OreDictionary will throw an exception if the Item from a Block is null
+            if (itemFromBlock != null) {
+                int[] oreIDs = OreDictionary.getOreIDs(itemFromBlock);
+
+                for (int oreID : oreIDs) {
+                    String oreName = OreDictionary.getOreName(oreID);
+                    if (ACCEPTABLE_BLOCK_ORE_NAMES.contains(oreName)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * @param item to check
+         * @return true if item is an acceptable drop
+         */
+        private static boolean isItemAcceptable(Item item) {
+            return ACCEPTABLE_DROPS.contains(item);
+        }
+
+        /**
+         * @param item to check
+         * @param meta to check
+         * @return true if item with specified meta is an acceptable drop
+         */
+        private static boolean isItemWithMetaAcceptable(Item item, int meta) {
+            TIntHashSet metadataSet = ACCEPTABLE_DROPS_WITH_META.get(item);
+            if (metadataSet != null) {
+                if (metadataSet.contains(meta)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * @param stack to check
+         * @return true if stack has an acceptable ore dictionary name for a drop
+         */
+        private static boolean isItemWithOreDictAcceptable(ItemStack stack) {
+            int[] oreIDs = OreDictionary.getOreIDs(stack);
+            for (int oreID : oreIDs) {
+                String oreName = OreDictionary.getOreName(oreID);
+                if (ACCEPTABLE_DROPS_ORE_NAMES.contains(oreName)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
