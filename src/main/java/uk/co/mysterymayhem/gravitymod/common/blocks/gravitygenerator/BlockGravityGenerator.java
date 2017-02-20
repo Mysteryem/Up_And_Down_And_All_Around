@@ -55,7 +55,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     public static final PropertyBool ENABLED = PropertyBool.create("active");
     // Direction the block is faced
     public static final PropertyDirection FACING = BlockDirectional.FACING;
-    public static final PropertyEnum<EnumGravityTier> TIER = PropertyEnum.create("tier", EnumGravityTier.class);
+    public static final PropertyEnum<EnumGravityTier> TIER = EnumGravityTier.BLOCKSTATE_PROPERTY;
     public static final PropertyBool REVERSED = PropertyBool.create("reversed");
 
     public BlockGravityGenerator() {

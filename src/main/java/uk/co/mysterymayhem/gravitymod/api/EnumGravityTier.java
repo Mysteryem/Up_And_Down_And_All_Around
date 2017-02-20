@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.api;
 
+import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IStringSerializable;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
@@ -42,6 +43,8 @@ public enum EnumGravityTier implements IStringSerializable {
             return GravityManagerCommon.playerIsAffectedByStrongGravity(playerMP);
         }
     };
+
+    public static final PropertyEnum<EnumGravityTier> BLOCKSTATE_PROPERTY = PropertyEnum.create("tier", EnumGravityTier.class);
 
     private final float[] colour;
     private final String internalPrefix;
