@@ -185,8 +185,8 @@ public class MultiMetaMapper<BLOCK extends Block> extends AbstractMetaMapper<BLO
         Comparable<?>[] innerArray = this.propertyIndexToValueArray[index];
         int innerIndex = (meta >> this.getShift(index)) & getMask(this.getBits(index));
         if (innerIndex < 0 || innerIndex >= innerArray.length) {
-            FMLLog.warning("MystLib: MultiMetaMapper: Invalid meta passed to 'getStateFromMeta' delegate (MultiMetaMapper::apply). Using default state for " +
-                    "property %s", property);
+            FMLLog.warning("MystLib (UpAndDown): MultiMetaMapper: Invalid meta '%d' passed to 'getStateFromMeta'. Using default state for property %s: %s",
+                    meta, property, iBlockState.getValue(property));
             return iBlockState;
         }
         return iBlockState.withProperty(property, (VALUE)innerArray[innerIndex]);
