@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.SoundType;
@@ -12,7 +11,6 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,8 +29,6 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
@@ -99,16 +95,6 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
         return itemBlock;
     }
 
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
-        int itemDamage = stack.getItemDamage();
-        IBlockState stateFromMeta = this.getStateFromMeta(itemDamage);
-        if (stateFromMeta.getValue(REVERSED)) {
-            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitygenerator.reversed"));
-        }
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
@@ -141,23 +127,24 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
         return state.withProperty(FACING, facing).withProperty(ENABLED, blockPowered);
     }
 
-    @Override
-    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-        TileEntity tileEntity = worldIn.getTileEntity(pos);
-        if (tileEntity instanceof TileGravityGenerator && tileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
-            IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-            int slots = itemHandler.getSlots();
-            for (int i = 0; i < slots; i++) {
-                // Extracting items may not be necessary
-                ItemStack stackInSlot = itemHandler.extractItem(i, Integer.MAX_VALUE, false);
-                if (stackInSlot != null) {
-                    Block.spawnAsEntity(worldIn, pos, stackInSlot);
-                }
-            }
-        }
-
-        super.breakBlock(worldIn, pos, state);
-    }
+    // Gravity generators don't have inventories at the moment
+//    @Override
+//    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+//        TileEntity tileEntity = worldIn.getTileEntity(pos);
+//        if (tileEntity instanceof TileGravityGenerator && tileEntity.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
+//            IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+//            int slots = itemHandler.getSlots();
+//            for (int i = 0; i < slots; i++) {
+//                // Extracting items may not be necessary
+//                ItemStack stackInSlot = itemHandler.extractItem(i, Integer.MAX_VALUE, false);
+//                if (stackInSlot != null) {
+//                    Block.spawnAsEntity(worldIn, pos, stackInSlot);
+//                }
+//            }
+//        }
+//
+//        super.breakBlock(worldIn, pos, state);
+//    }
 
     @Override
     public int damageDropped(IBlockState state) {
