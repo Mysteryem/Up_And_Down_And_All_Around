@@ -261,12 +261,30 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
                 'I', "ingotIron"));
 
         GameRegistry.addRecipe(new ShapedOreRecipe(
+                normalReverseGenerator,
+                "GWG",
+                "WIW",
+                "GWG",
+                'G', StaticItems.GRAVITY_INGOT,
+                'W', weakReverseGenerator,
+                'I', "ingotIron"));
+
+        GameRegistry.addRecipe(new ShapedOreRecipe(
                 strongGenerator,
                 "GNG",
                 "NLN",
                 "GNG",
                 'G', "ingotGold",
                 'N', normalGenerator,
+                'L', "blockLapis"));
+
+        GameRegistry.addRecipe(new ShapedOreRecipe(
+                strongReverseGenerator,
+                "GNG",
+                "NLN",
+                "GNG",
+                'G', "ingotGold",
+                'N', normalReverseGenerator,
                 'L', "blockLapis"));
 
         GameRegistry.addShapelessRecipe(weakGenerator, weakReverseGenerator);

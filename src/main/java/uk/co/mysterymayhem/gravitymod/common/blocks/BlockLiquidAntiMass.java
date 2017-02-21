@@ -55,13 +55,11 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
         RecipeSorter.register(GravityMod.MOD_ID + ":" + ShapelessVoidOneBucket.class.getSimpleName().toLowerCase(Locale.ENGLISH), ShapelessVoidOneBucket.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
         GameRegistry.addRecipe(new ShapelessVoidOneBucket(
                 StaticItems.LIQUID_ANTI_MASS_BUCKET,
-                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
-                        new ItemStack(Items.LAVA_BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
+                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
         // Recipe whereby an extra bucket is used in the input, which will become a returned bucket
         GameRegistry.addRecipe(new ShapelessRecipes(
                 StaticItems.LIQUID_ANTI_MASS_BUCKET,
-                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.LAVA_BUCKET),
-                        new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
+                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
     }
 
     @SideOnly(Side.CLIENT)

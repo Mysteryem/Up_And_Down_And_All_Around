@@ -127,7 +127,12 @@ public class BlockGravityPlate extends AbstractModBlock<BlockGravityPlate, Gener
                         StaticItems.RESTABILISED_GRAVITY_DUST, StaticItems.RESTABILISED_GRAVITY_DUST, Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
                 break;
         }
-        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1), Items.GLOWSTONE_DUST, this);
+        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1),
+                this, Items.GLOWSTONE_DUST, Items.GLOWSTONE_DUST, Items.GLOWSTONE_DUST, Items.GLOWSTONE_DUST);
+        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1),
+                this, Blocks.GLOWSTONE);
+        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1),
+                this, Blocks.TORCH);
     }
 
     @Override

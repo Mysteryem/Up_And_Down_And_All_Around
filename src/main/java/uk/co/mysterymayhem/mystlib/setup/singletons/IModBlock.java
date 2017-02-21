@@ -12,7 +12,7 @@ public interface IModBlock<T extends Block & IModBlock<T>> extends IModObject {
     default void preInit() {
         CreativeTabs creativeTab = this.getModCreativeTab();
         T block = this.getBlock();
-        block.setUnlocalizedName(block.getName());
+        block.setUnlocalizedName(this.getModID() + '.' + block.getName());
         block.setRegistryName(this.getModID(), block.getName());
         if (creativeTab != null) {
             block.setCreativeTab(creativeTab);
