@@ -92,8 +92,8 @@ public class ClientTickListener {
             GlStateManager.disableDepth();
             GlStateManager.depthMask(false);
             GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager
-                    .SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             final float red = 116f / 255f;
             final float green = 94f / 255f;
             final float blue = 140f / 255f;
