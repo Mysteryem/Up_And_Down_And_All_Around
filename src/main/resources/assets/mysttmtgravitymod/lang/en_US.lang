@@ -94,6 +94,7 @@ tile.mysttmtgravitymod.stronggravityplate.name=Strong Gravity Plate
 tile.mysttmtgravitymod.weakgravityplate.glowing.name=Weak Gravity Plate (glowing)
 tile.mysttmtgravitymod.normalgravityplate.glowing.name=Gravity Plate (glowing)
 tile.mysttmtgravitymod.stronggravityplate.glowing.name=Strong Gravity Plate (glowing)
+tile.mysttmtgravitymod.gravityore.name=Anti-Mass Ore
 crafting.mysttmtgravitymod.armorpasteinfo.nopaste=§r§oAny armor§r
 crafting.mysttmtgravitymod.armorpasteinfo.paste=§r§oAny armor §rwith §5Gravity Paste§r
 crafting.mysttmtgravitymod.inducerinfo.noinducer=§r§oAny 'tool' (non-stackable item)§r
