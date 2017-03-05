@@ -27,9 +27,19 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
         name = GravityMod.USER_FRIENDLY_NAME,
         acceptableRemoteVersions = GravityMod.ACCEPTABLE_VERSIONS)
 public class GravityMod {
+    // Major changes, 1 was used for TMT, 2 is main development, 3 will likely be for initial full release and beyond
+    private static final int MAJOR_VERSION = 2;
+    // Indicates a breaking change in the mod, requiring both client and server updates
+    private static final int MINOR_VERSION = 6;
+    // Indicates a non-breaking change in the mod
+    // Different patch numbers but the same major and minor version should be compatible with one another
+    private static final int PATCH_NUMBER = 0;
+
+    // M.m.p
+    public static final String VERSION = "" + MAJOR_VERSION + '.' + MINOR_VERSION + '.' + PATCH_NUMBER;
+    // [M.m,M.m+1), e.g. [2.5,2.6)
+    public static final String ACCEPTABLE_VERSIONS = "[" + MAJOR_VERSION + '.' + MINOR_VERSION + ',' + MAJOR_VERSION + '.' + (MINOR_VERSION + 1) + ")";
     public static final String MOD_ID = "mysttmtgravitymod";
-    public static final String VERSION = "2.5";
-    public static final String ACCEPTABLE_VERSIONS = "[2.5,2.6)";
     public static final String MINECRAFT_VERSION = "1.10.2";
     //Forge 12.18.2.2107 adds Block#getStateForPlacement
     //Baubles 1.3.BETA9 adds default methods to IRenderBauble
