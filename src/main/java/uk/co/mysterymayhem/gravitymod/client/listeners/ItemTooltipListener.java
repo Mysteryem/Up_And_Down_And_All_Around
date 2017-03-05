@@ -16,6 +16,7 @@ import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemArmourPaste;
+import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDustInducer;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 
 import javax.annotation.Nonnull;
@@ -42,6 +43,9 @@ public class ItemTooltipListener {
                     toolTips.add(I18n.format("mouseovertext.mysttmtgravitymod.hasarmourpaste"));
 //                    toolTips.add("Affected by normal strength and stronger gravity");
                     addNormalGravityTooltip(toolTips, player);
+                }
+                if (ItemGravityDustInducer.hasDistorterTag(itemStack)) {
+                    addInducerTooltip(toolTips, player);
                 }
             }
         }
@@ -83,6 +87,10 @@ public class ItemTooltipListener {
                     weakEnablersDontCount ? "" : "(" + keyBindSneak.getDisplayName() + ")"));
 //            toolTips.add((enoughEquipped ? "§5" : "§c") + combinedNormalEnablersWorn + "§7/" + numRequired + " for §5normal§7 gravity (" + keyBindSneak.getDisplayName() + ")");
         }
+    }
+
+    public static void addInducerTooltip(@Nonnull List<String> toolTips, @Nonnull EntityPlayer player) {
+        toolTips.add(I18n.format("mouseovertext.mysttmtgravitymod.hasinducer"));
     }
 
     private static int getNumWeakEnablersWorn(@Nonnull EntityPlayer player) {

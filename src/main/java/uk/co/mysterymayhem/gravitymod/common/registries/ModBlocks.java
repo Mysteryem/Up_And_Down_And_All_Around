@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.common.registries;
 
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
+import uk.co.mysterymayhem.gravitymod.common.blocks.BlockGravityOre;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockGravityPlate;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockLiquidAntiMass;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockRestabilisedGravityDust;
@@ -22,6 +23,7 @@ public class ModBlocks extends AbstractBlockRegistry<IGravityModBlock<?>, ArrayL
     static BlockGravityPlate weakGravityPlate;
     static BlockGravityPlate normalGravityPlate;
     static BlockGravityPlate strongGravityPlate;
+    static BlockGravityOre blockGravityOre;
 
     public ModBlocks() {
         super(new ArrayList<>());
@@ -35,6 +37,7 @@ public class ModBlocks extends AbstractBlockRegistry<IGravityModBlock<?>, ArrayL
         modObjects.add(weakGravityPlate = new BlockGravityPlate(EnumGravityTier.WEAK));
         modObjects.add(normalGravityPlate = new BlockGravityPlate(EnumGravityTier.NORMAL));
         modObjects.add(strongGravityPlate = new BlockGravityPlate(EnumGravityTier.STRONG));
+        modObjects.add(blockGravityOre = new BlockGravityOre());
         REGISTRY_SETUP_ALLOWED = true;
     }
 

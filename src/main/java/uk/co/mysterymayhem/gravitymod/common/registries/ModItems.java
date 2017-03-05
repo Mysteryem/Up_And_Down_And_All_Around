@@ -55,6 +55,7 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
     static ItemDestabilisedGravityDust destabilisedGravityDust;
     static ItemRestabilisedGravityDust restabilisedGravityDust;
     static ItemStack liquidAntiMassBucket;
+    static ItemGravityDustInducer spacetimeDistorter;
     static boolean STATIC_SETUP_ALLOWED = false;
 
     static {
@@ -113,6 +114,7 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
         modObjects.add(gravityFieldGoggles = new ItemGravityFieldGoggles());
         modObjects.add(destabilisedGravityDust = new ItemDestabilisedGravityDust());
         modObjects.add(restabilisedGravityDust = new ItemRestabilisedGravityDust());
+        modObjects.add(spacetimeDistorter = new ItemGravityDustInducer());
         STATIC_SETUP_ALLOWED = true;
     }
 

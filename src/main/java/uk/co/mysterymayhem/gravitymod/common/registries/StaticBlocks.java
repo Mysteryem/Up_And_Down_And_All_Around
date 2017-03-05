@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.registries;
 
+import uk.co.mysterymayhem.gravitymod.common.blocks.BlockGravityOre;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockGravityPlate;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockLiquidAntiMass;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockRestabilisedGravityDust;
@@ -15,6 +16,7 @@ public class StaticBlocks {
     public static final BlockGravityPlate WEAK_GRAVITY_PLATE;
     public static final BlockGravityPlate NORMAL_GRAVITY_PLATE;
     public static final BlockGravityPlate STRONG_GRAVITY_PLATE;
+    public static final BlockGravityOre GRAVITY_ORE;
 
     static {
         if (ModBlocks.REGISTRY_SETUP_ALLOWED) {
@@ -24,6 +26,7 @@ public class StaticBlocks {
             WEAK_GRAVITY_PLATE = ModBlocks.weakGravityPlate;
             NORMAL_GRAVITY_PLATE = ModBlocks.normalGravityPlate;
             STRONG_GRAVITY_PLATE = ModBlocks.strongGravityPlate;
+            GRAVITY_ORE = ModBlocks.blockGravityOre;
         }
         else {
             throw new RuntimeException("Static block registry setup occurring too early");

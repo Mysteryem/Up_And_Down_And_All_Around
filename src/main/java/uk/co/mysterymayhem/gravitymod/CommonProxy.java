@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
@@ -9,6 +10,7 @@ import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.common.listeners.LootTableListener;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.*;
+import uk.co.mysterymayhem.gravitymod.common.world.generation.ore.Generator;
 import uk.co.mysterymayhem.mystlib.setup.IFMLStaged;
 import uk.co.mysterymayhem.mystlib.setup.registries.AbstractIFMLStagedRegistry;
 
@@ -49,6 +51,8 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         MinecraftForge.EVENT_BUS.register(ItemGravityDust.BlockBreakListener.class);
         MinecraftForge.EVENT_BUS.register(EntityFloatingItem.class);
         MinecraftForge.EVENT_BUS.register(LootTableListener.class);
+        MinecraftForge.EVENT_BUS.register(Generator.class);
+        GameRegistry.registerWorldGenerator(Generator.INSTANCE, 0);
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
     }
 

@@ -1,17 +1,13 @@
 package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
-import baubles.api.IBauble;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,50 +17,25 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.RecipeSorter;
-import net.minecraftforge.oredict.ShapelessOreRecipe;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
-import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
-import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Craft with armour to enable [no prefix] gravity field interaction
- * Created by Mysteryem on 2016-11-11.
+ * Created by Mysteryem on 21/02/2017.
  */
-public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourPaste> {
-    private static final String NBT_KEY = "mystgravity_paste";
+public class ItemGravityDustInducer extends Item implements IGravityModItem<ItemGravityDustInducer> {
+    private static final String NBT_KEY = "mystgravity_distort";
 
-    private static final EnumSet<EntityEquipmentSlot> armourSlots = EnumSet.of(
-            EntityEquipmentSlot.CHEST, EntityEquipmentSlot.FEET, EntityEquipmentSlot.HEAD, EntityEquipmentSlot.LEGS);
-
-    public static boolean hasPasteTag(@Nonnull ItemStack stack) {
+    public static boolean hasDistorterTag(@Nonnull ItemStack stack) {
         NBTTagCompound tagCompound = stack.getTagCompound();
         return tagCompound != null && tagCompound.hasKey(NBT_KEY);
-    }
-
-    private static boolean isItemArmour(@Nonnull ItemStack stack, @Nonnull Item item) {
-        if (item instanceof ItemArmor) {
-            return true;
-        }
-
-        for (EntityEquipmentSlot slot : armourSlots) {
-            if (item.isValidArmor(stack, slot, null)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isItemBauble(@Nullable Item item) {
-        return ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID) && item instanceof IBauble;
     }
 
     @SideOnly(Side.CLIENT)
@@ -72,14 +43,8 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
-            if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
-                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.infobaubles"));
-                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.inforemovalbaubles"));
-            }
-            else {
-                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.info"));
-                tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.inforemoval"));
-            }
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydustinducer.line1"));
+            tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydustinducer.line2"));
         }
         else {
             tooltip.add(keyBindSneak.getDisplayName() + I18n.format("mouseovertext.mysttmtgravitymod.presskeyfordetails"));
@@ -87,42 +52,46 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     }
 
     @Override
-    public EnumRarity getRarity(ItemStack stack) {
-        return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
-    }
-
-    @Override
     public String getName() {
-        return "armourpaste";
-    }
-
-    @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone"));
-//        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.GRAVITY_DUST, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
-
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ArmourPasteRecipe());
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ArmourPasteRemoval());
+        return "gravitydustinducer";
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void preInitClient() {
-        String ANY_ARMOUR_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.nopaste");
-        String ANY_ARMOUR_WITH_PASTE_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.paste");
-        ArmourPasteRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
-        ArmourPasteRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
-        ArmourPasteRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
-        ArmourPasteRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
+        //TODO: Change to different translation strings
+        String ANY_NON_STACKABLE_TEXT = I18n.format("crafting.mysttmtgravitymod.inducerinfo.noinducer");
+        String ANY_NON_STACKABLE_WITH_INDUCER_TEXT = I18n.format("crafting.mysttmtgravitymod.inducerinfo.inducer");
+        GravityDustInducerRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
+        GravityDustInducerRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_NON_STACKABLE_TEXT);
+        GravityDustInducerRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_NON_STACKABLE_TEXT);
+        GravityDustInducerRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
         IGravityModItem.super.preInitClient();
     }
 
-    private static class ArmourPasteRecipe extends ShapelessRecipes {
+    @Override
+    public void postInit() {
+        GameRegistry.addShapedRecipe(new ItemStack(this),
+                "A",
+                "D",
+                "C",
+                'A', StaticItems.GRAVITY_DUST,
+                'D', StaticItems.DESTABILISED_GRAVITY_DUST,
+                'C', Items.COMPASS);
+        RecipeSorter.register(
+                GravityMod.MOD_ID + ":" + GravityDustInducerRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH),
+                GravityDustInducerRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        RecipeSorter.register(
+                GravityMod.MOD_ID + ":" + GravityDustInducerRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH),
+                GravityDustInducerRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
+        GameRegistry.addRecipe(new GravityDustInducerRecipe());
+        GameRegistry.addRecipe(new GravityDustInducerRemoval());
+    }
 
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
-        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE, 1);
+    private static class GravityDustInducerRecipe extends ShapelessRecipes {
+
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.DIAMOND_PICKAXE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.DIAMOND_PICKAXE);
 
         static {
             NBTTagCompound tagCompound = DUMMY_RECIPE_OUTPUT.getTagCompound();
@@ -134,28 +103,28 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         }
 
 
-        public ArmourPasteRecipe() {
-            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(StaticItems.ARMOUR_PASTE)));
+        public GravityDustInducerRecipe() {
+            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(StaticItems.SPACETIME_DISTORTER)));
         }
 
         @Override
         public boolean matches(InventoryCrafting inv, World worldIn) {
-            int nonPasteItemsFound = 0;
-            int pasteItemsFound = 0;
+            int nonDistorterItemsFound = 0;
+            int distorterItemsFound = 0;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 ItemStack stack = inv.getStackInSlot(i);
                 if (stack != null) {
                     Item item = stack.getItem();
-                    if (item == StaticItems.ARMOUR_PASTE) {
-                        if (++pasteItemsFound > 1) {
+                    if (item == StaticItems.SPACETIME_DISTORTER) {
+                        if (++distorterItemsFound > 1) {
                             return false;
                         }
                     }
-                    else if (isItemArmour(stack, item) || isItemBauble(item)) {
-                        if (stack.stackSize != 1 || hasPasteTag(stack) || item instanceof IWeakGravityEnabler) {
+                    else if (isItemValidForInducer(stack, item)) {
+                        if (stack.stackSize != 1 || hasDistorterTag(stack)) {
                             return false;
                         }
-                        else if (++nonPasteItemsFound > 1) {
+                        else if (++nonDistorterItemsFound > 1) {
                             return false;
                         }
                     }
@@ -164,21 +133,28 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
                     }
                 }
             }
-            return nonPasteItemsFound == 1 && pasteItemsFound == 1;
+            return nonDistorterItemsFound == 1 && distorterItemsFound == 1;
+        }
+
+        private static boolean isItemValidForInducer(@Nonnull ItemStack stack, @Nonnull Item item) {
+            return (!stack.isStackable() || stack.getMaxStackSize() == 1);
         }
 
         @Nullable
         @Override
         public ItemStack getCraftingResult(InventoryCrafting inv) {
-            ItemStack armourStack = null;
+            ItemStack toolStack = null;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
-                armourStack = inv.getStackInSlot(i);
-                if (armourStack != null && armourStack.getItem() != StaticItems.ARMOUR_PASTE) {
+                toolStack = inv.getStackInSlot(i);
+                if (toolStack != null && toolStack.getItem() != StaticItems.SPACETIME_DISTORTER) {
                     break;
                 }
             }
 
-            ItemStack copy = armourStack.copy();
+            // If it is null, then someone has messed with things they shouldn't have
+            @SuppressWarnings("ConstantConditions")
+            ItemStack copy = toolStack.copy();
+
             NBTTagCompound tagCompound = copy.getTagCompound();
             if (tagCompound == null) {
                 tagCompound = new NBTTagCompound();
@@ -208,10 +184,10 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         }
     }
 
-    private static class ArmourPasteRemoval extends ShapelessRecipes {
+    private static class GravityDustInducerRemoval extends ShapelessRecipes {
 
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
-        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.STONE_PICKAXE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.STONE_PICKAXE);
 
         static {
             NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
@@ -222,7 +198,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             tagCompound.setBoolean(NBT_KEY, true);
         }
 
-        public ArmourPasteRemoval() {
+        public GravityDustInducerRemoval() {
             super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
         }
 
@@ -245,7 +221,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
                             return false;
                         }
                     }
-                    else if (stack.stackSize == 1 && (isItemArmour(stack, item) || isItemBauble(item)) && hasPasteTag(stack)) {
+                    else if (stack.stackSize == 1 && hasDistorterTag(stack)) {
                         if (++pasteItemsFound > 1) {
                             // Found too many paste items
                             return false;

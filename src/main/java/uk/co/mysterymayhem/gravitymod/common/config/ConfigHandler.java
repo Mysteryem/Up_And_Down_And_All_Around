@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.config;
 
+import gnu.trove.set.hash.TIntHashSet;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -68,6 +69,9 @@ public class ConfigHandler {
     public static float oppositeDirectionFallDistanceMultiplier = 0f;
     public static float otherDirectionFallDistanceMultiplier = 0.5f;
     public static float anchorChestLootChance = 0.05f; // 1/20
+    public static boolean oreGenDimensionListIsBlackList = true;
+    public static boolean oreGenRetroGen = true;
+    public static TIntHashSet oreGenDimensionIDs = null;
     private static Configuration generalConfig;
     private static Configuration modCompatibilityConfig;
 
@@ -152,7 +156,9 @@ public class ConfigHandler {
         ConfigHandler.gravityDustAmountDropped = config.getInt(
                 "item.anti-mass.amountDropped", Configuration.CATEGORY_GENERAL,
                 5, 1, 64,
-                "The amount of anti-mass items that drop from each anti-mass spawn\n");
+                "The amount of anti-mass items that drop from each anti-mass spawn\n" +
+                        "This is also the base amount dropped by Anti-Mass ore.\n" +
+                        "The exact amount dropped is a random value between amountDropped and 2*amountDropped");
 
         ConfigHandler.gravityDustDropChance = config.getFloat(
                 "item.anti-mass.dropChance", Configuration.CATEGORY_GENERAL,
@@ -191,6 +197,23 @@ public class ConfigHandler {
                 "loot.gravityanchor.chance", Configuration.CATEGORY_GENERAL, 0.05f, 0f, 1f,
                 "Gravity anchors are added to stronghold, dungeon and mineshaft chests, this setting controls" +
                         "\n\tthe chance that one of those chests will contain an anchor"
+        );
+
+        ConfigHandler.oreGenDimensionListIsBlackList = config.getBoolean(
+                "oreGen.dimensionListIsBlackList", Configuration.CATEGORY_GENERAL, true,
+                "Set to true if the dimension ID list should be treated as a Blacklist.\n" +
+                        "Set to false if the dimension ID list should be treated as a Whitelist."
+        );
+
+        int[] intList = config.get(Configuration.CATEGORY_GENERAL, "oreGen.dimensionList", new int[0],
+                "List of dimension IDs that UpAndDown's ore generation should either generate in, or not generate in.\n" +
+                        "Depending on whether the list is set to act as a Whitelist or Blacklist. See \"oreGen.dimensionListIsBlackList\"").getIntList();
+        ConfigHandler.oreGenDimensionIDs = new TIntHashSet(intList);
+
+        ConfigHandler.oreGenRetroGen = config.getBoolean(
+                "oreGen.retroGenEnabled", Configuration.CATEGORY_GENERAL, true,
+                "Set to true to enable retroactive generation of ores.\n" +
+                        "This will generate ore in existing chunks that were generated before this mod was added."
         );
 
         if (config.hasChanged()) {

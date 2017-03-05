@@ -212,15 +212,17 @@ public class EntityFloatingItem extends EntityItem {
                 && this.getEntityItem() != null
                 /*&& stack.stackSize <= 0*/) {
             World world;
-            EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
+            if (this.getEntityItem().getItem() != StaticItems.GRAVITY_DUST) {
+                EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
 //            newItem.lifespan = 20 * 10;
-            newItem.motionX *= 0.1;
-            newItem.motionY *= 0.1;
-            newItem.motionZ *= 0.1;
-            newItem.setEntityInvulnerable(true);
-            world.spawnEntityInWorld(newItem);
+                newItem.motionX *= 0.1;
+                newItem.motionY *= 0.1;
+                newItem.motionZ *= 0.1;
+                newItem.setEntityInvulnerable(true);
+                world.spawnEntityInWorld(newItem);
 //            this.worldObj.playEvent(2003, new BlockPos(this), 0);
+            }
         }
         super.setDead();
     }

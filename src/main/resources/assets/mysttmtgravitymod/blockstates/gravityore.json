@@ -1,0 +1,213 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "cube"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "type": {
+      "stone": {
+        "textures": {
+          "particle": "mysttmtgravitymod:blocks/gravityore_stone1"
+        }
+      },
+      "netherrack": {
+        "textures": {
+          "particle": "mysttmtgravitymod:blocks/gravityore_netherrack1"
+        }
+      },
+      "end_stone": {
+        "textures": {
+          "particle": "mysttmtgravitymod:blocks/gravityore_end_stone1"
+        }
+      }
+    },
+    "type=stone": [
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_stone1",
+          "up": "mysttmtgravitymod:blocks/gravityore_stone2",
+          "north": "mysttmtgravitymod:blocks/gravityore_stone3",
+          "east": "mysttmtgravitymod:blocks/gravityore_stone4",
+          "south": "mysttmtgravitymod:blocks/gravityore_stone5",
+          "west": "mysttmtgravitymod:blocks/gravityore_stone6"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_stone2",
+          "up": "mysttmtgravitymod:blocks/gravityore_stone3",
+          "north": "mysttmtgravitymod:blocks/gravityore_stone4",
+          "east": "mysttmtgravitymod:blocks/gravityore_stone5",
+          "south": "mysttmtgravitymod:blocks/gravityore_stone6",
+          "west": "mysttmtgravitymod:blocks/gravityore_stone1"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_stone3",
+          "up": "mysttmtgravitymod:blocks/gravityore_stone4",
+          "north": "mysttmtgravitymod:blocks/gravityore_stone5",
+          "east": "mysttmtgravitymod:blocks/gravityore_stone6",
+          "south": "mysttmtgravitymod:blocks/gravityore_stone1",
+          "west": "mysttmtgravitymod:blocks/gravityore_stone1"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_stone4",
+          "up": "mysttmtgravitymod:blocks/gravityore_stone5",
+          "north": "mysttmtgravitymod:blocks/gravityore_stone6",
+          "east": "mysttmtgravitymod:blocks/gravityore_stone1",
+          "south": "mysttmtgravitymod:blocks/gravityore_stone2",
+          "west": "mysttmtgravitymod:blocks/gravityore_stone3"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_stone5",
+          "up": "mysttmtgravitymod:blocks/gravityore_stone6",
+          "north": "mysttmtgravitymod:blocks/gravityore_stone1",
+          "east": "mysttmtgravitymod:blocks/gravityore_stone2",
+          "south": "mysttmtgravitymod:blocks/gravityore_stone3",
+          "west": "mysttmtgravitymod:blocks/gravityore_stone4"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_stone6",
+          "up": "mysttmtgravitymod:blocks/gravityore_stone1",
+          "north": "mysttmtgravitymod:blocks/gravityore_stone2",
+          "east": "mysttmtgravitymod:blocks/gravityore_stone3",
+          "south": "mysttmtgravitymod:blocks/gravityore_stone4",
+          "west": "mysttmtgravitymod:blocks/gravityore_stone5"
+        }
+      }
+    ],
+    "type=netherrack": [
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_netherrack1",
+          "up": "mysttmtgravitymod:blocks/gravityore_netherrack2",
+          "north": "mysttmtgravitymod:blocks/gravityore_netherrack3",
+          "east": "mysttmtgravitymod:blocks/gravityore_netherrack4",
+          "south": "mysttmtgravitymod:blocks/gravityore_netherrack5",
+          "west": "mysttmtgravitymod:blocks/gravityore_netherrack6"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_netherrack2",
+          "up": "mysttmtgravitymod:blocks/gravityore_netherrack3",
+          "north": "mysttmtgravitymod:blocks/gravityore_netherrack4",
+          "east": "mysttmtgravitymod:blocks/gravityore_netherrack5",
+          "south": "mysttmtgravitymod:blocks/gravityore_netherrack6",
+          "west": "mysttmtgravitymod:blocks/gravityore_netherrack1"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_netherrack3",
+          "up": "mysttmtgravitymod:blocks/gravityore_netherrack4",
+          "north": "mysttmtgravitymod:blocks/gravityore_netherrack5",
+          "east": "mysttmtgravitymod:blocks/gravityore_netherrack6",
+          "south": "mysttmtgravitymod:blocks/gravityore_netherrack1",
+          "west": "mysttmtgravitymod:blocks/gravityore_netherrack1"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_netherrack4",
+          "up": "mysttmtgravitymod:blocks/gravityore_netherrack5",
+          "north": "mysttmtgravitymod:blocks/gravityore_netherrack6",
+          "east": "mysttmtgravitymod:blocks/gravityore_netherrack1",
+          "south": "mysttmtgravitymod:blocks/gravityore_netherrack2",
+          "west": "mysttmtgravitymod:blocks/gravityore_netherrack3"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_netherrack5",
+          "up": "mysttmtgravitymod:blocks/gravityore_netherrack6",
+          "north": "mysttmtgravitymod:blocks/gravityore_netherrack1",
+          "east": "mysttmtgravitymod:blocks/gravityore_netherrack2",
+          "south": "mysttmtgravitymod:blocks/gravityore_netherrack3",
+          "west": "mysttmtgravitymod:blocks/gravityore_netherrack4"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_netherrack6",
+          "up": "mysttmtgravitymod:blocks/gravityore_netherrack1",
+          "north": "mysttmtgravitymod:blocks/gravityore_netherrack2",
+          "east": "mysttmtgravitymod:blocks/gravityore_netherrack3",
+          "south": "mysttmtgravitymod:blocks/gravityore_netherrack4",
+          "west": "mysttmtgravitymod:blocks/gravityore_netherrack5"
+        }
+      }
+    ],
+    "type=end_stone": [
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_end_stone1",
+          "up": "mysttmtgravitymod:blocks/gravityore_end_stone2",
+          "north": "mysttmtgravitymod:blocks/gravityore_end_stone3",
+          "east": "mysttmtgravitymod:blocks/gravityore_end_stone4",
+          "south": "mysttmtgravitymod:blocks/gravityore_end_stone5",
+          "west": "mysttmtgravitymod:blocks/gravityore_end_stone6"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_end_stone2",
+          "up": "mysttmtgravitymod:blocks/gravityore_end_stone3",
+          "north": "mysttmtgravitymod:blocks/gravityore_end_stone4",
+          "east": "mysttmtgravitymod:blocks/gravityore_end_stone5",
+          "south": "mysttmtgravitymod:blocks/gravityore_end_stone6",
+          "west": "mysttmtgravitymod:blocks/gravityore_end_stone1"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_end_stone3",
+          "up": "mysttmtgravitymod:blocks/gravityore_end_stone4",
+          "north": "mysttmtgravitymod:blocks/gravityore_end_stone5",
+          "east": "mysttmtgravitymod:blocks/gravityore_end_stone6",
+          "south": "mysttmtgravitymod:blocks/gravityore_end_stone1",
+          "west": "mysttmtgravitymod:blocks/gravityore_end_stone1"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_end_stone4",
+          "up": "mysttmtgravitymod:blocks/gravityore_end_stone5",
+          "north": "mysttmtgravitymod:blocks/gravityore_end_stone6",
+          "east": "mysttmtgravitymod:blocks/gravityore_end_stone1",
+          "south": "mysttmtgravitymod:blocks/gravityore_end_stone2",
+          "west": "mysttmtgravitymod:blocks/gravityore_end_stone3"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_end_stone5",
+          "up": "mysttmtgravitymod:blocks/gravityore_end_stone6",
+          "north": "mysttmtgravitymod:blocks/gravityore_end_stone1",
+          "east": "mysttmtgravitymod:blocks/gravityore_end_stone2",
+          "south": "mysttmtgravitymod:blocks/gravityore_end_stone3",
+          "west": "mysttmtgravitymod:blocks/gravityore_end_stone4"
+        }
+      },
+      {
+        "textures": {
+          "down": "mysttmtgravitymod:blocks/gravityore_end_stone6",
+          "up": "mysttmtgravitymod:blocks/gravityore_end_stone1",
+          "north": "mysttmtgravitymod:blocks/gravityore_end_stone2",
+          "east": "mysttmtgravitymod:blocks/gravityore_end_stone3",
+          "south": "mysttmtgravitymod:blocks/gravityore_end_stone4",
+          "west": "mysttmtgravitymod:blocks/gravityore_end_stone5"
+        }
+      }
+    ]
+  }
+}

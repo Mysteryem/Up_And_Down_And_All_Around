@@ -40,6 +40,7 @@ public class StaticItems {
     public static final ItemDestabilisedGravityDust DESTABILISED_GRAVITY_DUST;
     public static final ItemRestabilisedGravityDust RESTABILISED_GRAVITY_DUST;
     public static final ItemStack LIQUID_ANTI_MASS_BUCKET;
+    public static final ItemGravityDustInducer SPACETIME_DISTORTER;
 
     static {
         if (ModItems.STATIC_SETUP_ALLOWED) {
@@ -61,6 +62,7 @@ public class StaticItems {
             DESTABILISED_GRAVITY_DUST = ModItems.destabilisedGravityDust;
             RESTABILISED_GRAVITY_DUST = ModItems.restabilisedGravityDust;
             LIQUID_ANTI_MASS_BUCKET = ModItems.liquidAntiMassBucket;
+            SPACETIME_DISTORTER = ModItems.spacetimeDistorter;
         }
         else {
             throw new RuntimeException("Static item registry setup occurring too early");
