@@ -69,9 +69,9 @@ public abstract class BlockStateMappedGenerator extends WorldGenerator implement
     public BlockPos choosePosFromChunkOrigin(Random random, BlockPos chunkPos) {
         return chunkPos
                 .add(
-                        random.nextInt(16),
+                        random.nextInt(16) + 8,
                         random.nextInt(this.getMaxSpawnHeight() - this.getMinSpawnHeight()) + this.getMinSpawnHeight(),
-                        random.nextInt(16));
+                        random.nextInt(16) + 8);
     }
 
     public int getMaxSpawnHeight() {

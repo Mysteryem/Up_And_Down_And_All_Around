@@ -56,10 +56,10 @@ public class OreGenLarge extends BlockStateMappedGenerator {
     public boolean generate(int numberOfBlocks, World worldIn, Random rand, BlockPos position) {
         if (TerrainGen.generateOre(worldIn, rand, this, position, OreGenEvent.GenerateMinable.EventType.CUSTOM)) {
             float zeroToPi = rand.nextFloat() * (float)Math.PI; // [0,PI]
-            // +8 to both x and z to try to ensure that generation only occurs within existing chunks
-            // See https://redd.it/5x0twz for why this is important
-            int xPos = position.getX() + 8;
-            int zPos = position.getZ() + 8;
+
+            // Note that we have removed the +8 to both xPos and zPos, as that is nor handled in this::choosePosFromChunk
+            int xPos = position.getX();
+            int zPos = position.getZ();
             int yPos = position.getY();
 
             // >= 0
