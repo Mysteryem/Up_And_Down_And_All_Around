@@ -2,6 +2,9 @@ package uk.co.mysterymayhem.gravitymod.asm;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLLog;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.StringFormatterMessageFactory;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -35,6 +38,7 @@ public class Transformer implements IClassTransformer {
 
     // Maps classes to their patch methods
     private static final HashMap<String, ClassPatcher> classNameToMethodMap = new HashMap<>();
+    private static final Logger logger = LogManager.getLogger("UpAndDown-Core", StringFormatterMessageFactory.INSTANCE);
 
     public static final boolean DEBUG_AUTO_JUMP = false;
     //Set up bit mask
@@ -107,7 +111,7 @@ public class Transformer implements IClassTransformer {
      * @param objects Objects to be passed for formatting in log message
      */
     public static void log(String string, Object... objects) {
-        FMLLog.info("[UpAndDown] " + string, objects);
+        logger.info(string, objects);
     }
 
     /**
