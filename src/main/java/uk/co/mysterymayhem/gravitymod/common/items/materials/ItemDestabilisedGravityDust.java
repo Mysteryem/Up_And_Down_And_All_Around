@@ -31,12 +31,11 @@ import java.util.Random;
  * Created by Mysteryem on 2017-01-26.
  */
 public class ItemDestabilisedGravityDust extends Item implements IGravityModItem<ItemDestabilisedGravityDust> {
-    private static final boolean DESTROYED_WHEN_DROPPED = ConfigHandler.destabilisedGravityDustDissipatesWhenDropped;
 
     @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        if (DESTROYED_WHEN_DROPPED) {
+        if (ConfigHandler.destabilisedGravityDustDissipatesWhenDropped) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.destabilisedgravitydust.warning"));
         }
     }
@@ -49,7 +48,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
 
     @Override
     public Entity createEntity(World world, Entity location, ItemStack itemstack) {
-        if (DESTROYED_WHEN_DROPPED && location instanceof EntityItem) {
+        if (ConfigHandler.destabilisedGravityDustDissipatesWhenDropped && location instanceof EntityItem) {
             DissipationEntity dissipationEntity = new DissipationEntity(world);
             dissipationEntity.motionX = location.motionX;
             dissipationEntity.motionY = location.motionY;

@@ -27,8 +27,6 @@ public class GravityDirectionCapability {
     public static final int MIN_PRIORITY = Integer.MIN_VALUE;
     public static final String RESOURCE_NAME = "IGravityCapability";
     public static final ResourceLocation CAPABILITY_RESOURCE_LOCATION = new ResourceLocation(GravityMod.MOD_ID, RESOURCE_NAME);
-    private static final float oppositeDirectionFallDistanceMultiplier = ConfigHandler.oppositeDirectionFallDistanceMultiplier;
-    private static final float otherDirectionsFallDistanceMultiplier = ConfigHandler.otherDirectionFallDistanceMultiplier;
     @CapabilityInject(IGravityDirectionCapability.class)
     public static Capability<IGravityDirectionCapability> GRAVITY_CAPABILITY_INSTANCE = null;
 
@@ -91,10 +89,10 @@ public class GravityDirectionCapability {
 
         if (oldDirection != newDirection) {
             if (oldDirection.getOpposite() == newDirection) {
-                player.fallDistance *= oppositeDirectionFallDistanceMultiplier;
+                player.fallDistance *= ConfigHandler.oppositeDirectionFallDistanceMultiplier;
             }
             else {
-                player.fallDistance *= otherDirectionsFallDistanceMultiplier;
+                player.fallDistance *= ConfigHandler.otherDirectionsFallDistanceMultiplier;
             }
         }
         // This CAN occur on the client (so I'm only logging it on the server side)

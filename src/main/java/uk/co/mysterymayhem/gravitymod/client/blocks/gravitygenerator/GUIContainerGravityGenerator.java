@@ -17,6 +17,7 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
 import uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator.ContainerGravityGenerator;
 import uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator.MessageGravityGenerator;
 import uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator.TileGravityGenerator;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.packets.PacketHandler;
 
 import java.io.IOException;
@@ -82,7 +83,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
             }
         }
 
-        int maxDisplayedValue = Math.max(TileGravityGenerator.MAX_HEIGHT, 2 * TileGravityGenerator.MAX_RADIUS + 1);
+        int maxDisplayedValue = Math.max(ConfigHandler.gravityGeneratorMaxHeight, 2 * ConfigHandler.gravityGeneratorMaxRadius + 1);
         int maxDigits = Integer.toString(maxDisplayedValue).length();
         int maxValueLength = digitMaxLength * maxDigits;
 

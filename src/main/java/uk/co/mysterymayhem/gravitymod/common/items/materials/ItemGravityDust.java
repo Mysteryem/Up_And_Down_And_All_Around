@@ -72,6 +72,15 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
         private static final HashSet<String> ACCEPTABLE_DROPS_ORE_NAMES = new HashSet<>();
         private static final HashMap<Item, TIntHashSet> ACCEPTABLE_DROPS_WITH_META = new HashMap<>();
 
+        public static void clearAcceptableBlocksAndDrops() {
+            ACCEPTABLE_BLOCKS.clear();
+            ACCEPTABLE_BLOCKS_WITH_META.clear();
+            ACCEPTABLE_BLOCK_ORE_NAMES.clear();
+            ACCEPTABLE_DROPS.clear();
+            ACCEPTABLE_DROPS_ORE_NAMES.clear();
+            ACCEPTABLE_DROPS_WITH_META.clear();
+        }
+
         public static void addBlocksFromConfig(String... configStrings) {
             for (String configString : configStrings) {
                 String[] split = configString.split(":");

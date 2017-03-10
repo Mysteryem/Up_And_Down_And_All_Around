@@ -3,6 +3,7 @@ package uk.co.mysterymayhem.gravitymod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
+import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
@@ -53,6 +54,7 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         MinecraftForge.EVENT_BUS.register(LootTableListener.class);
         MinecraftForge.EVENT_BUS.register(Generator.class);
         GameRegistry.registerWorldGenerator(Generator.INSTANCE, 0);
+        MinecraftForge.EVENT_BUS.register(ConfigHandler.class);
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
     }
 

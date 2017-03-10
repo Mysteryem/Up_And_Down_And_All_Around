@@ -1,220 +1,291 @@
 package uk.co.mysterymayhem.gravitymod.common.config;
 
 import gnu.trove.set.hash.TIntHashSet;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
+import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
+import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener.EnumItemStackUseCompat;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.CombinedPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.EnumPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePostModifier;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
- * Main config file class
- * Created by Mysteryem on 2016-10-23.
+ * Created by Mysteryem on 07/03/2017.
  */
 public class ConfigHandler {
-    private static final String CONFIG_DIRECTORY_NAME = "UpAndDownAndAllAround";
-    private static final String GENERAL_CONFIG = "config.cfg";
-    private static final String MAIN_COMMENT =
-            "Up And Down changes how player motion is used to move the player. Some items may move the player in\n" +
-                    "\tunexpected ways when used. If that's the case, try adding them to one of the below lists. The\n" +
-                    "format is (text in square brackets is optional)\n\n" +
 
-                    "\t\"<mod id>:<item name>[:damage][:damage][...],<compatibility modifier>:[compatibility modifier]\"\n\n" +
+    public static final String CATEGORY_MOD_COMPAT = newCategory("modCompat");
+    public static String[] modCompatUseOnBlock;
+    public static String[] modCompatUseGeneral;
+    public static String[] modCompatOnStoppedUsing;
+    //<mod id>:<item name>[:damage][:damage][...],<compatibility modifier>:[compatibility modifier]
+    public static final Pattern modCompatPattern = Pattern.compile("[^:]+:[^:]+(:[\\d]+)*,[a-zA-Z]+(:[a-zA-Z]+)?");
 
-                    "Where a compatibility modifier is case insensitive and one of:\n" +
-                    "relativeRotation, relativeMotionAll, relativeMotionX, relativeMotionY, relativeMotionZ, absoluteMotionX,\n" +
-                    "\tabsoluteMotionY or absoluteMotionZ\n\n" +
+    public static final String CATEGORY_ANTIMASS = newCategory("antimass");
+    public static int gravityDustAmountDropped;
+    public static float gravityDustDropChance;
+    public static boolean gravityDustChanceOncePerBrokenBlock;
+    public static boolean destabilisedGravityDustDissipatesWhenDropped;
+    public static final Pattern validDropBlockOrePattern = Pattern.compile("[^:]+:[^:]+(:[\\d]+)?");
+    public static String[] gravityDustValidBlocksToDropFrom;
+    public static String[] gravityDustValidDropsToSpawnAs;
 
-                    "These modify the player's rotation and/or motion before the item is used (and then puts the rotation/motion\n" +
-                    "\tback to normal, taking into account any changes to motion, !!but not taking into account any changes to\n" +
-                    "\trotation!!).\n\n" +
+    public static final String CATEGORY_WORLD_GEN = newCategory("worldGen");
+    public static boolean oreGenDimensionListIsBlackList;
+    public static TIntHashSet oreGenDimensionIDs;
+    public static boolean oreGenRetroGen;
 
-                    "You may use a max of one type of modifier per entry (up to 1 motion modifier and up to 1 rotation modifier).\n\n" +
+    public static final String CATEGORY_LOOT = newCategory("extraLoot");
+    //TODO
+    public static boolean addDownAnchorToFishingJunk;
+    //TODO
+    public static int downAnchorFishingJunkWeight;
+    //TODO
+    public static boolean addGravityDustToMineshafts;
+    //TODO
+    public static int gravityDustMineshaftWeight;
+    public static float anchorChestLootChance;
+    //TODO
+    public static HashSet<ResourceLocation> lootTablesToAddAnchorsTo;
 
-                    "The default state when using items is that both rotation and motion are absolute (as if the player currently\n" +
-                    "\thas downwards gravity).\n\n" +
+    public static final String CATEGORY_GRAVITY = newCategory("gravity");
+    public static float oppositeDirectionFallDistanceMultiplier;
+    public static float otherDirectionsFallDistanceMultiplier;
+    public static int numWeakGravityEnablersRequiredForWeakGravity;
+    public static int numNormalGravityEnablersRequiredForNormalGravity;
+    public static int numNormalEnablersWeakEnablersCountsAs;
 
-                    "Using relativeMotionX implies that Z and Y motion will be absolute.\n\n" +
+    public static final String CATEGORY_GRAVITON_PEARL = newCategory("gravitonPearl");
+    public static double gravitonPearlRange;
+    public static float baseGravitonPearlStrength;
 
-                    "Likewise, using absoluteMotionY implies that X and Z motion will be relative.\n\n" +
+    public static final String CATEGORY_GRAVITY_GENERATOR = newCategory("gravityGenerator");
+    public static int gravityGeneratorMaxHeight; // Min value 1
+    public static int gravityGeneratorMaxRadius; // Width = (x*2 + 1) // Min value 0
+    public static int gravityGeneratorMaxVolume;
+    public static double gravityGeneratorMaxDistance;
 
-                    "So if you wanted both X and Y motion to be relative, you would use absoluteMotionZ.\n\n" +
+    public static final String CATEGORY_CLIENT = newCategory("client");
+    public static double transitionAnimationRotationSpeed;
+    public static double transitionAnimationRotationLength;
+    public static double transitionAnimationRotationEnd;
 
-                    "Examples:\n" +
-                    "'minecraft:stick:0:4,relativeMotionX' - Adds a relative X motion modifier to vanilla sticks with damage\n" +
-                    "\tvalues 0 and 4.\n" +
-                    "'tconstruct:longsword,relativeMotionAll:relativeRotation' - Adds a relative X, Y and Z motion modifier\n" +
-                    "\tcombined with a relative rotation modifier to all damage values of Tinkers' Construct Longswords.";
-    private static final String MOD_COMPATIBILITY_CONFIG_FILE_NAME = "modCompat.cfg";
-    public static double animationRotationSpeed = 1d;
-    public static float baseGravitonPearlStrength = 0.05f;
-    public static boolean destabilisedGravityDustDissipatesWhenDropped = true;
-    public static double gravitonPearlRange = 10;
-    public static int gravityDustAmountDropped = 5;
-    public static boolean gravityDustChanceOncePerBrokenBlock = false;
-    public static float gravityDustDropChance = 1f / 40f;
-    public static int gravityGeneratorMaxHeight = 11; // Min value 1
-    public static int gravityGeneratorMaxRadius = 5; // Width = (x*2 + 1) // Min value 0
-    public static int numNormalEnablersWeakEnablersCountsAs = 4;
-    public static int numNormalGravityEnablersRequiredForNormalGravity = 4;
-    public static int numWeakGravityEnablersRequiredForWeakGravity = 1;
-    public static float oppositeDirectionFallDistanceMultiplier = 0f;
-    public static float otherDirectionFallDistanceMultiplier = 0.5f;
-    public static float anchorChestLootChance = 0.05f; // 1/20
-    public static boolean oreGenDimensionListIsBlackList = true;
-    public static boolean oreGenRetroGen = true;
-    public static TIntHashSet oreGenDimensionIDs = null;
-    private static Configuration generalConfig;
-    private static Configuration modCompatibilityConfig;
+    public static final String CATEGORY_SERVER = newCategory("server");
+    public static boolean kickPlayersWithMismatchingModCompatHashes;
 
-    public static void loadConfig(FMLPreInitializationEvent event) {
-        File modConfigurationDirectory = event.getModConfigurationDirectory().toPath().resolve(CONFIG_DIRECTORY_NAME).toFile();
-        if (!modConfigurationDirectory.exists()) {
-            if (!modConfigurationDirectory.mkdirs()) {
-                throw new RuntimeException(new IOException("Could not create config folder"));
-            }
-        }
-        if (!modConfigurationDirectory.isDirectory()) {
-            throw new RuntimeException(new IOException("Config folder already exists, but is a file and not a folder"));
-        }
+    public static Configuration config;
+    private static List<String> propertyOrder;
+    private static String category;
+    private static Property prop;
+    private static Map<String, Set<String>> configNameToPropertyKeySet;
 
-        Path configDirectoryPath = modConfigurationDirectory.toPath();
-        File modCompatConfigFile = configDirectoryPath.resolve(MOD_COMPATIBILITY_CONFIG_FILE_NAME).toFile();
-        if (!modCompatConfigFile.exists()) {
-            try {
-                if (!modCompatConfigFile.createNewFile()) {
-                    throw new RuntimeException(new IOException("Unable to create mod compatibility config file"));
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        ConfigHandler.modCompatibilityConfig = new Configuration(modCompatConfigFile);
-
-        File generalConfigFile = configDirectoryPath.resolve(GENERAL_CONFIG).toFile();
-        if (!generalConfigFile.exists()) {
-            try {
-                if (!generalConfigFile.createNewFile()) {
-                    throw new RuntimeException(new IOException("Unable to create general config file"));
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        ConfigHandler.generalConfig = new Configuration(generalConfigFile);
-
-        processGeneralConfig();
+    public static void initialConfigLoad(FMLPreInitializationEvent event) {
+        File file = event.getModConfigurationDirectory().toPath().resolve("UpAndDownAndAllAround.cfg").toFile();
+        config = new Configuration(file);
+        syncConfig(true);
     }
 
-    private static void processGeneralConfig() {
-        Configuration config = ConfigHandler.generalConfig;
-        config.load();
+    public static void syncConfig(boolean load) {
+        propertyOrder = new ArrayList<>();
+        configNameToPropertyKeySet = new HashMap<>();
 
-        config.addCustomCategoryComment(Configuration.CATEGORY_CLIENT, "Client only config options");
-        config.addCustomCategoryComment(Configuration.CATEGORY_GENERAL, "Common config options");
+        if (load) {
+            config.load();
+            GravityMod.logInfo("Loading config");
+        }
+        else {
+            GravityMod.logInfo("Reloading config");
+        }
 
-        ConfigHandler.animationRotationSpeed = config.get(
-                Configuration.CATEGORY_CLIENT, "gravityTransition.animationSpeed",
-                1.5d,
-                "Animation speed for gravity transition.\nAnimation takes 1 second divided by the config value.\nMin value 1.0",
-                1.0d, 1000d).getDouble();
+        nextCategory(CATEGORY_MOD_COMPAT);
 
-        ConfigHandler.oppositeDirectionFallDistanceMultiplier = config.getFloat(
-                "gravityTransition.fallDistanceMultiplier.opposite", Configuration.CATEGORY_GENERAL,
-                0f, 0f, 1f,
-                "When a player's gravity direction changes to the opposite direction," +
-                        "\n\ttheir accrued fall distance will be multiplied by this value." +
-                        "\n\nFall damage is performed server side, so it won't matter much if the client's values don't match.\n");
+        prop = config.get(category, EnumItemStackUseCompat.BLOCK.configName, new String[0], "Adding an item to this list will apply the " +
+                "compatibility " +
+                "when the item is right clicked " +
+                "on a block. Specifically when the item's \"onItemUse\" method is called from within ItemStack::onItemUse.", modCompatPattern);
+        modCompatUseOnBlock = process().getStringList();
 
-        ConfigHandler.otherDirectionFallDistanceMultiplier = config.getFloat(
-                "gravityTransition.fallDistanceMultiplier.other", Configuration.CATEGORY_GENERAL,
-                0.5f, 0f, 1f,
-                "When a player's gravity direction changes to a direction other than the opposite direction," +
-                        "\n\ttheir accrued fall distance will be multiplied by this value." +
-                        "\n\nFall damage is performed server side, so it won't matter much if the client's values don't match.\n");
+        prop = config.get(category, EnumItemStackUseCompat.GENERAL.configName, new String[]{"tconstruct:rapier,relativeMotionAll:relativeRotation"}, "Adding an " +
+                "item to this list will " +
+                "apply the compatibility when the item is right clicked on air, or on a block that doesn't open a chest/machine GUI or otherwise change " +
+                "state, such as right clicking on a vanilla lever. Specifically when the item's \"onItemRightClick\" method is called from within " +
+                "ItemStack::useItemRightClick.\n" +
 
-        ConfigHandler.gravitonPearlRange = config.get(
-                Configuration.CATEGORY_GENERAL, "item.gravitonPearl.range",
-                7.5d,
-                "Range of the Graviton Pearl's push and pull effect. Min: 0.0, max: 20.0",
-                0d, 20d).getDouble();
+                "The Tinkers' Construct Rapier makes the player jump upwards and backwards slightly when right clicked. We want the player to jump upwards " +
+                "relative to their view of the world, so we will need at least use relative Y motion for this compatibility. We also want the player to jump " +
+                "backwards relative to their view of the world. The rapier uses the player's pitch and yaw rotations to calculate the backwards direction and" +
+                " modifies X and Z motion accordingly, so we need them to be relative too.", modCompatPattern);
+        modCompatUseGeneral = process().getStringList();
 
-        ConfigHandler.baseGravitonPearlStrength = config.getFloat(
-                "item.gravitonPearl.strength", Configuration.CATEGORY_GENERAL,
-                0.05f, 0f, 1f,
-                "Set the strength of the Graviton Pearl's push and pull effect." +
-                        "\n\tPulled items and pushed projectiles are affected more than other entities\n");
+        prop = config.get(category, EnumItemStackUseCompat.STOPPED_USING.configName, new String[]{"tconstruct:longsword,relativeMotionAll:relativeRotation"}, "Adding an " +
+                        "item to this list " +
+                        "will apply the compatibility when a player stops 'using' an item. For bows, this is when you release right click to fire an arrow.\n",
+                modCompatPattern);
+        modCompatOnStoppedUsing = process().getStringList();
 
-        ConfigHandler.gravityDustAmountDropped = config.getInt(
-                "item.anti-mass.amountDropped", Configuration.CATEGORY_GENERAL,
-                5, 1, 64,
-                "The amount of anti-mass items that drop from each anti-mass spawn\n" +
-                        "This is also the base amount dropped by Anti-Mass ore.\n" +
-                        "The exact amount dropped is a random value between amountDropped and 2*amountDropped");
+        config.setCategoryComment(category,
+                "Up And Down changes how player motion is used to move the player. Some items may move the player in unexpected ways when used. If that's the" +
+                        " case, try adding them to one of the below lists. The format is (text in square brackets is optional) \"<mod id>:<item " +
+                        "name>[:damage][:damage][...],<compatibility modifier>:[compatibility modifier]\"\n" +
 
-        ConfigHandler.gravityDustDropChance = config.getFloat(
-                "item.anti-mass.dropChance", Configuration.CATEGORY_GENERAL,
-                0.05f, 0f, 1f,
-                "The chance that anti-mass will spawn\n");
+                        "Where a compatibility modifier is case insensitive and one of: relativeRotation, relativeMotionAll, relativeMotionX, " +
+                        "relativeMotionY, relativeMotionZ, absoluteMotionX, absoluteMotionY or absoluteMotionZ\n" +
 
-        ConfigHandler.gravityDustChanceOncePerBrokenBlock = config.getBoolean(
-                "item.anti-mass.dropChanceOncePerBlock", Configuration.CATEGORY_GENERAL,
-                false,
-                "If true, only the first valid drop of a block will have a chance to spawn anti-mass" +
-                        "\nIf false, each valid drop will have a chance to spawn anti-mass\n");
+                        "These modify the player's rotation and/or motion before the item is used (and then puts the rotation/motion back to normal, taking " +
+                        "into account any changes to motion, but NOT taking into account any changes to rotation).\n" +
 
-        ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity = config.getInt(
-                "gravity.weak.enablersRequired", Configuration.CATEGORY_GENERAL,
-                1, 0, Integer.MAX_VALUE,
-                "Number of weak gravity enablers (armor + baubles if installed) that must be worn for a" +
-                        "\n\tplayer to be affected by weak gravity\n");
+                        "You may use a max of one type of modifier per entry (up to 1 motion modifier and up to 1 rotation modifier).\n" +
 
-        ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity = config.getInt(
-                "gravity.normal.enablersRequired", Configuration.CATEGORY_GENERAL,
-                4, 0, Integer.MAX_VALUE,
-                "Number of normal gravity enablers (armor + baubles if installed) that must be worn for a" +
-                        "\n\tplayer to be affected by normal strength gravity\n");
+                        "The default state when using items is that both rotation and motion are absolute (as if the player currently has downwards gravity)" +
+                        ".\n" +
 
-        ConfigHandler.numNormalEnablersWeakEnablersCountsAs = config.getInt(
-                "gravity.normal.numEnablersWeakEnablersCountAs", Configuration.CATEGORY_GENERAL,
-                4, Integer.MIN_VALUE, Integer.MAX_VALUE,
-                "Weak gravity enablers count as this many normal gravity enablers.\n" +
-                        "This makes more sense thematically to be greater than 1, but '1' or '0' will still work\n");
+                        "Using relativeMotionX implies that Z and Y motion will be absolute.\n" +
 
-        ConfigHandler.destabilisedGravityDustDissipatesWhenDropped = config.getBoolean(
-                "item.destabilisedAnti-Mass.destroyedWhenDropped", Configuration.CATEGORY_GENERAL,
-                true, "Destabilised Anti-Mass should dissipate/be destroyed when dropped out of an inventory");
+                        "Likewise, using absoluteMotionY implies that X and Z motion will be relative.\n" +
 
-        ConfigHandler.anchorChestLootChance = config.getFloat(
-                "loot.gravityanchor.chance", Configuration.CATEGORY_GENERAL, 0.05f, 0f, 1f,
-                "Gravity anchors are added to stronghold, dungeon and mineshaft chests, this setting controls" +
-                        "\n\tthe chance that one of those chests will contain an anchor"
-        );
+                        "So if you wanted both X and Y motion to be relative, you would use absoluteMotionZ.\n" +
 
-        ConfigHandler.oreGenDimensionListIsBlackList = config.getBoolean(
-                "oreGen.dimensionListIsBlackList", Configuration.CATEGORY_GENERAL, true,
-                "Set to true if the dimension ID list should be treated as a Blacklist.\n" +
-                        "Set to false if the dimension ID list should be treated as a Whitelist."
-        );
+                        "Examples:\n" +
+                        "'minecraft:stick:0:4,relativeMotionX' - Adds a relative X motion modifier to vanilla sticks with damage values 0 and 4.\n" +
+                        "'tconstruct:longsword,relativeMotionAll:relativeRotation' - Adds a relative X, Y and Z motion modifier combined with a relative " +
+                        "rotation modifier to all damage values of Tinkers' Construct Longswords.");
 
-        int[] intList = config.get(Configuration.CATEGORY_GENERAL, "oreGen.dimensionList", new int[0],
-                "List of dimension IDs that UpAndDown's ore generation should either generate in, or not generate in.\n" +
-                        "Depending on whether the list is set to act as a Whitelist or Blacklist. See \"oreGen.dimensionListIsBlackList\"").getIntList();
-        ConfigHandler.oreGenDimensionIDs = new TIntHashSet(intList);
+        nextCategory(CATEGORY_ANTIMASS);
 
-        ConfigHandler.oreGenRetroGen = config.getBoolean(
-                "oreGen.retroGenEnabled", Configuration.CATEGORY_GENERAL, true,
-                "Set to true to enable retroactive generation of ores.\n" +
-                        "This will generate ore in existing chunks that were generated before this mod was added."
-        );
+        prop = config.get(category, "amountDropped", 5, "The amount of anti-mass items that drop from each anti-mass spawn when mining \n" +
+                "This is also the base amount dropped by Anti-Mass ore.\n" +
+                "The exact amount dropped by Anti-Mass ore is a random value between this value and double this value", 1, 64);
+        gravityDustAmountDropped = process().getInt();
+
+        prop = config.get(category, "dropChance", 0.05d, "The chance that anti-mass will spawn", 0d, 1d);
+        gravityDustDropChance = (float)process().getDouble();
+
+        prop = config.get(category, "oneChancePerBrokenBlock", false, "If true, only the first valid drop of a block will have a chance to spawn anti-mass." +
+                "\nIf false, each valid drop will have a chance to spawn anti-mass");
+        gravityDustChanceOncePerBrokenBlock = process().getBoolean();
+
+        prop = config.get(category, "destabilisedDestroyedWhenDropped", true, "Destabilised Anti-Mass should dissipate/be destroyed when dropped out of an " +
+                "inventory");
+        destabilisedGravityDustDissipatesWhenDropped = process().getBoolean();
+
+        prop = config.get(category, "validBlocksToSpawnFrom",
+                new String[]{"ore:oreRedstone", "ore:oreDiamond", "ore:oreLapis", "ore:oreCoal", "ore:oreQuartz", "ore:oreEmerald"},
+                "Blocks that, when broken, have a chance for some of their drops to become special 'anti-mass' items which float around and drop both the " +
+                        "original item and the 'anti-mass' item added by this mod." +
+                        "\nThe normal item drops must be in the config as valid drops to spawn as for this to happen." +
+                        "\nUse format \"<modid>:<block name>[:<meta>]\" (not providing a metadata value will allow for any value)" +
+                        "\nOre registry names can be specified by using \"ore:<ore name>\"" +
+                        "\nEnsure you don't add any blocks that drop themselves when broken (like iron ore), to both the blocks and drops lists, otherwise " +
+                        "players can place the block back down and mine it again for another chance at getting the special drop." +
+                        "\nRedstone ore has been hardcoded such that if a player breaks lit redstone ore, the mod acts as if the player broke non-lit " +
+                        "redstone ore.",
+                validDropBlockOrePattern);
+        gravityDustValidBlocksToDropFrom = process().getStringList();
+
+        prop = config.get(category, "validDropsToSpawnAs",
+                new String[]{"ore:dustRedstone", "ore:gemDiamond", "ore:gemEmerald", "ore:gemQuartz", "ore:gemLapis", "minecraft:coal:0"},
+                "Items/blocks that, when dropped from a broken block, have a chance to become a special 'anti-mass' item that floats around and drops both " +
+                        "the original item and the 'anti-mass' item added by this mod." +
+                        "\nThe broken block must be in the config as a valid block for this to happen." +
+                        "\n\nUse format \"<modid>:<block/item name>[:<meta>]\"" +
+                        "\nOre registry names can be specified by using \"ore:<ore name>\"" +
+                        "\n\n",
+                validDropBlockOrePattern);
+        gravityDustValidDropsToSpawnAs = process().getStringList();
+
+        nextCategory(CATEGORY_WORLD_GEN);
+
+        prop = config.get(category, "oreDimensionListIsBlacklist",
+                true, "Set to true if the dimension ID list for ore generation should be treated as a Blacklist.\n" +
+                        "Set to false if the dimension ID list for ore generation should be treated as a Whitelist.");
+        oreGenDimensionListIsBlackList = process().getBoolean();
+
+        prop = config.get(category, "oreDimensionList", new int[0], "List of dimension IDs that UpAndDown's ore generation should either generate in, or not generate in.\n" +
+                "Depending on whether the list is set to act as a Whitelist or Blacklist. See \"oreDimensionListIsBlacklist\"");
+        oreGenDimensionIDs = new TIntHashSet(process().getIntList());
+
+        prop = config.get(category, "oreRetroGenEnabled", true, "Set to true to enable retroactive generation of ores.\n" +
+                "This will generate ore in existing chunks that were generated before this mod was added or were in previously blacklisted/non-whitelisted " +
+                "dimensions.");
+        oreGenRetroGen = process().getBoolean();
+
+        nextCategory(CATEGORY_LOOT);
+
+        prop = config.get(category, "generalAnchorChance", 0.05d, "Gravity anchors are added to stronghold, dungeon and mineshaft chests, this setting " +
+                "controls the chance that one of those chests will contain an anchor", 0d, 1d);
+        anchorChestLootChance = (float)process().getDouble();
+
+        nextCategory(CATEGORY_GRAVITY);
+
+        prop = config.get(category, "oppositeDirectionFallDistanceMultiplier", 0d, "When a player's gravity direction changes to the opposite direction, " +
+                "their accrued fall distance will be multiplied by this value.", 0d, 1d);
+        oppositeDirectionFallDistanceMultiplier = (float)process().getDouble();
+
+        prop = config.get(category, "otherDirectionFallDistanceMultiplier", 0.5d, "When a player's gravity direction changes to a direction other than the " +
+                "opposite direction, their accrued fall distance will be multiplied by this value.", 0d, 1d);
+        otherDirectionsFallDistanceMultiplier = (float)process().getDouble();
+
+        prop = config.get(category, "numWeakGravityEnablersRequiredForWeakGravity", 1, "Number of weak gravity enablers (armor + baubles if installed) that " +
+                "must be worn for a player to be affected by weak gravity", 0, Integer.MAX_VALUE);
+        numWeakGravityEnablersRequiredForWeakGravity = process().getInt();
+
+        prop = config.get(category, "numNormalGravityEnablersRequiredForNormalGravity", 4, "Number of normal gravity enablers (armor + baubles if installed) " +
+                "that must be worn for a player to be affected by normal strength gravity", 0, Integer.MAX_VALUE);
+        numNormalGravityEnablersRequiredForNormalGravity = process().getInt();
+
+        prop = config.get(category, "numNormalEnablersWeakEnablersCountsAs", 4, "Weak gravity enablers count as this many normal gravity enablers.\n" +
+                "This makes more sense thematically to be greater than 1, but '1' or '0' will still work.");
+        numNormalEnablersWeakEnablersCountsAs = process().getInt();
+
+        nextCategory(CATEGORY_GRAVITON_PEARL);
+
+        prop = config.get(category, "gravitonPearlRange", 7.5d, "Range of the Graviton Pearl's push and pull effect", 0d, 20d);
+        gravitonPearlRange = process().getDouble();
+
+        prop = config.get(category, "baseGravitonPearlStrength", 0.05d, "Set the strength of the Graviton Pearl's push and pull effect." +
+                "\nPulled items and pushed projectiles are affected more than other entities", 0d, 1d);
+        baseGravitonPearlStrength = (float)process().getDouble();
+
+        nextCategory(CATEGORY_GRAVITY_GENERATOR);
+        prop = config.get(category, "maxHeight", 11, "The maximum relative Y height of gravity fields created by gravity generators, in blocks", 1, 255);
+        gravityGeneratorMaxHeight = process().getInt();
+
+        prop = config.get(category, "maxRadius", 5, "The maximum relative X/Z radius of gravity fields created by gravity generators, in blocks.\nThe maximum" +
+                " width is equal to double this value, plus one.", 0, 127);
+        gravityGeneratorMaxRadius = process().getInt();
+        gravityGeneratorMaxVolume = gravityGeneratorMaxHeight * (2 * gravityGeneratorMaxRadius + 1) * (2 * gravityGeneratorMaxRadius + 1);
+        gravityGeneratorMaxDistance =
+                (gravityGeneratorMaxRadius + 0.5) * (gravityGeneratorMaxRadius + 0.5)
+                        + (gravityGeneratorMaxRadius + 0.5) * (gravityGeneratorMaxRadius + 0.5)
+                        + gravityGeneratorMaxHeight * gravityGeneratorMaxHeight;
+
+        nextCategory(CATEGORY_CLIENT, false);
+        prop = config.get(category, "rotationAnimationSpeed", 1.5d, "Animation speed for gravity transition." +
+                "Takes 1 second divided by this config value.", 1d, 1000d);
+        transitionAnimationRotationSpeed = process().getDouble();
+        transitionAnimationRotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / transitionAnimationRotationSpeed;
+        transitionAnimationRotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - transitionAnimationRotationLength;
+
+        nextCategory(CATEGORY_SERVER);
+        prop = config.get(category, "kickPlayersWithMismatchingModCompat", false, "True if the server should kick players that have different mod " +
+                "compatibility settings.");
+        kickPlayersWithMismatchingModCompatHashes = process().getBoolean();
+
+        // Final cleanup
+        category = null;
+        prop = null;
 
         if (config.hasChanged()) {
             config.save();
@@ -222,80 +293,91 @@ public class ConfigHandler {
     }
 
     public static void processLateConfig() {
-        Configuration config = ConfigHandler.generalConfig;
-        String[] antiMassBlockStrings = config.getStringList(
-                "item.anti-mass.blocksToDropFrom", Configuration.CATEGORY_GENERAL,
-                new String[]{
-                        "ore:oreRedstone",
-                        "ore:oreDiamond",
-                        "ore:oreLapis",
-                        "ore:oreCoal",
-                        "ore:oreQuartz",
-                        "ore:oreEmerald",
-                },
-                "Blocks that, when broken, have a chance for some of their drops to become special 'anti-mass' items" +
-                        "\n\twhich float around and drop both the original item and the 'anti-mass' item added by this mod." +
-                        "\nThe normal item drops must be in the \"item.anti-mass.dropsSpawnAs\" list for this to happen" +
-                        "\n\nUse format \"<modid>:<block name>[:<meta>]\"" +
-                        "\nOre registry names can be specified by using \"ore:<ore name>\"" +
-                        "\nEnsure you don't add any blocks that drop themselves when broken (like iron ore)," +
-                        "\n\tto both the blocks and drops lists, otherwise players can place the block back down" +
-                        "\n\tand mine it again for another chance at getting the special drop." +
-                        "\n\nRedstone ore has been hardcoded such that if a player breaks lit redstone ore, the mod acts" +
-                        "\n\tas if the player broke non-lit redstone ore" +
-                        "\n\n");
-        ItemGravityDust.BlockBreakListener.addBlocksFromConfig(antiMassBlockStrings);
-
-        //TODO: Try adding iron ore to blocks, iron ingot to drops and try tinkers/ender io autosmelting
-        String[] antiMassDropsStrings = config.getStringList(
-                "item.anti-mass.dropsSpawnAs", Configuration.CATEGORY_GENERAL,
-                new String[]{
-                        "ore:dustRedstone", "ore:gemDiamond", "ore:gemEmerald", "ore:gemQuartz", "ore:gemLapis", "minecraft:coal:0"
-                },
-                "Items that, when dropped from a broken block, have a chance to become a special 'anti-mass' item" +
-                        "\n\tthat floats around and drops both the original item and the 'anti-mass' item added by this mod." +
-                        "\nThe broken block must be in the \"item.anti-mass.blocksToDropFrom\" list for this to happen" +
-                        "\n\nUse format \"<modid>:<block/item name>[:<meta>]\"" +
-                        "\nOre registry names can be specified by using \"ore:<ore name>\"" +
-                        "\n\n");
-        ItemGravityDust.BlockBreakListener.addDropsFromConfig(antiMassDropsStrings);
-
-        if (config.hasChanged()) {
-            config.save();
+        ItemGravityDust.BlockBreakListener.clearAcceptableBlocksAndDrops();
+        ItemGravityDust.BlockBreakListener.addBlocksFromConfig(gravityDustValidBlocksToDropFrom);
+        ItemGravityDust.BlockBreakListener.addDropsFromConfig(gravityDustValidDropsToSpawnAs);
+        ItemStackUseListener.clearPrePostModifiers();
+        processModCompatConfig(modCompatUseOnBlock, EnumItemStackUseCompat.BLOCK);
+        processModCompatConfig(modCompatUseGeneral, EnumItemStackUseCompat.GENERAL);
+        processModCompatConfig(modCompatOnStoppedUsing, EnumItemStackUseCompat.STOPPED_USING);
+        ItemStackUseListener.makeHash();
+        if (GravityMod.GENERAL_DEBUG) {
+            GravityMod.logInfo("HashCode: " + ItemStackUseListener.getHashCode());
         }
     }
 
-    public static void processModCompatConfig() {
-        Configuration config = ConfigHandler.modCompatibilityConfig;
-        config.load();
-
-        config.addCustomCategoryComment(Configuration.CATEGORY_GENERAL, MAIN_COMMENT);
-
-        for (EnumItemStackUseCompat compatType : EnumItemStackUseCompat.values()) {
-            processStringList(compatType);
-        }
-
-        if (config.hasChanged()) {
-            config.save();
+    @SubscribeEvent
+    public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (event.getModID().equals(GravityMod.MOD_ID)) {
+            syncConfig(false);
+            processLateConfig();
         }
     }
 
-    private static void processStringList(EnumItemStackUseCompat compatType) {
-        String[] stringList = ConfigHandler.modCompatibilityConfig.getStringList(
-                compatType.configString, Configuration.CATEGORY_GENERAL, compatType.defaults, compatType.comment);
+    private static void nextCategory(String categoryName) {
+        nextCategory(categoryName, true);
+    }
 
+    private static void nextCategory(String categoryName, boolean requiresMCRestart) {
+        category = categoryName;
+        if (categoryName != null) {
+            setCategoryOrder();
+            config.setCategoryRequiresWorldRestart(categoryName, requiresMCRestart);
+        }
+    }
+
+    private static Property process(Property prop) {
+        setLangKey(prop);
+        order(prop);
+        Set<String> propKeys = configNameToPropertyKeySet.get(category);
+        if (propKeys == null) {
+            propKeys = new HashSet<>();
+            configNameToPropertyKeySet.put(category, propKeys);
+        }
+        propKeys.add(prop.getName());
+        return prop;
+    }
+
+    private static void setCategoryOrder() {
+        config.setCategoryPropertyOrder(category, propertyOrder);
+        propertyOrder = new ArrayList<>();
+    }
+
+    private static void setLangKey(Property prop) {
+        setLangKey(prop, category);
+    }
+
+    private static void order(Property prop) {
+        propertyOrder.add(prop.getName());
+    }
+
+    private static void setLangKey(Property prop, String category) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("config.").append(GravityMod.MOD_ID).append('.');
+        // Removes "category_" from the front and then replaces '_' with '.'
+        category = category.substring(category.indexOf('_') + 1).replace('_', '.');
+        builder.append(category);
+
+        String propName = prop.getName();
+//        propName = propName.substring(propName.lastIndexOf('_') + 1);
+        builder.append('.').append(propName);
+
+        prop.setLanguageKey(builder.toString());
+    }
+
+    private static void processModCompatConfig(String[] stringList, EnumItemStackUseCompat compatType) {
         toNextEntry:
         for (String entry : stringList) {
             String[] sections = entry.split(",");
             if (sections.length != 2) {
                 GravityMod.logWarning("Invalid config line in %s: %s. Each line should have a single comma " +
-                        "separating item information and the compatibility information.", compatType.configString, entry);
+                        "separating item information and the compatibility information.", compatType.configName, entry);
                 continue;
             }
 
             String[] itemResourceAndDamageValues = sections[0].split(":");
             if (itemResourceAndDamageValues.length < 2) {
-                GravityMod.logWarning("Invalid config line in %s: %s. A colon is required between the item's mod ID and the item's name.", compatType.configString, entry);
+                GravityMod.logWarning("Invalid config line in %s: %s. A colon is required between the item's mod ID and the item's name.", compatType.configName, entry);
                 continue;
             }
             String modID = itemResourceAndDamageValues[0];
@@ -306,7 +388,7 @@ public class ConfigHandler {
                     damageValues[i - 2] = Integer.parseInt(itemResourceAndDamageValues[i]);
                 } catch (NumberFormatException numberFormatException) {
                     GravityMod.logWarning("Invalid config line in %s: %s. Could not parse item damage value \"%s\".",
-                            compatType.configString, entry, itemResourceAndDamageValues[i]);
+                            compatType.configName, entry, itemResourceAndDamageValues[i]);
                     continue toNextEntry;
                 }
             }
@@ -319,7 +401,7 @@ public class ConfigHandler {
                     EnumPrePostModifier fromConfigString = EnumPrePostModifier.getFromConfigString(modifierData[0]);
                     if (fromConfigString == null) {
                         GravityMod.logWarning("Invalid config line in %s: %s. Invalid compatibility modifier \"%s\"",
-                                compatType.configString, entry, modifierData[0]);
+                                compatType.configName, entry, modifierData[0]);
                         continue toNextEntry;
                     }
                     modifier = fromConfigString;
@@ -328,69 +410,35 @@ public class ConfigHandler {
                     EnumPrePostModifier first = EnumPrePostModifier.getFromConfigString(modifierData[0]);
                     if (first == null) {
                         GravityMod.logWarning("Invalid config line in %s: %s. Invalid compatibility modifier \"%s\"",
-                                compatType.configString, entry, modifierData[0]);
+                                compatType.configName, entry, modifierData[0]);
                         continue toNextEntry;
                     }
                     EnumPrePostModifier second = EnumPrePostModifier.getFromConfigString(modifierData[1]);
                     if (second == null) {
                         GravityMod.logWarning("Invalid config line in %s: %s. Invalid compatibility modifier \"%s\"",
-                                compatType.configString, entry, modifierData[1]);
+                                compatType.configName, entry, modifierData[1]);
                         continue toNextEntry;
                     }
                     if (first.isMotionModifier() == second.isMotionModifier()) {
                         GravityMod.logWarning("Invalid config line in %s: %s. Only up to 1 motion modifier and up to 1 rotation modifier may be used.",
-                                compatType.configString, entry);
+                                compatType.configName, entry);
                         continue toNextEntry;
                     }
                     modifier = CombinedPrePostModifier.getModifierFor(first, second);
                     break;
                 default:
-                    GravityMod.logWarning("Invalid config line in %s: %s. Expecting 1 or 2 compatibility modifiers only.", compatType.configString, entry);
+                    GravityMod.logWarning("Invalid config line in %s: %s. Expecting 1 or 2 compatibility modifiers only.", compatType.configName, entry);
                     continue toNextEntry;
             }
             ItemStackUseListener.addPrePostModifier(modID, itemName, modifier, compatType, damageValues);
         }
     }
 
-    public enum EnumItemStackUseCompat {
-        BLOCK(
-                "modCompat.onUseOnBlock",
+    private static String newCategory(String baseName) {
+        return "category_" + baseName.replace(' ', '.').toLowerCase(Locale.ENGLISH);
+    }
 
-                "Adding an item to this list will apply the compatibility when the item is right clicked on a block.\n" +
-                        "\tSpecifically when the item's \"onItemUse\" method is called from within ItemStack::onItemUse.\n"
-        ),
-        GENERAL(
-                "modCompat.onUseGeneral",
-
-                "Adding an item to this list will apply the compatibility when the item is right clicked on air, or on\n" +
-                        "\ta block that doesn't open a chest/machine GUI or otherwise change state, such as right clicking \n" +
-                        "\ton a vanilla lever. Specifically when the item's \"onItemRightClick\" method is called from\n" +
-                        "\twithin ItemStack::useItemRightClick.\n\n" +
-
-                        "The Tinkers' Construct Rapier makes the player jump upwards and backwards\n" +
-                        "\tslightly when right clicked. We want the player to jump upwards relative to their view of the\n" +
-                        "\tworld, so we will need at least use relative Y motion for this compatibility. We also want the\n" +
-                        "\tplayer to jump backwards relative to their view of the world. The rapier uses the player's\n" +
-                        "\tpitch and yaw rotations to calculate the backwards direction and modifies X and Z motion\n" +
-                        "\taccordingly, so we need them to be relative too.\n",
-
-                "tconstruct:rapier,relativeMotionAll:relativeRotation"
-        ),
-
-        STOPPED_USING(
-                "modCompat.onStoppedUsing",
-                "Adding an item to this list will apply the compatibility when a player stops 'using' an item. For bows,\n" +
-                        "\tthis is when you release right click to fire an arrow.\n",
-                "tconstruct:longsword,relativeMotionAll:relativeRotation");
-
-        private final String comment;
-        private final String configString;
-        private final String[] defaults;
-
-        EnumItemStackUseCompat(String configString, String comment, String... defaults) {
-            this.configString = configString;
-            this.comment = comment;
-            this.defaults = defaults;
-        }
+    private static Property process() {
+        return process(prop);
     }
 }

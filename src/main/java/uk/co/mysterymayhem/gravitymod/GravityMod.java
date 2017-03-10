@@ -27,7 +27,9 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
         acceptedMinecraftVersions = GravityMod.MINECRAFT_VERSION,
         dependencies = GravityMod.DEPENDENCIES_LIST,
         name = GravityMod.USER_FRIENDLY_NAME,
-        acceptableRemoteVersions = GravityMod.ACCEPTABLE_VERSIONS)
+        acceptableRemoteVersions = GravityMod.ACCEPTABLE_VERSIONS,
+        guiFactory = GravityMod.GUI_FACTORY
+)
 public class GravityMod {
     // Major changes, 1 was used for TMT, 2 is main development, 3 will likely be for initial full release and beyond
     private static final int MAJOR_VERSION = 2;
@@ -47,6 +49,7 @@ public class GravityMod {
     //Baubles 1.3.BETA9 adds default methods to IRenderBauble
     public static final String DEPENDENCIES_LIST = "required-after:Forge@[12.18.2.2107,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
+    public static final String GUI_FACTORY = "uk.co.mysterymayhem.gravitymod.client.config.GravityModGuiFactory";
 
     public static final EnumRarity RARITY_WEAK = EnumHelper.addRarity("WEAK_GRAVITY", TextFormatting.WHITE, "Weak Strength");
     public static final EnumRarity RARITY_NORMAL = EnumHelper.addRarity("NORMAL_GRAVITY", TextFormatting.DARK_PURPLE, "Normal Strength");
@@ -85,9 +88,6 @@ public class GravityMod {
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         ConfigHandler.processLateConfig();
-        ConfigHandler.processModCompatConfig();
-        ItemStackUseListener.makeHash();
-        ItemStackUseListener.buildPacketData();
         if (GravityMod.GENERAL_DEBUG) {
             GravityMod.logInfo("HashCode: " + ItemStackUseListener.getHashCode());
         }
@@ -101,7 +101,7 @@ public class GravityMod {
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         //TODO: config stuff instead of hardcoding for just the Botania rod (or just for the air sigil
-        ConfigHandler.loadConfig(event);
+        ConfigHandler.initialConfigLoad(event);
 //        File configFile = event.getSuggestedConfigurationFile();
 //        Configuration config = new Configuration(configFile);
 //        config.load();

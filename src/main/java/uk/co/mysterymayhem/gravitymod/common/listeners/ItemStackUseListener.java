@@ -1,14 +1,9 @@
 package uk.co.mysterymayhem.gravitymod.common.listeners;
 
-import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.FMLLog;
@@ -17,17 +12,17 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
-import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler.EnumItemStackUseCompat;
 import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
-import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.CombinedPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePostModifier;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.TreeMap;
 
 //TODO: Build two separate hashcodes and sets of maps, one that's used in SSP and one that's used in SMP.
 //TODO: If a server's hashcode does not match the client's, it replaces the SMP set.
@@ -44,7 +39,12 @@ public class ItemStackUseListener {
     public static final TreeMap<Item, TIntObjectHashMap<IPrePostModifier<EntityPlayerWithGravity>>> onPlayerStoppedUsing_itemToPrePostModifier = new TreeMap<>(new ItemComparator());
 
     private static int hashCode;
-    private static ByteBuf packetDataToSendOnClientConfigHashMismatch = new PacketBuffer(Unpooled.buffer());
+
+    public static void clearPrePostModifiers() {
+        onItemRightClick_itemToPrePostModifier.clear();
+        onItemUse_itemToPrePostModifier.clear();
+        onPlayerStoppedUsing_itemToPrePostModifier.clear();
+    }
 
     public static void addPrePostModifier(String fullModAndItemName, IPrePostModifier<EntityPlayerWithGravity> prePostModifier, EnumItemStackUseCompat listener, int... damageValues) {
         addPrePostModifier(fullModAndItemName, prePostModifier, new EnumItemStackUseCompat[]{listener}, damageValues);
@@ -139,93 +139,6 @@ public class ItemStackUseListener {
         addPrePostModifier(itemRegistryName, prePostModifier, new EnumItemStackUseCompat[]{listener}, damageValues);
     }
 
-    public static void buildPacketData() {
-
-        // Gather all the unique Items
-        HashSet<Item> allUniqueItems = new HashSet<>();
-        allUniqueItems.addAll(onItemUse_itemToPrePostModifier.keySet());
-        allUniqueItems.addAll(onItemRightClick_itemToPrePostModifier.keySet());
-        allUniqueItems.addAll(onPlayerStoppedUsing_itemToPrePostModifier.keySet());
-
-        // Gather all the unique modIds and itemNames of all the unique Items.
-        HashSet<String> allUniqueStrings = new HashSet<>();
-        for (Item item : allUniqueItems) {
-            ResourceLocation resourceLocation = item.getRegistryName();
-            allUniqueStrings.add(resourceLocation.getResourceDomain());
-            allUniqueStrings.add(resourceLocation.getResourcePath());
-        }
-
-        // A map that assigns each unique string to an integer, so instead of sending lots of strings, we can send the
-        // ints they're mapped to instead
-        TObjectIntHashMap<String> stringToIndexMap = new TObjectIntHashMap<>();
-
-        ByteBuf buf = packetDataToSendOnClientConfigHashMismatch;
-
-        // Number of strings used in the items, so we know how many to read
-        buf.writeInt(allUniqueStrings.size());
-
-        int i = 0;
-        for (String uniqueString : allUniqueStrings) {
-            // write string to buffer
-            ByteBufUtils.writeUTF8String(buf, uniqueString);
-            // store the index we're using for this string (will be used to get the index when we want to refer to items later
-            stringToIndexMap.put(uniqueString, i);
-            i++;
-        }
-
-        // Now add information such that we can reconstruct all the combined modifiers
-        ArrayList<CombinedPrePostModifier> combinedRegistry = CombinedPrePostModifier.COMBINED_REGISTRY;
-
-        // So we know how many to read
-        buf.writeInt(combinedRegistry.size());
-
-        for (CombinedPrePostModifier combinedModifier : combinedRegistry) {
-            // So we know what order the modifiers are used in
-            buf.writeBoolean(combinedModifier.getProcessingOrder() == CombinedPrePostModifier.ProcessingOrder.PRE_FIRST_SECOND_POST_FIRST_SECOND);
-            // ID of the first modifier
-            buf.writeInt(combinedModifier.getFirst().getUniqueID());
-            // ID of the second modifier
-            buf.writeInt(combinedModifier.getSecond().getUniqueID());
-        }
-
-        // Write the data of the maps, substituting int values instead of Strings and IPrePostModifiers
-        writeMapData(buf, stringToIndexMap, onItemUse_itemToPrePostModifier);
-        writeMapData(buf, stringToIndexMap, onItemRightClick_itemToPrePostModifier);
-        writeMapData(buf, stringToIndexMap, onPlayerStoppedUsing_itemToPrePostModifier);
-    }
-
-    private static void writeMapData(ByteBuf buf, TObjectIntHashMap<String> stringToIndexMap, TreeMap<Item, TIntObjectHashMap<IPrePostModifier<EntityPlayerWithGravity>>> map) {
-        // Write the number of entries
-        buf.writeInt(map.size());
-
-        for (Map.Entry<Item, TIntObjectHashMap<IPrePostModifier<EntityPlayerWithGravity>>> entry : map.entrySet()) {
-            Item item = entry.getKey();
-            ResourceLocation resourceLocation = item.getRegistryName();
-            // Write the ints that correspond to the registry name
-            buf.writeInt(stringToIndexMap.get(resourceLocation.getResourceDomain()));
-            buf.writeInt(stringToIndexMap.get(resourceLocation.getResourcePath()));
-
-            TIntObjectHashMap<IPrePostModifier<EntityPlayerWithGravity>> value = entry.getValue();
-
-            // Write how many damage values have a modifier
-            buf.writeInt(value.size());
-
-            TIntObjectIterator<IPrePostModifier<EntityPlayerWithGravity>> iterator = value.iterator();
-            for (int i = 0; i < value.size(); i++) {
-                iterator.advance();
-
-                // write the damage value
-                buf.writeInt(iterator.key());
-                // write the ID of the modifier it's mapped to
-                buf.writeInt(iterator.value().getUniqueID());
-            }
-        }
-    }
-
-    public static ByteBuf getConfigPacket() {
-        return packetDataToSendOnClientConfigHashMismatch;
-    }
-
     public static int getHashCode() {
         return hashCode;
     }
@@ -264,12 +177,6 @@ public class ItemStackUseListener {
             }
         }
         return hash;
-    }
-
-    public static void reset() {
-        onItemUse_itemToPrePostModifier.clear();
-        onItemRightClick_itemToPrePostModifier.clear();
-        onPlayerStoppedUsing_itemToPrePostModifier.clear();
     }
 
     /**
@@ -371,6 +278,16 @@ public class ItemStackUseListener {
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void onRightClickItemLowest(PlayerInteractEvent.RightClickItem event) {
         Hooks.popMotionStack(event.getEntityPlayer());
+    }
+
+    public enum EnumItemStackUseCompat {
+        BLOCK("onUseOnBlock"), GENERAL("onUseGeneral"), STOPPED_USING("onStoppedUsing");
+
+        public final String configName;
+
+        EnumItemStackUseCompat(String configName) {
+            this.configName = configName;
+        }
     }
 
     private static class ItemComparator implements Comparator<Item> {

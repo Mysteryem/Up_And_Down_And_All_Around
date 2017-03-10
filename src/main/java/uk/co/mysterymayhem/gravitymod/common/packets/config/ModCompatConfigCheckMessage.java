@@ -9,7 +9,6 @@ import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
  */
 public class ModCompatConfigCheckMessage implements IMessage {
 
-    private ByteBuf configData;
     private int modCompatHashcode;
     private EnumConfigPacketType packetType;
 
@@ -35,14 +34,6 @@ public class ModCompatConfigCheckMessage implements IMessage {
     public void toBytes(ByteBuf buf) {
         buf.writeInt(this.packetType.ordinal());
         this.packetType.writeToBuff(this, buf);
-    }
-
-    public ByteBuf getConfigData() {
-        return this.configData;
-    }
-
-    void setConfigData(ByteBuf buf) {
-        this.configData = buf;
     }
 
     public int getModCompatHashcode() {

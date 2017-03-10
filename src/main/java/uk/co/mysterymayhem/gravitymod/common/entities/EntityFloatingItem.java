@@ -213,7 +213,8 @@ public class EntityFloatingItem extends EntityItem {
                 /*&& stack.stackSize <= 0*/) {
             World world;
             if (this.getEntityItem().getItem() != StaticItems.GRAVITY_DUST) {
-                EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
+                EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST,
+                        ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
 //            newItem.lifespan = 20 * 10;
                 newItem.motionX *= 0.1;

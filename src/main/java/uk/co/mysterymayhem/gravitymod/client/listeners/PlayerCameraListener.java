@@ -23,10 +23,6 @@ import uk.co.mysterymayhem.gravitymod.common.util.Vec3dHelper;
 @SideOnly(Side.CLIENT)
 public class PlayerCameraListener {
 
-    private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
-    private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
-    private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
-
     @SubscribeEvent
     public static void onCameraSetup(CameraSetup event) {
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -57,7 +53,7 @@ public class PlayerCameraListener {
             double yTranslation = 0;
             double zTranslation = 0;
 
-            if (timeoutTicks != 0 && effectiveTimeoutTicks > rotationEnd) {
+            if (timeoutTicks != 0 && effectiveTimeoutTicks > ConfigHandler.transitionAnimationRotationEnd) {
 
                 double rotationAngle;
 
@@ -109,7 +105,7 @@ public class PlayerCameraListener {
                 }
 
                 double numerator = GravityDirectionCapability.DEFAULT_TIMEOUT - effectiveTimeoutTicks;
-                double denominator = rotationLength;
+                double denominator = ConfigHandler.transitionAnimationRotationLength;
 
                 double multiplierZeroToOne = numerator / denominator;
                 double multiplierOneToZero = 1 - multiplierZeroToOne;

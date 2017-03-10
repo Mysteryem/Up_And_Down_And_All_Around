@@ -43,10 +43,7 @@ import static net.minecraftforge.common.util.Constants.NBT.TAG_INT;
  */
 public class TileGravityGenerator extends TileEntity implements ITickable {
 
-    public static final int MAX_HEIGHT = ConfigHandler.gravityGeneratorMaxHeight;
-    public static final int MAX_RADIUS = ConfigHandler.gravityGeneratorMaxRadius;
     public static final int MAX_TICKS_PER_PARTICLE_SPAWN = 10;
-    public static final int MAX_VOLUME = MAX_HEIGHT * (2 * MAX_RADIUS + 1) * (2 * MAX_RADIUS + 1);
     public static final int MIN_HEIGHT = 1;
     // 0 -> 1, 1 -> 3, 2 -> 5
     public static final int MIN_RADIUS = 0;
@@ -66,11 +63,10 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     // Shouldn't be changed once set
     private EnumGravityTier gravityTier = EnumGravityTier.NORMAL;
     private boolean powered = false;
-    private int relativeXRadius = MAX_RADIUS;
-    private int relativeYHeight = MAX_HEIGHT;
-    private int relativeZRadius = MAX_RADIUS;
-    private static final double MAX_DISTANCE = (MAX_RADIUS + 0.5) * (MAX_RADIUS + 0.5) + (MAX_RADIUS + 0.5) * (MAX_RADIUS + 0.5) + MAX_HEIGHT * MAX_HEIGHT;
-    private double percentOfMaxVolume = this.getVolume() / MAX_VOLUME;
+    private int relativeXRadius = ConfigHandler.gravityGeneratorMaxRadius;
+    private int relativeYHeight = ConfigHandler.gravityGeneratorMaxHeight;
+    private int relativeZRadius = ConfigHandler.gravityGeneratorMaxRadius;
+    private double percentOfMaxVolume = this.getVolume() / ConfigHandler.gravityGeneratorMaxVolume;
     //Initial value should never be used
     private AxisAlignedBB searchVolume = Block.FULL_BLOCK_AABB;
     private int ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - this.percentOfMaxVolume *
@@ -105,7 +101,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public static int clampRadius(int radius) {
-        return Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, radius));
+        return Math.min(ConfigHandler.gravityGeneratorMaxRadius, Math.max(MIN_RADIUS, radius));
     }
 
     public static int widthToRadius(int width) {
@@ -165,7 +161,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
                 .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
 //        this.MAX_DISTANCE = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
-        this.percentOfMaxVolume = this.getVolume() / (double)MAX_VOLUME;
+        this.percentOfMaxVolume = this.getVolume() / (double)ConfigHandler.gravityGeneratorMaxVolume;
         this.ticksPerSpawn = (int)(MAX_TICKS_PER_PARTICLE_SPAWN - this.extendPercentageOfMaxVolume() *
                 (MAX_TICKS_PER_PARTICLE_SPAWN - MIN_TICKS_PER_PARTICLE_SPAWN));
     }
@@ -251,7 +247,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     }
 
     public static int clampHeight(int height) {
-        return Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height));
+        return Math.min(ConfigHandler.gravityGeneratorMaxHeight, Math.max(MIN_HEIGHT, height));
     }
 
     public int getRelativeZRadius() {
@@ -525,7 +521,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
                     double squareDistance = this.volumeSpawnPoint.squareDistanceTo(bbOrigin);
 //                    Vec3d bbCentre = new Vec3d(player.posX, player.posY, player.posZ);
                     float widthOver2 = player.width / 2;
-                    double percent = 1 - squareDistance / (MAX_DISTANCE + widthOver2 * widthOver2);
+                    double percent = 1 - squareDistance / (ConfigHandler.gravityGeneratorMaxDistance + widthOver2 * widthOver2);
                     int priority = this.getPriority(percent);
                     API.setPlayerGravity(enumGravityDirection, player, priority);
                 }

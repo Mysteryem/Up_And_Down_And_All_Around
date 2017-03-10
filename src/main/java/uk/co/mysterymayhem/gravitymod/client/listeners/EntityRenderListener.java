@@ -26,9 +26,6 @@ import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlign
 @SideOnly(Side.CLIENT)
 public class EntityRenderListener {
 
-    private static final double rotationSpeed = ConfigHandler.animationRotationSpeed;
-    private static final double rotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / rotationSpeed;
-    private static final double rotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - rotationLength;
     private static EntityLivingBase entityBeingRendered = null;
     private static boolean nameplateNeedToPop = false;
     private static boolean playerRotationNeedToPop = false;
@@ -101,9 +98,9 @@ public class EntityRenderListener {
         // at the end of this method is not rotating the player about their centre of gravity
         gravityDirection.applyOtherPlayerRenderTransformations(player);
 
-        if (timeoutTicks != 0 && effectiveTimeoutTicks > rotationEnd) {
+        if (timeoutTicks != 0 && effectiveTimeoutTicks > ConfigHandler.transitionAnimationRotationEnd) {
             double numerator = GravityDirectionCapability.DEFAULT_TIMEOUT - effectiveTimeoutTicks;
-            double denominator = rotationLength;
+            double denominator = ConfigHandler.transitionAnimationRotationLength;
 
             double multiplier = numerator / denominator;
             double oneMinusMultiplier = 1 - multiplier;
