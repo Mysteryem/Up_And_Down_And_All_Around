@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.config;
 
 import gnu.trove.set.hash.TIntHashSet;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -26,28 +27,30 @@ import java.util.regex.Pattern;
  */
 public class ConfigHandler {
 
-    public static final String CATEGORY_MOD_COMPAT = newCategory("modCompat");
+    public static final String CATEGORY_MOD_COMPAT = newCategory("modcompat");
     public static String[] modCompatUseOnBlock;
     public static String[] modCompatUseGeneral;
     public static String[] modCompatOnStoppedUsing;
     //<mod id>:<item name>[:damage][:damage][...],<compatibility modifier>:[compatibility modifier]
     public static final Pattern modCompatPattern = Pattern.compile("[^:]+:[^:]+(:[\\d]+)*,[a-zA-Z]+(:[a-zA-Z]+)?");
 
-    public static final String CATEGORY_ANTIMASS = newCategory("antimass");
+    public static final String CATEGORY_ANTIMASS_INDUCER = newCategory("antimassinducer");
     public static int gravityDustAmountDropped;
     public static float gravityDustDropChance;
     public static boolean gravityDustChanceOncePerBrokenBlock;
-    public static boolean destabilisedGravityDustDissipatesWhenDropped;
     public static final Pattern validDropBlockOrePattern = Pattern.compile("[^:]+:[^:]+(:[\\d]+)?");
     public static String[] gravityDustValidBlocksToDropFrom;
     public static String[] gravityDustValidDropsToSpawnAs;
 
-    public static final String CATEGORY_WORLD_GEN = newCategory("worldGen");
+    public static final String CATEGORY_DESTABILISED_ANTIMASS = newCategory("destabilisedantimass");
+    public static boolean destabilisedGravityDustDissipatesWhenDropped;
+
+    public static final String CATEGORY_WORLD_GEN = newCategory("worldgen");
     public static boolean oreGenDimensionListIsBlackList;
     public static TIntHashSet oreGenDimensionIDs;
     public static boolean oreGenRetroGen;
 
-    public static final String CATEGORY_LOOT = newCategory("extraLoot");
+    public static final String CATEGORY_LOOT = newCategory("extraloot");
     //TODO
     public static boolean addDownAnchorToFishingJunk;
     //TODO
@@ -67,11 +70,11 @@ public class ConfigHandler {
     public static int numNormalGravityEnablersRequiredForNormalGravity;
     public static int numNormalEnablersWeakEnablersCountsAs;
 
-    public static final String CATEGORY_GRAVITON_PEARL = newCategory("gravitonPearl");
+    public static final String CATEGORY_GRAVITON_PEARL = newCategory("gravitonpearl");
     public static double gravitonPearlRange;
     public static float baseGravitonPearlStrength;
 
-    public static final String CATEGORY_GRAVITY_GENERATOR = newCategory("gravityGenerator");
+    public static final String CATEGORY_GRAVITY_GENERATOR = newCategory("gravitygenerator");
     public static int gravityGeneratorMaxHeight; // Min value 1
     public static int gravityGeneratorMaxRadius; // Width = (x*2 + 1) // Min value 0
     public static int gravityGeneratorMaxVolume;
@@ -162,7 +165,7 @@ public class ConfigHandler {
                         "'tconstruct:longsword,relativeMotionAll:relativeRotation' - Adds a relative X, Y and Z motion modifier combined with a relative " +
                         "rotation modifier to all damage values of Tinkers' Construct Longswords.");
 
-        nextCategory(CATEGORY_ANTIMASS);
+        nextCategory(CATEGORY_ANTIMASS_INDUCER);
 
         prop = config.get(category, "amountDropped", 5, "The amount of anti-mass items that drop from each anti-mass spawn when mining \n" +
                 "This is also the base amount dropped by Anti-Mass ore.\n" +
@@ -175,10 +178,6 @@ public class ConfigHandler {
         prop = config.get(category, "oneChancePerBrokenBlock", false, "If true, only the first valid drop of a block will have a chance to spawn anti-mass." +
                 "\nIf false, each valid drop will have a chance to spawn anti-mass");
         gravityDustChanceOncePerBrokenBlock = process().getBoolean();
-
-        prop = config.get(category, "destabilisedDestroyedWhenDropped", true, "Destabilised Anti-Mass should dissipate/be destroyed when dropped out of an " +
-                "inventory");
-        destabilisedGravityDustDissipatesWhenDropped = process().getBoolean();
 
         prop = config.get(category, "validBlocksToSpawnFrom",
                 new String[]{"ore:oreRedstone", "ore:oreDiamond", "ore:oreLapis", "ore:oreCoal", "ore:oreQuartz", "ore:oreEmerald"},
@@ -204,6 +203,12 @@ public class ConfigHandler {
                         "\n\n",
                 validDropBlockOrePattern);
         gravityDustValidDropsToSpawnAs = process().getStringList();
+
+        nextCategory(CATEGORY_DESTABILISED_ANTIMASS);
+
+        prop = config.get(category, "destroyedWhenDropped", true, "Destabilised Anti-Mass should dissipate/be destroyed when dropped out of an " +
+                "inventory");
+        destabilisedGravityDustDissipatesWhenDropped = process().getBoolean();
 
         nextCategory(CATEGORY_WORLD_GEN);
 
@@ -245,7 +250,7 @@ public class ConfigHandler {
                 "that must be worn for a player to be affected by normal strength gravity", 0, Integer.MAX_VALUE);
         numNormalGravityEnablersRequiredForNormalGravity = process().getInt();
 
-        prop = config.get(category, "numNormalEnablersWeakEnablersCountsAs", 4, "Weak gravity enablers count as this many normal gravity enablers.\n" +
+        prop = config.get(category, "numNormalEnablersWeakEnablersCountAs", 4, "Weak gravity enablers count as this many normal gravity enablers.\n" +
                 "This makes more sense thematically to be greater than 1, but '1' or '0' will still work.");
         numNormalEnablersWeakEnablersCountsAs = process().getInt();
 
@@ -283,9 +288,7 @@ public class ConfigHandler {
                 "compatibility settings.");
         kickPlayersWithMismatchingModCompatHashes = process().getBoolean();
 
-        // Final cleanup
-        category = null;
-        prop = null;
+        cleanup();
 
         if (config.hasChanged()) {
             config.save();
@@ -306,6 +309,27 @@ public class ConfigHandler {
         }
     }
 
+    private static void cleanup() {
+        category = null;
+        prop = null;
+        Set<String> categoryNames = config.getCategoryNames();
+        for (String categoryName : categoryNames) {
+            Set<String> knownPropertyKeys = configNameToPropertyKeySet.get(categoryName);
+            if (knownPropertyKeys == null) {
+                config.removeCategory(config.getCategory(categoryName));
+            }
+            else {
+                ConfigCategory category = config.getCategory(categoryName);
+                Set<String> categoryPropertyKeys = category.keySet();
+                for (Iterator<String> iterator = categoryPropertyKeys.iterator(); iterator.hasNext(); /**/) {
+                    if (!knownPropertyKeys.contains(iterator.next())) {
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.getModID().equals(GravityMod.MOD_ID)) {
@@ -320,9 +344,9 @@ public class ConfigHandler {
 
     private static void nextCategory(String categoryName, boolean requiresMCRestart) {
         category = categoryName;
-        if (categoryName != null) {
+        if (category != null) {
             setCategoryOrder();
-            config.setCategoryRequiresWorldRestart(categoryName, requiresMCRestart);
+            config.setCategoryRequiresWorldRestart(category, requiresMCRestart);
         }
     }
 

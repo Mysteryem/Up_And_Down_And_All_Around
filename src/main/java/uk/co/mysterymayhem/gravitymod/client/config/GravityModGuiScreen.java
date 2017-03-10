@@ -20,7 +20,7 @@ import java.util.List;
 @SideOnly(Side.CLIENT)
 public class GravityModGuiScreen extends GuiConfig {
     public GravityModGuiScreen(GuiScreen parent) {
-        super(parent, getConfigElements(), GravityMod.MOD_ID, false, false, I18n.format("mysthighlights.config.title"));
+        super(parent, getConfigElements(), GravityMod.MOD_ID, false, false, I18n.format("config.mysttmtgravitymod.title"));
 
     }
 
@@ -43,7 +43,8 @@ public class GravityModGuiScreen extends GuiConfig {
         highestLevel.add(getCategory(ConfigHandler.CATEGORY_SERVER));
 
         blockAndItemMenu.add(getCategory(ConfigHandler.CATEGORY_GRAVITON_PEARL));
-        blockAndItemMenu.add(getCategory(ConfigHandler.CATEGORY_ANTIMASS));
+        blockAndItemMenu.add(getCategory(ConfigHandler.CATEGORY_ANTIMASS_INDUCER));
+        blockAndItemMenu.add(getCategory(ConfigHandler.CATEGORY_DESTABILISED_ANTIMASS));
         blockAndItemMenu.add(getCategory(ConfigHandler.CATEGORY_GRAVITY_GENERATOR));
 
         return highestLevel;
