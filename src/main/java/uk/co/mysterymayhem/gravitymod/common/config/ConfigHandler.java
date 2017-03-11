@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.config;
 
 import gnu.trove.set.hash.TIntHashSet;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -14,12 +15,14 @@ import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.Gravi
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener.EnumItemStackUseCompat;
+import uk.co.mysterymayhem.gravitymod.common.listeners.LootTableListener;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.CombinedPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.EnumPrePostModifier;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.prepostmodifier.IPrePostModifier;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -60,8 +63,11 @@ public class ConfigHandler {
     //TODO
     public static int gravityDustMineshaftWeight;
     public static float anchorChestLootChance;
+    private static final String[] defaultAnchorLootTables = {
+        "minecraft:chests/abandoned_mineshaft", "minecraft:chests/stronghold_corridor", "minecraft:chests/stronghold_crossing",
+        "minecraft:chests/desert_pyramid", "minecraft:chests/jungle_temple", "minecraft:chests/simple_dungeon"};
     //TODO
-    public static HashSet<ResourceLocation> lootTablesToAddAnchorsTo;
+    public static final HashMap<ResourceLocation, Predicate<LootTable>> lootTableAdditions = new HashMap<>();
 
     public static final String CATEGORY_GRAVITY = newCategory("gravity");
     public static float oppositeDirectionFallDistanceMultiplier;
@@ -105,8 +111,8 @@ public class ConfigHandler {
         configNameToPropertyKeySet = new HashMap<>();
 
         if (load) {
-            config.load();
             GravityMod.logInfo("Loading config");
+            config.load();
         }
         else {
             GravityMod.logInfo("Reloading config");
@@ -228,8 +234,43 @@ public class ConfigHandler {
 
         nextCategory(CATEGORY_LOOT);
 
-        prop = config.get(category, "generalAnchorChance", 0.05d, "Gravity anchors are added to stronghold, dungeon and mineshaft chests, this setting " +
-                "controls the chance that one of those chests will contain an anchor", 0d, 1d);
+        prop = config.get(category, "addDownAnchorToFishingJunk", true, "True if downwards gravity anchors should be added to the fishing junk loot table");
+        addDownAnchorToFishingJunk = process().getBoolean();
+
+        prop = config.get(category, "downAnchorFishingJunkWeight", 2, "'Weight' of the downwards gravity anchor added to the fishing junk loot table (higher " +
+                "weight = higher chance based on the weights of everything else in the loot table)", 1, 100);
+        downAnchorFishingJunkWeight = process().getInt();
+
+        prop = config.get(category, "addGravityDustToMineshafts", true, "True if anti-mass should be added to mineshaft chest loot");
+        addGravityDustToMineshafts = process().getBoolean();
+
+        prop = config.get(category, "gravityDustMineshaftWeight", 5, "'Weight' of anti-mass added to mineshaft chests (higher " +
+                "weight = higher chance based on the weights of everything else in the loot table)", 1, 100);
+        gravityDustMineshaftWeight = process().getInt();
+
+        prop = config.get(category, "lootTablesToAddAnchorsTo", defaultAnchorLootTables, "Loot tables to add gravity anchors to (their direction is chosen at" +
+                " random)");
+        String[] lootTablesToAddAnchorsTo = process().getStringList();
+
+        lootTableAdditions.clear();
+        if (addDownAnchorToFishingJunk) {
+            lootTableAdditions.put(new ResourceLocation("minecraft:gameplay/fishing/junk"), LootTableListener.FISHING_JUNK_LOOT);
+        }
+        if (addGravityDustToMineshafts) {
+            lootTableAdditions.put(new ResourceLocation("minecraft:chests/abandoned_mineshaft"), LootTableListener.ADD_GRAVITYDUST_TO_MINESHAFT);
+        }
+        for (String lootTable : lootTablesToAddAnchorsTo) {
+            ResourceLocation resourceLocation = new ResourceLocation(lootTable);
+            Predicate<LootTable> lootTablePredicate = lootTableAdditions.get(resourceLocation);
+            if (lootTablePredicate == null) {
+                lootTableAdditions.put(resourceLocation, LootTableListener.ADD_ANCHOR_POOL);
+            }
+            else {
+                lootTableAdditions.put(resourceLocation, lootTablePredicate.and(LootTableListener.ADD_ANCHOR_POOL));
+            }
+        }
+
+        prop = config.get(category, "generalAnchorChance", 0.05d, "The chance that one of the above loot tables will generate a gravity anchor", 0d, 1d);
         anchorChestLootChance = (float)process().getDouble();
 
         nextCategory(CATEGORY_GRAVITY);
@@ -288,11 +329,16 @@ public class ConfigHandler {
                 "compatibility settings.");
         kickPlayersWithMismatchingModCompatHashes = process().getBoolean();
 
+        // Needed to set the ordering of the current category
+        nextCategory(null);
+
         cleanup();
 
         if (config.hasChanged()) {
             config.save();
         }
+
+        GravityMod.logInfo("Loaded config");
     }
 
     public static void processLateConfig() {
@@ -343,9 +389,12 @@ public class ConfigHandler {
     }
 
     private static void nextCategory(String categoryName, boolean requiresMCRestart) {
-        category = categoryName;
         if (category != null) {
             setCategoryOrder();
+        }
+        category = categoryName;
+        if (category != null) {
+
             config.setCategoryRequiresWorldRestart(category, requiresMCRestart);
         }
     }

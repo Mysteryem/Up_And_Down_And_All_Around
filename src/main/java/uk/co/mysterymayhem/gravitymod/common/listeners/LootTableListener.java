@@ -14,7 +14,6 @@ import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
-import java.util.HashMap;
 import java.util.function.Predicate;
 
 /**
@@ -25,26 +24,15 @@ public class LootTableListener {
     private static final LootCondition[] NO_LOOT_CONDITIONS = new LootCondition[0];
     private static final LootEntry[] NO_LOOT_ENTRIES = new LootEntry[0];
 
-    private static final HashMap<ResourceLocation, Predicate<LootTable>> TABLES_TO_ADD_TO = new HashMap<>();
     private static final RandomValueRange randomAnchorMeta = new RandomValueRange(0, EnumGravityDirection.values().length - 1);// [0,5]
-    private static final Predicate<LootTable> FISHING_JUNK_LOOT = LootTableListener::addFishingJunkLoot;
-    private static final Predicate<LootTable> ADD_ANCHOR_POOL = LootTableListener::addAnchorPoolToLootTable;
-    private static final Predicate<LootTable> ADD_GRAVITYDUST_TO_MINESHAFT = LootTableListener::addGravityDustToMineshaftChest;
-
-    static {
-        addEntry("gameplay/fishing/junk", FISHING_JUNK_LOOT);
-        addEntry("chests/abandoned_mineshaft", ADD_ANCHOR_POOL.and(ADD_GRAVITYDUST_TO_MINESHAFT));
-        addEntry("chests/stronghold_corridor", ADD_ANCHOR_POOL);
-        addEntry("chests/stronghold_crossing", ADD_ANCHOR_POOL);
-        addEntry("chests/desert_pyramid", ADD_ANCHOR_POOL);
-        addEntry("chests/jungle_temple", ADD_ANCHOR_POOL);
-        addEntry("chests/simple_dungeon", ADD_ANCHOR_POOL);
-    }
+    public static final Predicate<LootTable> FISHING_JUNK_LOOT = LootTableListener::addFishingJunkLoot;
+    public static final Predicate<LootTable> ADD_ANCHOR_POOL = LootTableListener::addAnchorPoolToLootTable;
+    public static final Predicate<LootTable> ADD_GRAVITYDUST_TO_MINESHAFT = LootTableListener::addGravityDustToMineshaftChest;
 
     @SubscribeEvent
     public static void onLootLoad(LootTableLoadEvent event) {
         ResourceLocation name = event.getName();
-        Predicate<LootTable> lootTableConsumer = TABLES_TO_ADD_TO.get(name);
+        Predicate<LootTable> lootTableConsumer = ConfigHandler.lootTableAdditions.get(name);
         if (lootTableConsumer != null) {
             if (!lootTableConsumer.test(event.getTable())) {
                 GravityMod.logWarning("Failed to add loot to %s", name);
@@ -63,7 +51,7 @@ public class LootTableListener {
 
             LootEntryItem lootEntryItem = new LootEntryItem(
                     StaticItems.GRAVITY_DUST,//item
-                    5,//weight
+                    ConfigHandler.gravityDustMineshaftWeight,//weight
                     0,//quality
                     lootFunctions,//loot functions
                     NO_LOOT_CONDITIONS,//loot conditions
@@ -111,7 +99,7 @@ public class LootTableListener {
 
             LootEntry anchorEntry = new LootEntryItem(
                     StaticItems.GRAVITY_ANCHOR,//item
-                    2,//Same weight as fishing rod (smallest default weight, 2/94 chance to be picked if nothing else has been added to the pool)
+                    ConfigHandler.downAnchorFishingJunkWeight,//Same weight as fishing rod (smallest default weight, 2/94 chance to be picked if nothing else has been added to the pool)
                     0,//quality? 0 is default
                     lootFunctions,//loot functions
                     NO_LOOT_CONDITIONS,//loot conditions
@@ -120,9 +108,5 @@ public class LootTableListener {
             return true;
         }
         return false;
-    }
-
-    private static void addEntry(String location, Predicate<LootTable> lootAdder) {
-        TABLES_TO_ADD_TO.put(new ResourceLocation("minecraft", location), lootAdder);
     }
 }
