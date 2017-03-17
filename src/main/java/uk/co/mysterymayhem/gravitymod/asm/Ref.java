@@ -158,6 +158,7 @@ public class Ref {
     public static final FieldInsn EntityOtherPlayerMP$prevPosY_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$prevPosY_name, DOUBLE);
     public static final FieldInsn EntityOtherPlayerMP$prevPosZ_GET = new FieldInsn(GETFIELD, EntityOtherPlayerMP, Entity$prevPosZ_name, DOUBLE);
     public static final FieldInsn EntityPlayer$posY_GET = new FieldInsn(GETFIELD, EntityPlayer, Entity$posY_name, DOUBLE);
+    public static final FieldInsn EntityPlayerMP$posX_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posX_name, DOUBLE);
     public static final FieldInsn EntityPlayerMP$posY_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posY_name, DOUBLE);
     public static final FieldInsn EntityPlayerMP$posZ_GET = new FieldInsn(GETFIELD, EntityPlayerMP, Entity$posZ_name, DOUBLE);
     public static final FieldInsn EntityPlayerSP$posX_GET = new FieldInsn(GETFIELD, EntityPlayerSP, Entity$posX_name, DOUBLE);

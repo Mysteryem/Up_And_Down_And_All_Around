@@ -28,6 +28,8 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
     private static final String xDiffLocalVarKey = "xDiffLocalVar";
     private static final String yDiffLocalVarKey = "yDiffLocalVar";
     private static final String zDiffLocalVarKey = "zDiffLocalVar";
+    private static final String initialXPosLocalVarKey = "initialXPosLocalVar";
+    private static final String initialZPosLocalVarKey = "initialZPosLocalVar";
 
     public PatchNetHandlerPlayServer() {
         super("net.minecraft.network.NetHandlerPlayServer", 0, ClassWriter.COMPUTE_MAXS);
@@ -75,9 +77,13 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
         private int extraDoubleVar = -1;
 
         public ProcessPlayer() {
+
+            InsnPatcher findInitialXZPosVarIndices = this.addInsnPatch(this::findInitialXZPlayerPosVariables);
             // The player has handleFalling called on them, but the vanilla code passes the change in Y position as one of the arguments, this has to be
             // changed to a change in the relative upwards direction of the player.
-            this.addInsnPatch(this::fixHandleFallingToUseRelativeYPosition);
+            InsnPatcher fixHandleFalling = this.addInsnPatch(this::fixHandleFallingToUseRelativeYPosition);
+
+            InsnPatcher.sequentialOrder(findInitialXZPosVarIndices, fixHandleFalling);
 
             // -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -281,19 +287,19 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
                 AbstractInsnNode previous = iterator.previous(); // Should be DSUB
                 if (previous.getOpcode() == Opcodes.DSUB) {
                     iterator.remove();
-                    VarInsnNode dload7 = new VarInsnNode(Opcodes.DLOAD, 7);
-                    iterator.add(dload7);
+                    VarInsnNode dloadInitialZ = new VarInsnNode(Opcodes.DLOAD, (Integer)PatchNetHandlerPlayServer.this.getData(initialZPosLocalVarKey));
+                    iterator.add(dloadInitialZ);
                     Ref.Hooks$netHandlerPlayServerHandleFallingYChange.addTo(iterator);
                     iterator.previous(); // Our newly added INVOKESTATIC
-                    iterator.previous(); // Our newly added DLOAD 7
+                    iterator.previous(); // Our newly added DLOAD 'initialZ'
                     iterator.previous(); // DLOAD 9
                     previous = iterator.previous(); // GETFIELD posY
                     if (previous instanceof FieldInsnNode) {
                         FieldInsnNode fieldInsnNode = (FieldInsnNode)previous;
                         if (Ref.EntityPlayerMP$posY_GET.is(fieldInsnNode)) {
-                            VarInsnNode dload3 = new VarInsnNode(Opcodes.DLOAD, 3);
+                            VarInsnNode dloadInitialX = new VarInsnNode(Opcodes.DLOAD, (Integer)PatchNetHandlerPlayServer.this.getData(initialXPosLocalVarKey));
                             iterator.remove();
-                            iterator.add(dload3);
+                            iterator.add(dloadInitialX);
                             return true;
                         }
                         else {
@@ -306,6 +312,32 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
                 }
                 else {
                     Transformer.die("Unexpected instruction in NetHandletPlayServer::processPlayer, expecting \"DSUB\"");
+                }
+            }
+            return false;
+        }
+
+        private boolean findInitialXZPlayerPosVariables(AbstractInsnNode node, ListIterator<AbstractInsnNode> iterator) {
+            if (Ref.EntityPlayerMP$posX_GET.is(node)) {
+                AbstractInsnNode next = iterator.next();
+                if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.DSTORE) {
+                    //found it
+                    PatchNetHandlerPlayServer.this.storeData(initialXPosLocalVarKey, ((VarInsnNode)next).var);
+                    while(iterator.hasNext()) {
+                        next = iterator.next();
+                        if (Ref.EntityPlayerMP$posZ_GET.is(next)) {
+                            next = iterator.next();
+                            if (next instanceof VarInsnNode && next.getOpcode() == Opcodes.DSTORE) {
+                                PatchNetHandlerPlayServer.this.storeData(initialZPosLocalVarKey, ((VarInsnNode)next).var);
+                                return true;
+                            }
+                            else {
+                                Transformer.die("Unexpected instruction following GETFIELD EntityPlayerMP.posZ, expected DSTORE");
+                            }
+                        }
+                    }
+
+                    Transformer.die("Unable to find localvar that holds initial posZ after finding localvar that holds initial posX");
                 }
             }
             return false;
