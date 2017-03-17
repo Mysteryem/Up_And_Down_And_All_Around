@@ -224,7 +224,7 @@ public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerato
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravitygenerator";
     }
 

@@ -86,7 +86,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravityanchor";
     }
 

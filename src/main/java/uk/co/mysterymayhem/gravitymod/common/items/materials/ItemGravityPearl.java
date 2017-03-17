@@ -38,7 +38,7 @@ import java.util.List;
 public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravityPearl> {
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravitypearl";
     }
 

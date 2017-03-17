@@ -13,7 +13,7 @@ public interface IModObject extends IFMLStaged {
      *
      * @return
      */
-    String getName();
+    String getModObjectName();
 //    default String getName() {
 //        return this.getClass().getSimpleName().toLowerCase(Locale.ENGLISH);
 //    }

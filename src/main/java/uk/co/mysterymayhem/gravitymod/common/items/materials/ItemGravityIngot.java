@@ -20,7 +20,7 @@ public class ItemGravityIngot extends Item implements IGravityModItem<ItemGravit
             EnumHelper.addArmorMaterial("gravityiron", GravityMod.MOD_ID + ":gravityiron", 15, new int[]{1, 3, 4, 1}, 10, SoundEvents.ITEM_ARMOR_EQUIP_IRON, 0F);
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravityingot";
     }
 

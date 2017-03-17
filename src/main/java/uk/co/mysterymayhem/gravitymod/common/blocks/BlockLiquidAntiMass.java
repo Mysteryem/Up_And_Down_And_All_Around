@@ -39,7 +39,7 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "liquidantimass";
     }
 

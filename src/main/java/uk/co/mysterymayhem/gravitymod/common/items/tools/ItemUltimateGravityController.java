@@ -35,7 +35,7 @@ public class ItemUltimateGravityController extends ItemAbstractGravityController
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return NAME;
     }
 

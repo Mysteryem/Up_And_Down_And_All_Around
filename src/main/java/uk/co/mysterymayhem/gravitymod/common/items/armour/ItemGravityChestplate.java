@@ -21,7 +21,7 @@ public class ItemGravityChestplate extends ItemArmor implements IGravityModItem<
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravitychestplate";
     }
 

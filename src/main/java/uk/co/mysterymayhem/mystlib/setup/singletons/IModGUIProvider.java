@@ -24,7 +24,7 @@ public interface IModGUIProvider<S extends Container> extends IModObject {
     Object getClientSide(EntityPlayer player, World world, int x, int y, int z);
 
     @Override
-    default String getName() {
+    default String getModObjectName() {
         return "unused";
     }
 

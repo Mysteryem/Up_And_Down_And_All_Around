@@ -14,7 +14,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
  */
 public class ItemSpacetimeAnomaly extends Item implements IGravityModItem<ItemSpacetimeAnomaly> {
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "spacetimeanomaly";
     }
 

@@ -20,7 +20,7 @@ public class ItemGravityLeggings extends ItemArmor implements IGravityModItem<It
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravityleggings";
     }
 

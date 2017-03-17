@@ -31,6 +31,11 @@ public class LiquidAntiMass extends Fluid implements IGravityModCommon {
     }
 
     @Override
+    public String getModObjectName() {
+        return FLUID_NAME;
+    }
+
+    @Override
     public int getColor() {
         return 0xFF4E006f;
     }

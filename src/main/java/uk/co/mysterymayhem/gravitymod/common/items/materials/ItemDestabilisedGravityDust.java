@@ -69,7 +69,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "destabilisedgravitydust";
     }
 
@@ -167,7 +167,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             }
 
             @Override
-            public String getName() {
+            public String getModObjectName() {
                 return "antimassdissipation";
             }
 

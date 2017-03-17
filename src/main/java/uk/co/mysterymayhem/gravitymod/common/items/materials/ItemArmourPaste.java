@@ -92,7 +92,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "armourpaste";
     }
 

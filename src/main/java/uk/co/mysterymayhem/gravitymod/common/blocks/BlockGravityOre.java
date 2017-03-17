@@ -123,7 +123,7 @@ public class BlockGravityOre extends AbstractModBlock<BlockGravityOre, GenericIt
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravityore";
     }
 

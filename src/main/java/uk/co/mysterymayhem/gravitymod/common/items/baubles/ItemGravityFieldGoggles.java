@@ -87,7 +87,7 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravitygoggles";
     }
 

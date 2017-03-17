@@ -308,7 +308,7 @@ public class BlockGravityPlate extends AbstractModBlock<BlockGravityPlate, Gener
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return this.tier.getInternalPrefix() + "gravityplate";
     }
 

@@ -12,7 +12,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
  */
 public class ItemRestabilisedGravityDust extends Item implements IGravityModItem<ItemRestabilisedGravityDust> {
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "restabilisedgravitydust";
     }
 

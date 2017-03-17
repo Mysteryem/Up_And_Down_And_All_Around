@@ -27,7 +27,7 @@ public class BlockRestabilisedGravityDust extends AbstractModBlock<BlockRestabil
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "restabilisedgravitydust_block";
     }
 

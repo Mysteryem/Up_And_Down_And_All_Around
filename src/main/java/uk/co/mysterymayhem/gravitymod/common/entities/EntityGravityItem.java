@@ -103,7 +103,7 @@ public class EntityGravityItem extends EntityItem implements IEntityAdditionalSp
         }
 
         @Override
-        public String getName() {
+        public String getModObjectName() {
             return "itemgravity";
         }
     }

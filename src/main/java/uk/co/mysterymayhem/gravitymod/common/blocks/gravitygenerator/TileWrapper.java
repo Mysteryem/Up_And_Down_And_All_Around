@@ -13,7 +13,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModTileEntityCla
 public class TileWrapper implements IGravityModTileEntityClassWrapper<TileGravityGenerator> {
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "tilegravitygenerator";
     }
 

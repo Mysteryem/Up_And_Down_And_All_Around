@@ -59,7 +59,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravitydust";
     }
 

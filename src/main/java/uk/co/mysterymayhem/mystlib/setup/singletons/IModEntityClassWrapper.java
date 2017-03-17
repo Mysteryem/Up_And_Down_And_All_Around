@@ -16,7 +16,7 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
     default void preInit() {
         EntityRegistry.registerModEntity(
                 this.getEntityClass(),
-                this.getName(),
+                this.getModObjectName(),
                 this.getUniqueID(),
                 this.getModInstance(),
                 this.getTrackingRange(),

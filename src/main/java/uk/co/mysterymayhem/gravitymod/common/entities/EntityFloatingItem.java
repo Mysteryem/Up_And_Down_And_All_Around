@@ -319,7 +319,7 @@ public class EntityFloatingItem extends EntityItem {
         }
 
         @Override
-        public String getName() {
+        public String getModObjectName() {
             return "itemfloating";
         }
 

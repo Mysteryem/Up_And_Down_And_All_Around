@@ -178,7 +178,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return NAME;
     }
 }

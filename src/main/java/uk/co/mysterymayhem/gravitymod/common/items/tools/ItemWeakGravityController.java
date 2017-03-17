@@ -35,7 +35,7 @@ public class ItemWeakGravityController extends ItemAbstractGravityController {
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "weakgravitycontroller";
     }
 

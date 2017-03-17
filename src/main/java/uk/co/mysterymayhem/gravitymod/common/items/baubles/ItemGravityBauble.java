@@ -46,7 +46,7 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "gravitybauble";
     }
 

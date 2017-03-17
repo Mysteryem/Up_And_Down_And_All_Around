@@ -34,7 +34,7 @@ public class ItemPersonalGravityController extends ItemAbstractGravityController
     }
 
     @Override
-    public String getName() {
+    public String getModObjectName() {
         return "personalgravitycontroller";
     }
 
