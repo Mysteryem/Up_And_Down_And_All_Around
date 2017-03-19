@@ -1,11 +1,13 @@
 package uk.co.mysterymayhem.gravitymod;
 
+import com.google.common.collect.Lists;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityFloatingItem;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDust;
+import uk.co.mysterymayhem.gravitymod.common.listeners.FallOutOfWorldUpwardsListenerCommon;
 import uk.co.mysterymayhem.gravitymod.common.listeners.GravityManagerCommon;
 import uk.co.mysterymayhem.gravitymod.common.listeners.ItemStackUseListener;
 import uk.co.mysterymayhem.gravitymod.common.listeners.LootTableListener;
@@ -16,6 +18,7 @@ import uk.co.mysterymayhem.mystlib.setup.IFMLStaged;
 import uk.co.mysterymayhem.mystlib.setup.registries.AbstractIFMLStagedRegistry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -55,11 +58,16 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         MinecraftForge.EVENT_BUS.register(Generator.class);
         GameRegistry.registerWorldGenerator(Generator.INSTANCE, 0);
         MinecraftForge.EVENT_BUS.register(ConfigHandler.class);
+        this.createSidedEventListeners().forEach(MinecraftForge.EVENT_BUS::register);
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
     }
 
     public GravityManagerCommon getGravityManager() {
         return this.gravityManagerCommon;
+    }
+
+    public Collection<?> createSidedEventListeners() {
+        return Lists.newArrayList(new FallOutOfWorldUpwardsListenerCommon());
     }
 
     @Override
@@ -69,5 +77,6 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         modObjects.add(new ModEntities());
         modObjects.add(new ModTileEntities());
         modObjects.add(new ModGUIs());
+        modObjects.add(new ModPotions());
     }
 }

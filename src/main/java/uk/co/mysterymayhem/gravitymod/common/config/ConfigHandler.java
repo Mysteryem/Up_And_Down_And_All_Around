@@ -90,9 +90,19 @@ public class ConfigHandler {
     public static double transitionAnimationRotationSpeed;
     public static double transitionAnimationRotationLength;
     public static double transitionAnimationRotationEnd;
+    public static int ticksUntilFullyFrozen;
+    public static boolean usePackedIceTexture;
 
     public static final String CATEGORY_SERVER = newCategory("server");
     public static boolean kickPlayersWithMismatchingModCompatHashes;
+
+    public static final String CATEGORY_FALLOUTOFWORLD = newCategory("fallupoutofworld");
+    public static double yHeightFreeze;
+    public static double yHeightBoil;
+    public static float bloodBoilDamage;
+    public static double yHeightNoAir;
+    public static float asphyxiateDamage;
+    public static double yHeightInstantDeath;
 
     public static Configuration config;
     private static List<String> propertyOrder;
@@ -252,6 +262,8 @@ public class ConfigHandler {
                 " random)");
         String[] lootTablesToAddAnchorsTo = process().getStringList();
 
+        // Since adding loot to existing loot tables uses a map for quickly checking if we have anything to add, we need to prepare the map before the
+        // LootTableLoadEvent is fired
         lootTableAdditions.clear();
         if (addDownAnchorToFishingJunk) {
             lootTableAdditions.put(new ResourceLocation("minecraft:gameplay/fishing/junk"), LootTableListener.FISHING_JUNK_LOOT);
@@ -324,18 +336,48 @@ public class ConfigHandler {
         transitionAnimationRotationLength = GravityDirectionCapability.DEFAULT_TIMEOUT / transitionAnimationRotationSpeed;
         transitionAnimationRotationEnd = GravityDirectionCapability.DEFAULT_TIMEOUT - transitionAnimationRotationLength;
 
+        prop = config.get(category, "ticksUntilFullyFrozen", 100, "Number of ticks it takes for the freezing screen effect to reach maximum opacity. 1 tick =" +
+                " 1/20th of a second.", 1, Integer.MAX_VALUE);
+        ticksUntilFullyFrozen = process().getInt();
+
+        prop = config.get(category, "usePackedIceTexture", false, "True to use the packed ice texture instead of the normal ice texture when freezing.");
+        usePackedIceTexture = process().getBoolean();
+
         nextCategory(CATEGORY_SERVER);
         prop = config.get(category, "kickPlayersWithMismatchingModCompat", false, "True if the server should kick players that have different mod " +
                 "compatibility settings.");
         kickPlayersWithMismatchingModCompatHashes = process().getBoolean();
 
+        nextCategory(CATEGORY_FALLOUTOFWORLD);
+
+        prop = config.get(category, "freezingHeight", 356d, "Players above this height will get a freezing effect applied to them that slowly obscures their view");
+        yHeightFreeze = process().getDouble();
+
+        prop = config.get(category, "noAirHeight", 257d, "Players above this height will slowly lose air and take damage if they run out, similar to drowning");
+        yHeightNoAir = process().getDouble();
+
+        // Default is 64 blocks higher than max y height, reflecting the fact you start takign void damage at -64
+        prop = config.get(category, "bloodBoilHeight", 500d, "Players above this height will take rapid damage similar to falling out of the bottom of " +
+                "the world.");
+        yHeightBoil = process().getDouble();
+
+        // 4f = the same as the constant damage you take when falling out of the world normally
+        prop = config.get(category, "bloodBoilDamage", 4d, "Damage taken each tick while blood is boiling. 4 would be the same as falling out of the bottom " +
+                "of the world");
+        bloodBoilDamage = (float)process().getDouble();
+
+        prop = config.get(category, "instantDeathHeight", 700d, "Players above this height instantly die");
+        yHeightInstantDeath = process().getDouble();
+
         // Needed to set the ordering of the current category
         nextCategory(null);
 
+        // Sets static fields back to null and deletes categories and properties that we weren't expecting (this helps clean up old configs)
         cleanup();
 
         if (config.hasChanged()) {
             config.save();
+            GravityMod.logInfo("Saved config");
         }
 
         GravityMod.logInfo("Loaded config");
@@ -388,14 +430,14 @@ public class ConfigHandler {
         nextCategory(categoryName, true);
     }
 
-    private static void nextCategory(String categoryName, boolean requiresMCRestart) {
+    private static void nextCategory(String categoryName, boolean requiresWorldRestart) {
         if (category != null) {
             setCategoryOrder();
         }
         category = categoryName;
         if (category != null) {
 
-            config.setCategoryRequiresWorldRestart(category, requiresMCRestart);
+            config.setCategoryRequiresWorldRestart(category, requiresWorldRestart);
         }
     }
 

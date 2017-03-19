@@ -1,12 +1,12 @@
 package uk.co.mysterymayhem.gravitymod;
 
+import com.google.common.collect.Lists;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import uk.co.mysterymayhem.gravitymod.client.listeners.EntityRenderListener;
-import uk.co.mysterymayhem.gravitymod.client.listeners.GravityManagerClient;
-import uk.co.mysterymayhem.gravitymod.client.listeners.ItemTooltipListener;
-import uk.co.mysterymayhem.gravitymod.client.listeners.PlayerCameraListener;
+import uk.co.mysterymayhem.gravitymod.client.listeners.*;
+
+import java.util.Collection;
 
 /**
  * Created by Mysteryem on 2016-08-04.
@@ -43,5 +43,11 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(PlayerCameraListener.class);
         MinecraftForge.EVENT_BUS.register(EntityRenderListener.class);
         MinecraftForge.EVENT_BUS.register(ItemTooltipListener.class);
+        MinecraftForge.EVENT_BUS.register(FallOutOfWorldUpwardsListenerClient.class);
+    }
+
+    @Override
+    public Collection<?> createSidedEventListeners() {
+        return Lists.newArrayList(new FallOutOfWorldUpwardsListenerClient());
     }
 }

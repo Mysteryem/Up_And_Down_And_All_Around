@@ -39,6 +39,7 @@ public class GravityModGuiScreen extends GuiConfig {
         highestLevel.add(getCategory(ConfigHandler.CATEGORY_LOOT));
         highestLevel.add(getCategory(ConfigHandler.CATEGORY_MOD_COMPAT));
         highestLevel.add(new DummyConfigElement.DummyCategoryElement("blocksAndItems", "config.mysttmtgravitymod.menu.blocksAndItems", blockAndItemMenu));
+        highestLevel.add(getCategory(ConfigHandler.CATEGORY_FALLOUTOFWORLD));
         highestLevel.add(getCategory(ConfigHandler.CATEGORY_CLIENT));
         highestLevel.add(getCategory(ConfigHandler.CATEGORY_SERVER));
 

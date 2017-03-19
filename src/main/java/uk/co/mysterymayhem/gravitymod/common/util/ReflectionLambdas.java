@@ -2,8 +2,11 @@ package uk.co.mysterymayhem.gravitymod.common.util;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.math.MathHelper;
+import uk.co.mysterymayhem.mystlib.setup.singletons.IModPotion;
 
+import java.lang.invoke.MethodType;
 import java.util.function.DoubleSupplier;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
@@ -39,4 +42,8 @@ public class ReflectionLambdas {
 
     public static final ToIntFunction<EntityItem> get_EntityItem$age
             = buildInstanceFieldGetter(ToIntFunction.class, EntityItem.class, int.class, "field_70292_b", "age");
+
+    public static final IModPotion.PotionIntIntToPotion Potion$setIconIndex
+            = buildInstanceMethodLambda(IModPotion.PotionIntIntToPotion.class, Potion.class, MethodType.methodType(Potion.class, int.class, int.class),
+            "func_76399_b", "setIconIndex");
 }
