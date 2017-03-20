@@ -34,7 +34,7 @@ public class GravityMod {
     // Major changes, 1 was used for TMT, 2 is main development, 3 will likely be for initial full release and beyond
     private static final int MAJOR_VERSION = 2;
     // Indicates a breaking change in the mod, requiring both client and server updates
-    private static final int MINOR_VERSION = 6;
+    private static final int MINOR_VERSION = 7;
     // Indicates a non-breaking change in the mod
     // Different patch numbers but the same major and minor version should be compatible with one another
     private static final int PATCH_NUMBER = 0;
