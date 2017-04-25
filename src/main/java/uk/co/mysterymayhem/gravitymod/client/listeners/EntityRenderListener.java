@@ -8,7 +8,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -78,8 +77,8 @@ public class EntityRenderListener {
         EntityPlayer player = event.getEntityPlayer();
         AxisAlignedBB entityBoundingBox = player.getEntityBoundingBox();
         if (!(entityBoundingBox instanceof GravityAxisAlignedBB)) {
-            //Not good
-            FMLLog.bigWarning("Tried rendering player %s, but their bounding box was not a GravityAxisAlignedBB", player.getName());
+            // Either this mod is completely non-functional for some reason, or another mod has extended EntityPlayer and overridden the methods that set up
+            // bounding boxes
             return;
         }
         GravityAxisAlignedBB gAABB = (GravityAxisAlignedBB)entityBoundingBox;
