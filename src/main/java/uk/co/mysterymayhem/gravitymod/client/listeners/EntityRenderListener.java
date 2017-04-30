@@ -73,7 +73,7 @@ public class EntityRenderListener {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onRender(RenderPlayerEvent.Pre event) {
+    public static void onRenderPre(RenderPlayerEvent.Pre event) {
         EntityPlayer player = event.getEntityPlayer();
         AxisAlignedBB entityBoundingBox = player.getEntityBoundingBox();
         if (!(entityBoundingBox instanceof GravityAxisAlignedBB)) {
@@ -133,8 +133,23 @@ public class EntityRenderListener {
         playerRotationNeedToPop = true;
     }
 
+    /**
+     * RenderPlayerEvent.Pre is cancelable meaning that we wouldn't end up popping the matrix when this happens.
+     * @param event
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void onRender(RenderPlayerEvent.Post event) {
+    public static void onRenderPreCancelCleanup(RenderPlayerEvent.Pre event) {
+        if (event.isCanceled()) {
+            cleanup();
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onRenderPost(RenderPlayerEvent.Post event) {
+        cleanup();
+    }
+
+    private static void cleanup() {
         if (playerRotationNeedToPop) {
             playerRotationNeedToPop = false;
             GlStateManager.popMatrix();
