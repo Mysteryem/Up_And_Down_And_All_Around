@@ -24,13 +24,17 @@ import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.util.vector.Vector3f;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import paulscode.sound.SoundSystem;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
+import uk.co.mysterymayhem.gravitymod.asm.patches.PatchEntityPlayerSP;
 import uk.co.mysterymayhem.gravitymod.asm.util.ItemStackAndBoolean;
 import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.GravityDirectionCapability;
 import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+
+import java.util.ListIterator;
 
 /**
  * Hooks called through ASM-ed code in order to simplify changes to vanilla classes.
@@ -267,12 +271,23 @@ public class Hooks {
      * @return
      */
     public static BlockPos getRelativeDownBlockPos(BlockPos other, Entity entity) {
+        return makeRelativeBlockPos(other, entity).down();
+    }
+
+    /**
+     * ASM Hook used in EntityPlayerSP::isHeadspaceFree and used in other hooks to reduce duplicate code.
+     * @see Ref#Hooks$makeRelativeBlockPos
+     * @param other The BlockPos whose coordinates will be inherited
+     * @param entity The entity whose gravity direction will define the relative movement of the returned BlockPos
+     * @return
+     */
+    public static BlockPos makeRelativeBlockPos(BlockPos other, Entity entity) {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other).down();
+            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other);
         }
         else {
-            return other.down();
+            return other;
         }
     }
 
@@ -721,32 +736,26 @@ public class Hooks {
 //        return mutableBlockPos.setPos(entity.posX, entity.getEntityBoundingBox().minY - 1.0D, entity.posZ);
     }
 
-    //TODO: Find the method the hook is used in
     /**
-     * ASM Hook used in EntityPlayerSP::?
+     * ASM Hook used in EntityPlayerSP::onLivingUpdate
+     * @see PatchEntityPlayerSP#onLivingUpdatePatch(AbstractInsnNode, ListIterator)
+     * @see Ref#Hooks$pushEntityPlayerSPOutOfBlocks
+     * @see EntityPlayerSP#onLivingUpdate()
      * @param playerWithGravity
      * @param bb
      */
     public static void pushEntityPlayerSPOutOfBlocks(EntityPlayerWithGravity playerWithGravity, AxisAlignedBB bb) {
         // Called from ASM-ed code where we do an INSTANCEOF check beforehand, so this cast is fine
-//        playerWithGravity.makeMotionAbsolute();
 
         GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
         Vec3d origin = gBB.offset(-playerWithGravity.width * 0.35, 0.5, playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
         origin = gBB.offset(-playerWithGravity.width * 0.35, 0.5, -playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
         origin = gBB.offset(playerWithGravity.width * 0.35, 0.5, -playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
         origin = gBB.offset(playerWithGravity.width * 0.35, 0.5, playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocksDelegate(origin.xCoord, origin.yCoord, origin.zCoord);
-
-//        AxisAlignedBB axisalignedbb = playerWithGravity.getEntityBoundingBox();
-//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX - (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ + (double)playerWithGravity.width * 0.35D);
-//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX - (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ - (double)playerWithGravity.width * 0.35D);
-//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX + (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ - (double)playerWithGravity.width * 0.35D);
-//        playerWithGravity.pushOutOfBlocks(playerWithGravity.posX + (double)playerWithGravity.width * 0.35D, axisalignedbb.minY + 0.5D, playerWithGravity.posZ + (double)playerWithGravity.width * 0.35D);
-//        playerWithGravity.popMotionStack();
+        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
     }
 
     /**
@@ -1293,13 +1302,7 @@ public class Hooks {
      * @return
      */
     public static BlockPos getRelativeUpBlockPos(BlockPos other, Entity entity) {
-        AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
-        if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other).up();
-        }
-        else {
-            return other.up();
-        }
+        return makeRelativeBlockPos(other, entity).up();
     }
 
     /**
@@ -1339,13 +1342,7 @@ public class Hooks {
      * @return
      */
     public static BlockPos getRelativeUpBlockPos(BlockPos other, int count, Entity entity) {
-        AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
-        if (entityBoundingBox instanceof GravityAxisAlignedBB) {
-            return((GravityAxisAlignedBB) entityBoundingBox).getDirection().makeRelativeBlockPos(other).up(count);
-        }
-        else {
-            return other.up(count);
-        }
+        return makeRelativeBlockPos(other, entity).up(count);
     }
 
     /**

@@ -722,6 +722,12 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         net.minecraftforge.fml.common.FMLCommonHandler.instance().onPlayerPostTick(this);
     }
 
+    // Overridden so that Hooks class can access this method
+    @Override
+    protected boolean pushOutOfBlocks(double x, double y, double z) {
+        return super.pushOutOfBlocks(x, y, z);
+    }
+
     void makePositionAbsolute() {
         if (this.positionVarsAreRelative) {
             EnumGravityDirection direction = API.getGravityDirection(this);
@@ -757,27 +763,6 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             this.positionVarsAreRelative = true;
         }
     }
-
-    //TODO: Fix this, so players are pushed out of blocks in differing direction based on their gravity
-    boolean pushOutOfBlocksDelegate(double x, double y, double z) {
-//        this.makeMotionAbsolute();
-        boolean result = this.pushOutOfBlocks(x, y, z);
-//        this.makeMotionRelative();
-        return result;
-    }
-
-    //TODO: Fix this, so players are pushed out of blocks in differing direction based on their gravity
-    @Override
-    protected boolean pushOutOfBlocks(double x, double y, double z) {
-        // pushOutOfBlocks directly modifies motion fields
-        // Called for non-EntityPlayerSP (it overrides this method and does not call super)
-//        this.makeMotionAbsolute();
-        boolean result = super.pushOutOfBlocks(x, y, z);
-//        this.makeMotionRelative();
-
-        return result;
-    }
-
 
     private enum FieldState {
         ABSOLUTE,

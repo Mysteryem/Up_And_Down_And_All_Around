@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.api;
 
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
@@ -74,7 +75,7 @@ public enum EnumGravityDirection implements IStringSerializable {
 
         @Override
         public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
-            return new BlockPos(blockPos) {
+            return new DirectionAwareBlockPos(blockPos) {
                 @Override
                 public BlockPos down(int n) {
                     return super.up(n);
@@ -224,7 +225,7 @@ public enum EnumGravityDirection implements IStringSerializable {
 
         @Override
         public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
-            return new BlockPos(blockPos) {
+            return new DirectionAwareBlockPos(blockPos) {
                 @Override
                 public BlockPos down(int n) {
                     return super.north(n);
@@ -303,7 +304,7 @@ public enum EnumGravityDirection implements IStringSerializable {
 
         @Override
         public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
-            return new BlockPos(blockPos) {
+            return new DirectionAwareBlockPos(blockPos) {
                 @Override
                 public BlockPos down(int n) {
                     return super.east(n);
@@ -323,6 +324,8 @@ public enum EnumGravityDirection implements IStringSerializable {
                 public BlockPos east(int n) {
                     return super.up(n);
                 }
+
+
             };
         }
 
@@ -382,7 +385,7 @@ public enum EnumGravityDirection implements IStringSerializable {
 
         @Override
         public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
-            return new BlockPos(blockPos) {
+            return new DirectionAwareBlockPos(blockPos) {
                 @Override
                 public BlockPos down(int n) {
                     return super.south(n);
@@ -461,7 +464,7 @@ public enum EnumGravityDirection implements IStringSerializable {
 
         @Override
         public BlockPos makeRelativeBlockPos(BlockPos blockPos) {
-            return new BlockPos(blockPos) {
+            return new DirectionAwareBlockPos(blockPos) {
                 @Override
                 public BlockPos down(int n) {
                     return super.west(n);
@@ -781,5 +784,56 @@ public enum EnumGravityDirection implements IStringSerializable {
 
     public Vec3i getCameraTransformVars() {
         return this.cameraTransformVars;
+    }
+
+    class DirectionAwareBlockPos extends BlockPos {
+
+        public DirectionAwareBlockPos(int x, int y, int z) {
+            super(x, y, z);
+        }
+
+        public DirectionAwareBlockPos(double x, double y, double z) {
+            super(x, y, z);
+        }
+
+        public DirectionAwareBlockPos(Entity source) {
+            super(source);
+        }
+
+        public DirectionAwareBlockPos(Vec3d vec) {
+            super(vec);
+        }
+
+        public DirectionAwareBlockPos(Vec3i source) {
+            super(source);
+        }
+
+        public DirectionAwareBlockPos(BlockPos other) {
+            super(other.getX(), other.getY(), other.getZ());
+        }
+
+        @Override
+        public BlockPos add(double x, double y, double z) {
+            double[] d = EnumGravityDirection.this.adjustXYZValues(x, y, z);
+            return super.add(d[0], d[1], d[2]);
+        }
+
+        @Override
+        public BlockPos add(int x, int y, int z) {
+            double[] d = EnumGravityDirection.this.adjustXYZValues(x, y, z);
+            return super.add(d[0], d[1], d[2]);
+        }
+
+        @Override
+        public BlockPos add(Vec3i vec) {
+            double[] d = EnumGravityDirection.this.adjustXYZValues(vec.getX(), vec.getY(), vec.getZ());
+            return super.add(d[0], d[1], d[2]);
+        }
+
+        @Override
+        public BlockPos subtract(Vec3i vec) {
+            double[] d = EnumGravityDirection.this.adjustXYZValues(vec.getX(), vec.getY(), vec.getZ());
+            return super.add(d[0], d[1], d[2]);
+        }
     }
 }

@@ -41,6 +41,7 @@ public class Ref {
     public static final MethodName Entity$moveEntity_name = new MethodName("moveEntity", "func_70091_d");
     public static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
     public static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
+    public static final MethodName Entity$pushOutOfBlocks = new MethodName("pushOutOfBlocks", "func_145771_j");
     public static final MethodName EntityItem$combineItems_name = new MethodName("combineItems", "func_70289_a");
     public static final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
     public static final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
@@ -245,6 +246,7 @@ public class Ref {
     public static final HookInsn Hooks$makePositionAbsolute = new HookInsn("makePositionAbsolute", new MethodDesc(VOID, EntityLivingBase));
     public static final HookInsn Hooks$makePositionRelative = new HookInsn("makePositionRelative", new MethodDesc(VOID, EntityLivingBase));
     //    public static final HooksMethodInstruction Hooks$moveEntityAbsolute = new HooksMethodInstruction("moveEntityAbsolute", new MethodDesc(VOID, EntityPlayer, DOUBLE, DOUBLE, DOUBLE));
+    public static final HookInsn Hooks$makeRelativeBlockPos = new HookInsn("makeRelativeBlockPos", new MethodDesc(BlockPos, BlockPos, Entity));
     public static final HookInsn Hooks$netHandlerPlayServerGetPacketZ = new HookInsn("netHandlerPlayServerGetPacketZ", new MethodDesc(DOUBLE, NetHandlerPlayServer, CPacketPlayer));
     public static final HookInsn Hooks$netHandlerPlayServerGetRelativeY = new HookInsn("netHandlerPlayServerGetRelativeY", new MethodDesc(DOUBLE, NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
     public static final HookInsn Hooks$netHandlerPlayServerHandleFallingYChange =

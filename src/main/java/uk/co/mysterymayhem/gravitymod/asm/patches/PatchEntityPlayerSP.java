@@ -61,31 +61,34 @@ public class PatchEntityPlayerSP extends ClassPatcher {
             Transformer.dieIfFalse(numReplacements != 0, "Failed to find any instances of \"axisalignedbb.minY\"");
         });
 
-        // onLivingUpdate calls EntityPlayerSP::pushOutOfBlocks a bunch of times with arguments that look like they won't respect
-        //      non-standard gravity, the inserted Hook currently just performs the vanilla behaviour
+        // isHeadSpaceFree is also patched to create relative BlockPos objects. Both need to be, unless relative BlockPos objects create additional relative
+        // BlockPos objects instead of standard ones
+        // The directional and motion checks don't need to be modified, it just works
+        // TODO: This probably won't work if called when the motion fields are in the opposite state to normal, which could introduce some mod incompatibility
+        this.addMethodPatch(Ref.Entity$pushOutOfBlocks::is, (node, iterator) -> {
+            if (node.getOpcode() == Opcodes.INVOKESPECIAL) {
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //new BlockPos, this
+                Ref.Hooks$makeRelativeBlockPos.addTo(iterator); // relative blockPos
+                // next instruction stores the new BlockPos into a local variable
+                return true;
+            }
+            return false;
+        });
+
+        // onLivingUpdate calls EntityPlayerSP::pushOutOfBlocks a bunch of times with arguments that won't respect non-standard gravity, the inserted Hook
+        // uses the bounding box to offset in a relative direction and then get the origin (feet) point of said bounding box
         this.addMethodPatch(Ref.EntityLivingBase$onLivingUpdate_name::is, this::onLivingUpdatePatch);
 
-        // isHeadSpaceFree checks upwards, it's changed to check upwards relative to the player (the method is small,
-        //      I deleted the original entirely for the time being.
-        this.addMethodPatch(Ref.EntityPlayerSP$isHeadspaceFree_name::is, methodNode -> {
-            InsnList instructions = methodNode.instructions;
-            AbstractInsnNode label = instructions.get(0);
-            AbstractInsnNode lineNumber = instructions.get(1);
-            AbstractInsnNode labelEnd = instructions.getLast();
-            // Don't actually need the returnNode
-//            AbstractInsnNode returnNode = labelEnd.getPrevious();
-
-            //TODO: Rewrite this so that it doesn't straight up delete all the existing instructions
-            instructions.clear();
-            instructions.add(label);
-            instructions.add(lineNumber);
-            instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
-            //TODO: Introduce a way to grab the localvariable indices
-            instructions.add(new VarInsnNode(Opcodes.ALOAD, 1));
-            instructions.add(new VarInsnNode(Opcodes.ILOAD, 2));
-            Ref.Hooks$isHeadspaceFree.addTo(instructions);
-            instructions.add(new InsnNode(Opcodes.IRETURN));
-            instructions.add(labelEnd);
+        // isHeadSpaceFree checks upwards, it's changed to check upwards relative to the player by creating a relative BlockPos
+        this.addMethodPatch(Ref.EntityPlayerSP$isHeadspaceFree_name::is, (node, iterator) -> {
+            if (node instanceof LabelNode) {
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // blockPos (method argument)
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); // blockPos, this
+                Ref.Hooks$makeRelativeBlockPos.addTo(iterator);
+                iterator.add(new VarInsnNode(Opcodes.ASTORE, 1));
+                return true;
+            }
+            return false;
         });
 
         // There are some methods in updateAutoJump that we need to replace with gravity-direction-aware methods
@@ -445,13 +448,13 @@ public class PatchEntityPlayerSP extends ClassPatcher {
             InsnPatcher patch6 = this.addInsnPatch((node, iterator) -> {
                 if (Ref.Vec3d$scale.is(node)) {
                     node = iterator.next();
-                    if (node instanceof VarInsnNode) {
+                    if (node instanceof VarInsnNode && node.getOpcode() == Opcodes.ASTORE) {
                         // Should also be ASTORE
                         PatchEntityPlayerSP.this.storeData(vec3d12_var_key, ((VarInsnNode)node).var);
                         return true;
                     }
                     else {
-                        Transformer.die("Expected a VarInsnNode after first usage of Vec3d::scale");
+                        Transformer.die("Expected an ASTORE VarInsnNode after first usage of Vec3d::scale");
                     }
                 }
                 return false;
