@@ -108,8 +108,9 @@ public class FallOutOfWorldUpwardsListenerCommon {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        EntityPlayer player = event.player;
         if (event.phase == TickEvent.Phase.END) {
+            EntityPlayer player = event.player;
+
             this.processSidedPlayer(player);
 
             // Set and get special air
