@@ -16,15 +16,6 @@ import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
  * Created by Mysteryem on 15/03/2017.
  */
 public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject {
-    @SuppressWarnings("unchecked")
-    default T getPotion() {
-        return (T)this;
-    }
-
-    default ResourceLocation getTextureResource() {
-        return null;
-    }
-
     @Override
     default void preInit() {
         T potion = this.getPotion();
@@ -34,20 +25,9 @@ public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject
         GameRegistry.register(potion, new ResourceLocation(modID, name));
     }
 
-    default int getTextureWidth() {
-        return 256;
-    }
-
-    default int getIconWidth() {
-        return 18;
-    }
-
-    default int getIconHeight() {
-        return 18;
-    }
-
-    default int getNumIconsPerRow() {
-        return this.getTextureWidth() / this.getIconWidth();
+    @SuppressWarnings("unchecked")
+    default T getPotion() {
+        return (T)this;
     }
 
     default T setIconIndex(int index) {
@@ -57,9 +37,16 @@ public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject
         return potion;
     }
 
-    @FunctionalInterface
-    interface PotionIntIntToPotion {
-        Potion apply(Potion potion, int xIndex, int yIndex);
+    default int getNumIconsPerRow() {
+        return this.getTextureWidth() / this.getIconWidth();
+    }
+
+    default int getTextureWidth() {
+        return 256;
+    }
+
+    default int getIconWidth() {
+        return 18;
     }
 
     @SideOnly(Side.CLIENT)
@@ -88,5 +75,18 @@ public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject
         buf.pos(x, y, 0).tex(textureX * 0.00390625, textureY * 0.00390625).endVertex();
 
         tessellator.draw();
+    }
+
+    default ResourceLocation getTextureResource() {
+        return null;
+    }
+
+    default int getIconHeight() {
+        return 18;
+    }
+
+    @FunctionalInterface
+    interface PotionIntIntToPotion {
+        Potion apply(Potion potion, int xIndex, int yIndex);
     }
 }
