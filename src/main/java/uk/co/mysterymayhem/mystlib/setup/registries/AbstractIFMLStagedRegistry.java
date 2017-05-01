@@ -19,7 +19,7 @@ public abstract class AbstractIFMLStagedRegistry<SINGLETON extends IFMLStaged, C
     @Override
     public void preInit() {
         this.addToCollection(this.getCollection());
-        this.modObjects.forEach(IFMLStaged::preInit);
+        this.getCollection().forEach(IFMLStaged::preInit);
     }
 
     protected abstract void addToCollection(COLLECTION modObjects);
@@ -30,29 +30,29 @@ public abstract class AbstractIFMLStagedRegistry<SINGLETON extends IFMLStaged, C
 
     @Override
     public void init() {
-        this.modObjects.forEach(IFMLStaged::init);
+        this.getCollection().forEach(IFMLStaged::init);
     }
 
     @Override
     public void postInit() {
-        this.modObjects.forEach(IFMLStaged::postInit);
+        this.getCollection().forEach(IFMLStaged::postInit);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void initClient() {
-        this.modObjects.forEach(IFMLStaged::initClient);
+        this.getCollection().forEach(IFMLStaged::initClient);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void preInitClient() {
-        this.modObjects.forEach(IFMLStaged::preInitClient);
+        this.getCollection().forEach(IFMLStaged::preInitClient);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void postInitClient() {
-        this.modObjects.forEach(IFMLStaged::postInitClient);
+        this.getCollection().forEach(IFMLStaged::postInitClient);
     }
 }
