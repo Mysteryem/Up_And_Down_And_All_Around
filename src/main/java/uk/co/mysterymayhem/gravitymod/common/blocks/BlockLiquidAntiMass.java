@@ -21,8 +21,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.RecipeSorter;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.liquids.LiquidAntiMass;
-import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModBlock;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.setup.singletons.IModBlock;
 
 import java.util.List;
 import java.util.Locale;
@@ -31,7 +32,7 @@ import java.util.Random;
 /**
  * Created by Mysteryem on 2017-01-19.
  */
-public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityModBlock<BlockLiquidAntiMass> {
+public class BlockLiquidAntiMass extends BlockFluidClassic implements IModBlock<BlockLiquidAntiMass>, IGravityModCommon {
 
     public BlockLiquidAntiMass() {
         super(LiquidAntiMass.INSTANCE, Material.WATER);
@@ -65,7 +66,7 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IGravityMo
     @SideOnly(Side.CLIENT)
     @Override
     public void preInitClient() {
-        IGravityModBlock.super.preInitClient();
+        IModBlock.super.preInitClient();
         ModelLoader.setCustomStateMapper(this, new StateMapperBase() {
             @Override
             protected ModelResourceLocation getModelResourceLocation(IBlockState state) {

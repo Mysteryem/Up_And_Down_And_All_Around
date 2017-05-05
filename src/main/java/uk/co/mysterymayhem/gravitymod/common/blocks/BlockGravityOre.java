@@ -22,7 +22,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.setup.singletons.AbstractModBlockWithItem;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +35,7 @@ import java.util.Random;
 /**
  * Created by Mysteryem on 21/02/2017.
  */
-public class BlockGravityOre extends AbstractModBlock<BlockGravityOre, GenericItemBlock<BlockGravityOre>> {
+public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, GenericItemBlock<BlockGravityOre>> implements IGravityModCommon {
 
     public static final PropertyEnum<Type> TYPE = PropertyEnum.create("type", Type.class);
 

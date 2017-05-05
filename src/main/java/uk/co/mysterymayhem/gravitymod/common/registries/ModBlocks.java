@@ -7,13 +7,14 @@ import uk.co.mysterymayhem.gravitymod.common.blocks.BlockLiquidAntiMass;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockRestabilisedGravityDust;
 import uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator.BlockGravityGenerator;
 import uk.co.mysterymayhem.mystlib.setup.registries.AbstractBlockRegistry;
+import uk.co.mysterymayhem.mystlib.setup.singletons.IModBlock;
 
 import java.util.ArrayList;
 
 /**
  * Created by Mysteryem on 2016-12-07.
  */
-public class ModBlocks extends AbstractBlockRegistry<IGravityModBlock<?>, ArrayList<IGravityModBlock<?>>> {
+public class ModBlocks extends AbstractBlockRegistry<IModBlock<? extends IGravityModCommon>, ArrayList<IModBlock<? extends IGravityModCommon>>> {
 
     static boolean REGISTRY_SETUP_ALLOWED = false;
 
@@ -30,7 +31,7 @@ public class ModBlocks extends AbstractBlockRegistry<IGravityModBlock<?>, ArrayL
     }
 
     @Override
-    protected void addToCollection(ArrayList<IGravityModBlock<?>> modObjects) {
+    protected void addToCollection(ArrayList<IModBlock<? extends IGravityModCommon>> modObjects) {
         modObjects.add(gravityGenerator = new BlockGravityGenerator());
         modObjects.add(liquidAntiMass = new BlockLiquidAntiMass());
         modObjects.add(restabilisedGravityDust_Block = new BlockRestabilisedGravityDust());

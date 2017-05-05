@@ -6,14 +6,16 @@ import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.setup.singletons.AbstractModBlockWithItem;
 
 import java.util.Arrays;
 
 /**
  * Created by Mysteryem on 2017-01-26.
  */
-public class BlockRestabilisedGravityDust extends AbstractModBlock<BlockRestabilisedGravityDust, ItemBlock> {
+public class BlockRestabilisedGravityDust extends AbstractModBlockWithItem<BlockRestabilisedGravityDust, ItemBlock> implements IGravityModCommon {
     public BlockRestabilisedGravityDust() {
         super(Material.ROCK, MapColor.PURPLE);
         this.setHardness(5.0F);

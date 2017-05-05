@@ -32,7 +32,9 @@ import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
 import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
+import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.setup.singletons.AbstractModBlockWithItem;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +43,7 @@ import java.util.List;
 /**
  * Created by Mysteryem on 20/02/2017.
  */
-public class BlockGravityPlate extends AbstractModBlock<BlockGravityPlate, GenericItemBlock<BlockGravityPlate>> {
+public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlate, GenericItemBlock<BlockGravityPlate>> implements IGravityModCommon {
 
     //0.03125 = 1/32
     private static final AxisAlignedBB DOWN = new AxisAlignedBB(0, 1 - 0.03125, 0, 1, 1, 1);

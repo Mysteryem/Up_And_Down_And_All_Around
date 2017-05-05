@@ -32,7 +32,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
-import uk.co.mysterymayhem.gravitymod.common.blocks.AbstractModBlock;
+import uk.co.mysterymayhem.gravitymod.common.blocks.AbstractGravityModBlockWithItem;
 import uk.co.mysterymayhem.gravitymod.common.blocks.GenericItemBlock;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticGUIs;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Created by Mysteryem on 2016-10-10.
  */
-public class BlockGravityGenerator extends AbstractModBlock<BlockGravityGenerator, GenericItemBlock<BlockGravityGenerator>> {
+public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<BlockGravityGenerator, GenericItemBlock<BlockGravityGenerator>> {
 
     // Used with get actual state when block is powered
     public static final PropertyBool ENABLED = PropertyBool.create("active");
