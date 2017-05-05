@@ -237,7 +237,7 @@ public class ConfigHandler {
                 "Depending on whether the list is set to act as a Whitelist or Blacklist. See \"oreDimensionListIsBlacklist\"");
         oreGenDimensionIDs = new TIntHashSet(process().getIntList());
 
-        prop = config.get(category, "oreRetroGenEnabled", true, "Set to true to enable retroactive generation of ores.\n" +
+        prop = config.get(category, "oreRetroGenEnabled", false, "Set to true to enable retroactive generation of ores.\n" +
                 "This will generate ore in existing chunks that were generated before this mod was added or were in previously blacklisted/non-whitelisted " +
                 "dimensions.");
         oreGenRetroGen = process().getBoolean();
