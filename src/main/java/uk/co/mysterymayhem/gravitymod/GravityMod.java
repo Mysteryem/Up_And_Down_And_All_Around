@@ -37,7 +37,7 @@ public class GravityMod {
     private static final int MINOR_VERSION = 7;
     // Indicates a non-breaking change in the mod
     // Different patch numbers but the same major and minor version should be compatible with one another
-    private static final int PATCH_NUMBER = 1;
+    private static final int PATCH_NUMBER = 2;
 
     // M.m.p
     public static final String VERSION = "" + MAJOR_VERSION + '.' + MINOR_VERSION + '.' + PATCH_NUMBER;
