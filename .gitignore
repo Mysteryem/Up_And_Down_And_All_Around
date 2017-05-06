@@ -12,11 +12,15 @@ out
 *.iws
 *.iml
 .idea
+classes
 
 # gradle
 build
 .gradle
+gradle
 
 # other
 eclipse
 run
+logs
+libs
