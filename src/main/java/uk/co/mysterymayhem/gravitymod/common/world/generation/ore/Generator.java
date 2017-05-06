@@ -1,8 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.world.generation.ore;
 
-import com.google.common.util.concurrent.ListenableFutureTask;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
@@ -11,23 +9,16 @@ import net.minecraft.world.WorldType;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.event.world.ChunkDataEvent;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.IWorldGenerator;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import uk.co.mysterymayhem.gravitymod.common.blocks.BlockGravityOre.Type;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.mystlib.world.generation.BlockStateMappedGenerator;
 import uk.co.mysterymayhem.mystlib.world.generation.OreGenLarge;
 import uk.co.mysterymayhem.mystlib.world.generation.OreGenSingle;
 
-import java.util.Collections;
 import java.util.Random;
-import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.Executors;
 
 import static uk.co.mysterymayhem.gravitymod.common.blocks.BlockGravityOre.TYPE;
 import static uk.co.mysterymayhem.gravitymod.common.registries.StaticBlocks.GRAVITY_ORE;
@@ -67,75 +58,7 @@ public class Generator implements IWorldGenerator {
     //
     // Might it be worth using a TIntObjectHashMap<Boolean> instead, keyed on the world.provider.getDimension()?
     private static final WeakHashMap<World, Boolean> VALID_WORLD_CACHE = new WeakHashMap<>();
-    // Key for main tag compound store in chunk nbt
-    private static final String COMPOUND_TAG_KEY = "upanddownretrogen";
-    // Key for 'gravity ore' generation status
-    private static final String GRAVITY_ORE_KEY = "gravityore";
-    // Chunks that have been populated and have yet to be saved
-    private static final Set<Chunk> MOD_POPULATED_CHUNKS = Collections.newSetFromMap(new WeakHashMap<>());
     private static final boolean DEBUG_GEN = false;
-
-    @SubscribeEvent
-    public static void onChunkDataLoad(ChunkDataEvent.Load event) {
-
-        if (!event.getChunk().isTerrainPopulated()) {
-            // Population is yet to be run for this chunk, mod population will run as normal
-            if (DEBUG_GEN) {
-                FMLLog.info("Loaded chunk that hasn't been vanilla populated (and thus hasn't been mod populated either): "
-                        + new ChunkRef(event.getChunk(),
-                        event.getWorld()));
-            }
-            return;
-        }
-
-        NBTTagCompound data = event.getData();
-
-        NBTTagCompound compoundTag = data.getCompoundTag(COMPOUND_TAG_KEY);
-
-        if (compoundTag.hasKey(GRAVITY_ORE_KEY, Constants.NBT.TAG_BYTE)) {
-            // Mod population has already occurred for this chunk
-
-            // Need to ensure that the data that signifies this is still saved to the chunk nbt when the chunk gets saved
-            MOD_POPULATED_CHUNKS.add(event.getChunk());
-            if (DEBUG_GEN) {
-                FMLLog.info("Loaded chunk that is already mod populated: " + new ChunkRef(event.getChunk(), event.getWorld()));
-            }
-        }
-        else {
-            final World world = event.getWorld();
-            //Mod population has not yet occurred for this chunk
-            if (isWorldValidForGeneration(world)) {
-                // Only care if the world is valid, we won't do any generating regardless if it's not
-
-//            ConfigHandler.oreGenRetroGen
-
-                // If the chunk nbt doesn't have the tag, then we haven't populated it
-                if (ConfigHandler.oreGenRetroGen) {
-                    // Prepare retrogen
-                    final ChunkPos chunkPos = event.getChunk().getChunkCoordIntPair();
-
-                    if (DEBUG_GEN) {
-                        FMLLog.info("Preparing for retrogen in chunk: " + new ChunkRef(event.getChunk(), world));
-                    }
-                    // Will stack overflow if we generate from here since the chunk hasn't fully loaded.
-                    // Attempting to access the blocks in the chunk would cause a chunk load attempt, re-calling this method.
-                    // So we schedule it to run near the start of the next tick.
-                    FMLCommonHandler.instance().getMinecraftServerInstance().futureTaskQueue.add(ListenableFutureTask.create(Executors.callable(
-                            () -> {
-                                if (DEBUG_GEN) {
-                                    FMLLog.info("Performing retrogen in chunk: " + new ChunkRef(chunkPos, world));
-                                }
-                                INSTANCE.generate(world.rand, chunkPos.chunkXPos, chunkPos.chunkZPos, world);
-                            }
-                    )));
-                }
-                else if (DEBUG_GEN) {
-                    FMLLog.info("Loaded chunk that hasn't been mod populated, but retrogen is disabled, so doing nothing " + new ChunkRef(event.getChunk(),
-                            world));
-                }
-            }
-        }
-    }
 
     private static boolean isWorldValidForGeneration(World world) {
         Boolean worldIsValid = VALID_WORLD_CACHE.get(world);
@@ -191,41 +114,9 @@ public class Generator implements IWorldGenerator {
                     modWorldGravityOreGen.generate(20, random, chunkX, chunkZ, world);
                     break;
             }
-            // If no blocks/entities/etc in the chunk change, then the chunk is not re-saved, meaning that the nbt we use to track retrogen status won't get
-            // saved. Therefore, we forcefully tell the chunk that it's been modified so that it will get saved.
-            Chunk chunkPopulated = world.getChunkFromChunkCoords(chunkX, chunkZ);
-            chunkPopulated.setChunkModified();
-            MOD_POPULATED_CHUNKS.add(chunkPopulated);
             if (DEBUG_GEN) {
                 FMLLog.info("Completed mod population of " + new ChunkRef(chunkX, chunkZ, world));
             }
-        }
-    }
-
-    //TODO: Test a valid world, then make it invalid and see if the loaded chunks still have the extra nbt data? I.e., we don't have to add the tag every time?
-    @SubscribeEvent
-    public static void onChunkDataSave(ChunkDataEvent.Save event) {
-        Chunk chunk = event.getChunk();
-
-        if (MOD_POPULATED_CHUNKS.contains(chunk)) {
-            if (DEBUG_GEN) {
-                FMLLog.info("Saving chunk that has completed mod population: " + new ChunkRef(chunk, event.getWorld()));
-            }
-            NBTTagCompound data = event.getData();
-            // Will create a new empty tag if it doesn't already exist
-            NBTTagCompound compoundTag = data.getCompoundTag(COMPOUND_TAG_KEY);
-            // We still have to add the new tag to the main 'data' NBTTagCompound for some reason
-            data.setTag(COMPOUND_TAG_KEY, compoundTag);
-            // Value of the boolean tag is irrelevant, it's existence shows that this chunk has been populated (either by normal population or retrogen)
-            compoundTag.setBoolean(GRAVITY_ORE_KEY, true);
-        }
-        else if (DEBUG_GEN) {
-            if (!chunk.isTerrainPopulated()) {
-                // Population is yet to be run for this chunk
-                FMLLog.info("Saving chunk that's not vanilla populated (and thus not mod populated): " + new ChunkRef(chunk, event.getWorld()));
-                return;
-            }
-            FMLLog.info("Saving chunk that's vanilla populated, but not mod populated: " + new ChunkRef(chunk, event.getWorld()));
         }
     }
 

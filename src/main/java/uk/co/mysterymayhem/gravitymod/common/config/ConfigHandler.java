@@ -51,7 +51,6 @@ public class ConfigHandler {
     public static final String CATEGORY_WORLD_GEN = newCategory("worldgen");
     public static boolean oreGenDimensionListIsBlackList;
     public static TIntHashSet oreGenDimensionIDs;
-    public static boolean oreGenRetroGen;
 
     public static final String CATEGORY_LOOT = newCategory("extraloot");
     //TODO
@@ -236,11 +235,6 @@ public class ConfigHandler {
         prop = config.get(category, "oreDimensionList", new int[0], "List of dimension IDs that UpAndDown's ore generation should either generate in, or not generate in.\n" +
                 "Depending on whether the list is set to act as a Whitelist or Blacklist. See \"oreDimensionListIsBlacklist\"");
         oreGenDimensionIDs = new TIntHashSet(process().getIntList());
-
-        prop = config.get(category, "oreRetroGenEnabled", false, "Set to true to enable retroactive generation of ores.\n" +
-                "This will generate ore in existing chunks that were generated before this mod was added or were in previously blacklisted/non-whitelisted " +
-                "dimensions.");
-        oreGenRetroGen = process().getBoolean();
 
         nextCategory(CATEGORY_LOOT);
 

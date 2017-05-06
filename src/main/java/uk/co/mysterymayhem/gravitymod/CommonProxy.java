@@ -47,6 +47,7 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
     public void init() {
         super.init();
         this.registerListeners();
+        GameRegistry.registerWorldGenerator(Generator.INSTANCE, 0);
     }
 
     public void registerListeners() {
@@ -56,7 +57,6 @@ public class CommonProxy extends AbstractIFMLStagedRegistry<IFMLStaged, ArrayLis
         MinecraftForge.EVENT_BUS.register(EntityFloatingItem.class);
         MinecraftForge.EVENT_BUS.register(LootTableListener.class);
         MinecraftForge.EVENT_BUS.register(Generator.class);
-        GameRegistry.registerWorldGenerator(Generator.INSTANCE, 0);
         MinecraftForge.EVENT_BUS.register(ConfigHandler.class);
         this.createSidedEventListeners().forEach(MinecraftForge.EVENT_BUS::register);
 //        MinecraftForge.EVENT_BUS.register(new DebugHelperListener());
