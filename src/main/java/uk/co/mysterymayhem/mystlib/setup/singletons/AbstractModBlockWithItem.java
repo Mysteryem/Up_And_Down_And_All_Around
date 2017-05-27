@@ -32,12 +32,6 @@ public abstract class AbstractModBlockWithItem<BLOCK extends AbstractModBlockWit
         this.item = itemFunction.apply(this);
     }
 
-    @Override
-    @Nonnull
-    public BlockStateContainer getBlockState() {
-        return this.blockState;
-    }
-
     public AbstractModBlockWithItem(Function<AbstractModBlockWithItem<BLOCK, ITEM>, ITEM> itemFunction, Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
         this(itemFunction, materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
     }
@@ -74,6 +68,10 @@ public abstract class AbstractModBlockWithItem<BLOCK extends AbstractModBlockWit
         this.item = this.createItem(this.getBlock());
     }
 
+    public ITEM createItem(BLOCK block) {
+        return null;
+    }
+
     public AbstractModBlockWithItem(Material materialIn, IProperty<?>[] metaProperties, IProperty<?>... nonMetaProperties) {
         this(materialIn, MetaHelper.with(metaProperties, nonMetaProperties));
     }
@@ -108,11 +106,13 @@ public abstract class AbstractModBlockWithItem<BLOCK extends AbstractModBlockWit
     }
 
     @Override
-    public ITEM getItem() {
-        return this.item;
+    @Nonnull
+    public BlockStateContainer getBlockState() {
+        return this.blockState;
     }
 
-    public ITEM createItem(BLOCK block) {
-        return null;
+    @Override
+    public ITEM getItem() {
+        return this.item;
     }
 }
