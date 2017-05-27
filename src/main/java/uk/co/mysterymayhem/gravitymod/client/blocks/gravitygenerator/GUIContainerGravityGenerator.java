@@ -57,7 +57,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
         this.xSize = 176;
 
         EnumGravityDirection[] positiveDirections = {EnumGravityDirection.UP, EnumGravityDirection.EAST, EnumGravityDirection.SOUTH};
-        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 
         int directionTextMaxLength = 0;
         for (EnumGravityDirection direction : positiveDirections) {
@@ -100,7 +100,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
 
 //        labels.clear();
 //
-        FontRenderer fontRenderer = this.fontRendererObj;
+        FontRenderer fontRenderer = this.fontRenderer;
         int buttonTopStart = fontRenderer.FONT_HEIGHT + 10;
 
         int buttonHeight = fontRenderer.FONT_HEIGHT;
@@ -238,7 +238,7 @@ public class GUIContainerGravityGenerator extends GuiContainer {
         int textLeft = TEXT_LEFT_START;
         int textTop = 6;
 
-        FontRenderer fontRenderer = this.fontRendererObj;
+        FontRenderer fontRenderer = this.fontRenderer;
         int fontHeight = fontRenderer.FONT_HEIGHT;
 
         final int lengthsTextTop = 10 + fontHeight;
@@ -255,21 +255,21 @@ public class GUIContainerGravityGenerator extends GuiContainer {
 
         EnumGravityDirection positive = direction.getRelativePositiveY();
         text = I18n.format("gui.gravitygenerator.heighttext", I18n.format(directionLangPrefix + positive.getName())) + " (Y)";
-        int maxTextWidth = this.fontRendererObj.getStringWidth(text);
+        int maxTextWidth = this.fontRenderer.getStringWidth(text);
         textTop = lengthsTextTop;
         fontRenderer.drawString(text, textLeft, textTop, colour);
 
         positive = direction.getRelativePositiveX();
         EnumGravityDirection negative = positive.getOpposite();
         text = I18n.format("gui.gravitygenerator.widthtext", I18n.format(directionLangPrefix + positive.getName()), I18n.format(directionLangPrefix + negative.getName())) + " (X)";
-        maxTextWidth = Math.max(maxTextWidth, this.fontRendererObj.getStringWidth(text));
+        maxTextWidth = Math.max(maxTextWidth, this.fontRenderer.getStringWidth(text));
         textTop += fontHeight + 4;
         fontRenderer.drawString(text, textLeft, textTop, colour);
 
         positive = direction.getRelativePositiveZ();
         negative = positive.getOpposite();
         text = I18n.format("gui.gravitygenerator.widthtext", I18n.format(directionLangPrefix + positive.getName()), I18n.format(directionLangPrefix + negative.getName())) + " (Z)";
-        maxTextWidth = Math.max(maxTextWidth, this.fontRendererObj.getStringWidth(text));
+        maxTextWidth = Math.max(maxTextWidth, this.fontRenderer.getStringWidth(text));
         textTop += fontHeight + 4;
         fontRenderer.drawString(text, textLeft, textTop, colour);
 

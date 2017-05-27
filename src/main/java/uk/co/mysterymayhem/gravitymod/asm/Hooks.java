@@ -7,6 +7,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -169,9 +170,9 @@ public class Hooks {
             return new BlockPos(gBB.offset(0, -0.20000000298023224D, 0).getOrigin());
         }
         else {
-            int x = MathHelper.floor_double(entity.posX);
-            int y = MathHelper.floor_double(entity.posY - 0.20000000298023224D);
-            int z = MathHelper.floor_double(entity.posZ);
+            int x = MathHelper.floor(entity.posX);
+            int y = MathHelper.floor(entity.posY - 0.20000000298023224D);
+            int z = MathHelper.floor(entity.posZ);
             return new BlockPos(x, y, z);
         }
     }
@@ -529,7 +530,7 @@ public class Hooks {
      */
     public static ItemStackAndBoolean onItemUsePre(ItemStack stack, EntityPlayer player) {
         World world;
-        if (player == null || (world = player.worldObj) == null) {
+        if (player == null || (world = player.world) == null) {
             return null;
         }
 
@@ -560,7 +561,7 @@ public class Hooks {
 
     public static ItemStackAndBoolean onItemRightClickPre(ItemStack stack, EntityPlayer player) {
         World world;
-        if (player == null || (world = player.worldObj) == null) {
+        if (player == null || (world = player.world) == null) {
             return null;
         }
 
@@ -591,7 +592,7 @@ public class Hooks {
 
     public static ItemStackAndBoolean onPlayerStoppedUsingPre(ItemStack stack, EntityLivingBase entity) {
         World world;
-        if (entity == null || (world = entity.worldObj) == null) {
+        if (entity == null || (world = entity.world) == null) {
             return null;
         }
 
@@ -622,10 +623,10 @@ public class Hooks {
 
     //TODO: DELETE
     //TODO: Where is this used? Is it used in any ASM-ed code? - Somewhere in NetHandlerPlayServer
-    public static void moveEntityAbsolute(EntityPlayer player, double x, double y, double z) {
+    public static void moveEntityAbsolute(EntityPlayer player, MoverType moverType, double x, double y, double z) {
 //        double[] doubles = API.getGravityDirection(player).getInverseAdjustmentFromDOWNDirection().adjustXYZValues(x, y, z);
 //        player.moveEntity(doubles[0], doubles[1], doubles[2]);
-        player.moveEntity(x, y, z);
+        player.move(moverType, x, y, z);
     }
 
     //TODO: Insert Hook
@@ -832,7 +833,7 @@ public class Hooks {
     //TODO: Access Transformer EntityPlayerSP::isOpenBlockSpace to public
     @SideOnly(Side.CLIENT)
     private static boolean isOpenBlockSpace(EntityPlayerSP playerSP, BlockPos pos) {
-        return !playerSP.worldObj.getBlockState(pos).isNormalCube();
+        return !playerSP.world.getBlockState(pos).isNormalCube();
     }
 
     public static void makeMotionAbsolute(Entity entity) {
@@ -1379,10 +1380,12 @@ public class Hooks {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
             Vec3d origin = ((GravityAxisAlignedBB) entityBoundingBox).getOrigin();
-            ((WorldServer) entity.worldObj).spawnParticle(EnumParticleTypes.BLOCK_DUST, origin.xCoord, origin.yCoord, origin.zCoord, i, 0.0D, 0.0D, 0.0D, 0.15000000596046448D, Block.getStateId(blockState));
+            ((WorldServer) entity.world).spawnParticle(EnumParticleTypes.BLOCK_DUST, origin.xCoord, origin.yCoord, origin.zCoord, i, 0.0D, 0.0D, 0.0D,
+                    0.15000000596046448D, Block.getStateId(blockState));
         }
         else {
-            ((WorldServer) entity.worldObj).spawnParticle(EnumParticleTypes.BLOCK_DUST, entity.posX, entity.posY, entity.posZ, i, 0.0D, 0.0D, 0.0D, 0.15000000596046448D, Block.getStateId(blockState));
+            ((WorldServer) entity.world).spawnParticle(EnumParticleTypes.BLOCK_DUST, entity.posX, entity.posY, entity.posZ, i, 0.0D, 0.0D, 0.0D,
+                    0.15000000596046448D, Block.getStateId(blockState));
         }
     }
 
@@ -1419,11 +1422,11 @@ public class Hooks {
     }
 
     public static double netHandlerPlayServerGetRelativeY(NetHandlerPlayServer netHandlerPlayServer, double inX, double inY, double inZ) {
-        return Hooks.adjustXYZ(netHandlerPlayServer.playerEntity, inX, inY, inZ)[1];
+        return Hooks.adjustXYZ(netHandlerPlayServer.player, inX, inY, inZ)[1];
     }
 
     public static double netHandlerPlayServerGetPacketZ(NetHandlerPlayServer netHandlerPlayServer, CPacketPlayer packet) {
-        return packet.getZ(netHandlerPlayServer.playerEntity.posZ);
+        return packet.getZ(netHandlerPlayServer.player.posZ);
     }
 
     /**
@@ -1437,7 +1440,7 @@ public class Hooks {
      */
     public static double[] netHandlerPlayServerSetRelativeYToZero(NetHandlerPlayServer netHandlerPlayServer, double inX, double inY, double inZ) {
         double[] toReturn = new double[]{inX, inY, inZ};
-        double[] doubles = Hooks.adjustXYZ(netHandlerPlayServer.playerEntity, 0, 1, 0);
+        double[] doubles = Hooks.adjustXYZ(netHandlerPlayServer.player, 0, 1, 0);
         for (int i = 0; i < doubles.length; i++) {
             if (doubles[i] != 0) {
                 toReturn[i] = 0;

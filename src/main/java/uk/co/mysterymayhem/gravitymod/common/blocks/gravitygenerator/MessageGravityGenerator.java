@@ -81,7 +81,7 @@ public class MessageGravityGenerator implements IMessage {
 
     void process(EntityPlayerMP playerMP) {
         if (playerMP != null) {
-            World worldObj = playerMP.worldObj;
+            World worldObj = playerMP.world;
             if (worldObj != null) {
                 TileEntity tileEntity = worldObj.getTileEntity(new BlockPos(this.tileX, this.tileY, this.tileZ));
                 if (tileEntity instanceof TileGravityGenerator) {

@@ -7,20 +7,21 @@ bin
 .project
 
 # idea
-out
+/out/
 *.ipr
 *.iws
 *.iml
 .idea
-classes
+/classes/
 
 # gradle
-build
+/build/
 .gradle
-gradle
+/gradle/
 
 # other
-eclipse
-run
-logs
-libs
+/eclipse/
+/run/
+/logs/
+/libs/
+/oldlibs/

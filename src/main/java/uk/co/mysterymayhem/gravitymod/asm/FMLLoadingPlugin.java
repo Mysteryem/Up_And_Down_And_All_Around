@@ -9,7 +9,7 @@ import java.util.Map;
  */
 @IFMLLoadingPlugin.TransformerExclusions({"uk.co.mysterymayhem.gravitymod.asm.FMLLoadingPlugin"})
 @IFMLLoadingPlugin.Name("mysttmtgravitymod")
-@IFMLLoadingPlugin.MCVersion("1.10.2")
+@IFMLLoadingPlugin.MCVersion("1.11.2")
 // Extra late so we patch after most other mods so we can more easily tell if a patch has failed (I don't trust other mods to detect when they fail)
 @IFMLLoadingPlugin.SortingIndex(value = 9001)
 public class FMLLoadingPlugin implements IFMLLoadingPlugin {

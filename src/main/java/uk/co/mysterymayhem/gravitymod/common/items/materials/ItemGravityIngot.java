@@ -3,6 +3,7 @@ package uk.co.mysterymayhem.gravitymod.common.items.materials;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.ShapedOreRecipe;
@@ -35,7 +36,7 @@ public class ItemGravityIngot extends Item implements IGravityModItem<ItemGravit
 
     @Override
     public void preInit() {
-        ARMOUR_MATERIAL.customCraftingMaterial = this;
+        ARMOUR_MATERIAL.repairMaterial = new ItemStack(this);
         IGravityModItem.super.preInit();
     }
 }

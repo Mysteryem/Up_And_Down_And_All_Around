@@ -22,12 +22,12 @@ plugins {
 */
 version = "2.7.2"
 group= "uk.co.mysterymayhem.gravitymod" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "UpAndDownAndAllAround"
+archivesBaseName = "UpAndDownAndAllAround-1.11.2"
 targetCompatibility = "1.8"
 sourceCompatibility = "1.8"
 
 minecraft {
-    version = "1.10.2-12.18.3.2185"
+    version = "1.11.2-13.20.0.2309"
     runDir = "run"
     
     // the mappings can be changed at any time, and must be in the following format.
@@ -36,7 +36,7 @@ minecraft {
     // Use non-default mappings at your own risk. they may not allways work.
     // simply re-run your setup task after changing the mappings to update your workspace.
     //mappings = "snapshot_20160518"
-    mappings = "snapshot_20160918"
+    mappings = "snapshot_20170527"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 

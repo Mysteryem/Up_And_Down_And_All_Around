@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
@@ -48,7 +49,7 @@ public class GravityManagerCommon {
 
     public static boolean playerIsAffectedByNormalGravity(EntityPlayerMP player) {
         if (!(player instanceof FakePlayer)) {
-            ItemStack[] armorInventory = player.inventory.armorInventory;
+            NonNullList<ItemStack> armorInventory = player.inventory.armorInventory;
             int numRequired = ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity;
             int numNormalGravityEnablers = 0;
             for (ItemStack stack : armorInventory) {
@@ -72,7 +73,7 @@ public class GravityManagerCommon {
                 int slots = baublesHandler.getSlots();
                 for (int i = 0; i < slots; i++) {
                     ItemStack stack = baublesHandler.getStackInSlot(i);
-                    if (stack != null) {
+                    if (!stack.isEmpty()) {
                         if (stack.getItem() instanceof IWeakGravityEnabler) {
                             numNormalGravityEnablers += ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
                             if (numNormalGravityEnablers >= numRequired) {
@@ -99,7 +100,7 @@ public class GravityManagerCommon {
 
     public static boolean playerIsAffectedByWeakGravity(EntityPlayerMP player) {
         if (!(player instanceof FakePlayer)) {
-            ItemStack[] armorInventory = player.inventory.armorInventory;
+            NonNullList<ItemStack> armorInventory = player.inventory.armorInventory;
             int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
             int numWeakGravityEnablers = 0;
             for (ItemStack stack : armorInventory) {
@@ -114,7 +115,7 @@ public class GravityManagerCommon {
                 int slots = baublesHandler.getSlots();
                 for (int i = 0; i < slots; i++) {
                     ItemStack stack = baublesHandler.getStackInSlot(i);
-                    if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                    if (!stack.isEmpty() && stack.getItem() instanceof IWeakGravityEnabler) {
                         if (++numWeakGravityEnablers == numRequired) {
                             return true;
                         }
@@ -224,10 +225,10 @@ public class GravityManagerCommon {
                 if (player.inventory != null) {
 //                    ItemStack itemStack = event.player.inventoryContainer.inventorySlots.getItemStack();
                     ItemStack itemStack = event.player.inventory.getItemStack();
-                    if (itemStack != null) {
+                    if (!itemStack.isEmpty()) {
                         Item item = itemStack.getItem();
                         if (item instanceof ITickOnMouseCursor) {
-                            item.onUpdate(itemStack, player.worldObj, player, -1, false);
+                            item.onUpdate(itemStack, player.world, player, -1, false);
                         }
                     }
                 }
@@ -328,8 +329,8 @@ public class GravityManagerCommon {
         }
 
         // Don't know why it wouldn't be a WorldServer, but may as well check
-        if (player.worldObj instanceof WorldServer) {
-            WorldServer worldServer = (WorldServer)player.worldObj;
+        if (player.world instanceof WorldServer) {
+            WorldServer worldServer = (WorldServer)player.world;
             EntityTracker entityTracker = worldServer.getEntityTracker();
             // For some reason, the Forge guys made the method return a Set<? extends EntityPlayer> instead of Set<? extends EntityPlayerMP>
             Set<? extends EntityPlayerMP> trackingPlayers = (Set<? extends EntityPlayerMP>)entityTracker.getTrackingPlayers(player);

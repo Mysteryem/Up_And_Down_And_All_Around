@@ -30,7 +30,7 @@ public class EntityGravityItem extends EntityItem implements IEntityAdditionalSp
     }
 
     public EntityGravityItem(EnumGravityDirection direction, EntityItem orig) {
-        super(orig.worldObj);
+        super(orig.world);
         this.direction = direction;
         NBTTagCompound tag = new NBTTagCompound();
 

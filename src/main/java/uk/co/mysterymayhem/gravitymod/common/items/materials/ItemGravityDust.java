@@ -135,11 +135,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
         }
 
         static void addBlockWithMeta(Block block, int meta) {
-            TIntHashSet tIntHashSet = ACCEPTABLE_BLOCKS_WITH_META.get(block);
-            if (tIntHashSet == null) {
-                tIntHashSet = new TIntHashSet();
-                ACCEPTABLE_BLOCKS_WITH_META.put(block, tIntHashSet);
-            }
+            TIntHashSet tIntHashSet = ACCEPTABLE_BLOCKS_WITH_META.computeIfAbsent(block, k -> new TIntHashSet());
             tIntHashSet.add(meta);
         }
 
@@ -198,11 +194,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
         }
 
         static void addItemDropWithMeta(Item item, int meta) {
-            TIntHashSet tIntHashSet = ACCEPTABLE_DROPS_WITH_META.get(item);
-            if (tIntHashSet == null) {
-                tIntHashSet = new TIntHashSet();
-                ACCEPTABLE_DROPS_WITH_META.put(item, tIntHashSet);
-            }
+            TIntHashSet tIntHashSet = ACCEPTABLE_DROPS_WITH_META.computeIfAbsent(item, k -> new TIntHashSet());
             tIntHashSet.add(meta);
         }
 
@@ -230,7 +222,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                             ItemStack next = iterator.next();
                             if (next != null && next.getItem() == StaticItems.GRAVITY_DUST) {
                                 iterator.remove();
-                                for (int i = 0; i < next.stackSize; i++) {
+                                for (int i = 0; i < next.getCount(); i++) {
                                     BlockBreakListener.spawnAsSpecialEntity(world, pos, new ItemStack(StaticItems.GRAVITY_DUST));
                                 }
                             }
@@ -242,7 +234,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                 ItemStack heldItemMainhand = harvester.getHeldItemMainhand();
 
                 // TODO: Add config option that disables needing a distorter
-                if (heldItemMainhand != null && ItemGravityDustInducer.hasDistorterTag(heldItemMainhand)) {
+                if (!heldItemMainhand.isEmpty() && ItemGravityDustInducer.hasDistorterTag(heldItemMainhand)) {
                     World world = event.getWorld();
 
                     if (block == Blocks.LIT_REDSTONE_ORE) {
@@ -324,7 +316,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
                 double d2 = (double)(worldIn.rand.nextFloat() * f) + 0.25D;
                 EntityItem entityitem = new EntityFloatingItem(worldIn, (double)pos.getX() + d0, (double)pos.getY() + d1, (double)pos.getZ() + d2, stack);
                 entityitem.setDefaultPickupDelay();
-                worldIn.spawnEntityInWorld(entityitem);
+                worldIn.spawnEntity(entityitem);
             }
         }
 

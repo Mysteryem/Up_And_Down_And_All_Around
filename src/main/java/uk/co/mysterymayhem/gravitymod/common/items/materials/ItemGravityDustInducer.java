@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
 import com.google.common.collect.Lists;
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
@@ -11,6 +12,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -113,7 +115,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             int distorterItemsFound = 0;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 ItemStack stack = inv.getStackInSlot(i);
-                if (stack != null) {
+                if (!stack.isEmpty()) {
                     Item item = stack.getItem();
                     if (item == StaticItems.SPACETIME_DISTORTER) {
                         if (++distorterItemsFound > 1) {
@@ -121,7 +123,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
                         }
                     }
                     else if (isItemValidForInducer(stack, item)) {
-                        if (stack.stackSize != 1 || hasDistorterTag(stack)) {
+                        if (stack.getCount() != 1 || hasDistorterTag(stack)) {
                             return false;
                         }
                         else if (++nonDistorterItemsFound > 1) {
@@ -146,7 +148,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             ItemStack toolStack = null;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 toolStack = inv.getStackInSlot(i);
-                if (toolStack != null && toolStack.getItem() != StaticItems.SPACETIME_DISTORTER) {
+                if (!toolStack.isEmpty() && toolStack.getItem() != StaticItems.SPACETIME_DISTORTER) {
                     break;
                 }
             }
@@ -179,7 +181,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
         }
 
         @Override
-        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
+        public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
             return ForgeHooks.defaultRecipeGetRemainingItems(inv);
         }
     }
@@ -214,14 +216,14 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             int waterBucketItemsFound = 0;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 ItemStack stack = inv.getStackInSlot(i);
-                if (stack != null) {
+                if (!stack.isEmpty()) {
                     Item item = stack.getItem();
                     if (item == Items.WATER_BUCKET) {
                         if (++waterBucketItemsFound > 1) {
                             return false;
                         }
                     }
-                    else if (stack.stackSize == 1 && hasDistorterTag(stack)) {
+                    else if (stack.getCount() == 1 && hasDistorterTag(stack)) {
                         if (++pasteItemsFound > 1) {
                             // Found too many paste items
                             return false;
@@ -237,13 +239,13 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             return pasteItemsFound == 1 && waterBucketItemsFound == 1;
         }
 
-        @Nullable
         @Override
+        @MethodsReturnNonnullByDefault
         public ItemStack getCraftingResult(InventoryCrafting inv) {
-            ItemStack armourStack = null;
+            ItemStack armourStack = ItemStack.EMPTY;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 armourStack = inv.getStackInSlot(i);
-                if (armourStack != null && armourStack.getItem() != Items.WATER_BUCKET) {
+                if (!armourStack.isEmpty() && armourStack.getItem() != Items.WATER_BUCKET) {
                     break;
                 }
             }
@@ -268,7 +270,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
 
 
         @Override
-        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
+        public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
             return ForgeHooks.defaultRecipeGetRemainingItems(inv);
         }
     }

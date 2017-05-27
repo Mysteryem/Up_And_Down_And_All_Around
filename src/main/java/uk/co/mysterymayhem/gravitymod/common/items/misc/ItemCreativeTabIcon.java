@@ -97,7 +97,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
             entityItem.ticksExisted = age + 1;
         }
         boolean remote;
-        if ((remote = entityItem.worldObj.isRemote) && this.currentClientEntity == entityItem) {
+        if ((remote = entityItem.world.isRemote) && this.currentClientEntity == entityItem) {
             return false;
         }
         else if (this.currentServerEntity == entityItem) {
@@ -132,7 +132,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
 
         if (remote && entityItem.isCollided) {
             // Spawn a firework when the item entity hits a block
-            entityItem.worldObj.makeFireworks(entityItem.posX, entityItem.posY, entityItem.posZ, entityItem.motionX, entityItem.motionY, entityItem.motionZ, fireworkTag);
+            entityItem.world.makeFireworks(entityItem.posX, entityItem.posY, entityItem.posZ, entityItem.motionX, entityItem.motionY, entityItem.motionZ, fireworkTag);
         }
 
         entityItem.motionX += xToAdd;
@@ -153,7 +153,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
             squareLength = minMovementSquared;
         }
         if (squareLength < minMovementSquared) {
-            motionVec = motionVec.scale(MathHelper.sqrt_double(minMovementSquared / squareLength));
+            motionVec = motionVec.scale(MathHelper.sqrt(minMovementSquared / squareLength));
         }
         entityItem.motionX = motionVec.xCoord;
         entityItem.motionY = motionVec.yCoord;
@@ -161,7 +161,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
 
         if (remote) {
             // Smoke trail effect
-            entityItem.worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL, entityItem.posX, entityItem.posY, entityItem.posZ, 0, 0, 0);
+            entityItem.world.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL, entityItem.posX, entityItem.posY, entityItem.posZ, 0, 0, 0);
             this.currentClientEntity = null;
         }
         else {

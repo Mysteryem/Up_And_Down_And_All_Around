@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 public class MessageHandlerGravityGenerator implements IMessageHandler<MessageGravityGenerator, IMessage> {
     @Override
     public IMessage onMessage(MessageGravityGenerator message, MessageContext ctx) {
-        EntityPlayerMP playerEntity = ctx.getServerHandler().playerEntity;
+        EntityPlayerMP playerEntity = ctx.getServerHandler().player;
         FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(
                 () -> message.process(playerEntity)
         );

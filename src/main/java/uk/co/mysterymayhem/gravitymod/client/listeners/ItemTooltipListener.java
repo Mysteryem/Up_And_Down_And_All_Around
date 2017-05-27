@@ -7,6 +7,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -33,7 +34,7 @@ public class ItemTooltipListener {
         EntityPlayer player = event.getEntityPlayer();
         if (player != null && !(player instanceof FakePlayer)) {
             ItemStack itemStack = event.getItemStack();
-            if (itemStack != null) {
+            if (!itemStack.isEmpty()) {
                 List<String> toolTips = event.getToolTip();
                 if (itemStack.getItem() instanceof IWeakGravityEnabler) {
                     addWeakGravityTooltip(toolTips, player);
@@ -94,7 +95,7 @@ public class ItemTooltipListener {
     }
 
     private static int getNumWeakEnablersWorn(@Nonnull EntityPlayer player) {
-        ItemStack[] armorInventory = player.inventory.armorInventory;
+        NonNullList<ItemStack> armorInventory = player.inventory.armorInventory;
         int numWeakGravityEnablers = 0;
         for (ItemStack stack : armorInventory) {
             if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
@@ -106,7 +107,7 @@ public class ItemTooltipListener {
             int slots = baublesHandler.getSlots();
             for (int i = 0; i < slots; i++) {
                 ItemStack stack = baublesHandler.getStackInSlot(i);
-                if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                if (!stack.isEmpty() && stack.getItem() instanceof IWeakGravityEnabler) {
                     numWeakGravityEnablers++;
                 }
             }
@@ -117,7 +118,7 @@ public class ItemTooltipListener {
 
     // Does not count weak
     private static int getNumNormalEnablersWorn(@Nonnull EntityPlayer player) {
-        ItemStack[] armorInventory = player.inventory.armorInventory;
+        NonNullList<ItemStack> armorInventory = player.inventory.armorInventory;
         int numNormalGravityEnablers = 0;
         for (ItemStack stack : armorInventory) {
             if (stack != null && ItemArmourPaste.hasPasteTag(stack)) {
@@ -129,7 +130,7 @@ public class ItemTooltipListener {
             int slots = baublesHandler.getSlots();
             for (int i = 0; i < slots; i++) {
                 ItemStack stack = baublesHandler.getStackInSlot(i);
-                if (stack != null && ItemArmourPaste.hasPasteTag(stack)) {
+                if (!stack.isEmpty() && ItemArmourPaste.hasPasteTag(stack)) {
                     numNormalGravityEnablers++;
                 }
             }
@@ -140,7 +141,7 @@ public class ItemTooltipListener {
 
     // Counts weak and gives them the value defined in config
     private static int getCombinedNormalEnablersWorn(@Nonnull EntityPlayer player) {
-        ItemStack[] armorInventory = player.inventory.armorInventory;
+        NonNullList<ItemStack> armorInventory = player.inventory.armorInventory;
         int numNormalGravityEnablersIncludingWeakEnablers = 0;
         for (ItemStack stack : armorInventory) {
             if (stack != null) {
@@ -157,7 +158,7 @@ public class ItemTooltipListener {
             int slots = baublesHandler.getSlots();
             for (int i = 0; i < slots; i++) {
                 ItemStack stack = baublesHandler.getStackInSlot(i);
-                if (stack != null) {
+                if (!stack.isEmpty()) {
                     if (ItemArmourPaste.hasPasteTag(stack)) {
                         numNormalGravityEnablersIncludingWeakEnablers++;
                     }

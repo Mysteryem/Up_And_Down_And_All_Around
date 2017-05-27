@@ -13,10 +13,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
@@ -127,7 +124,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
+    public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> subItems) {
         if (tab == ModItems.UP_AND_DOWN_CREATIVE_TAB) {
             subItems.add(new ItemStack(this, 1, DEFAULT_META));
         }
@@ -156,122 +153,121 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack stack, World worldIn, EntityPlayer playerIn, EnumHand hand) {
-        if (playerIn != null) {
-            int i = stack.getItemDamage();
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
+        ItemStack stack = playerIn.getHeldItem(hand);
+        int i = stack.getItemDamage();
 
-            if (playerIn.isSneaking()) {
-                //Change displayed direction
-                EnumControllerVisibleState currentVisible = EnumControllerVisibleState.getFromCombinedMeta(i);
-                EnumControllerActiveDirection currentActive = EnumControllerActiveDirection.getFromCombinedMeta(i);
-                switch (currentVisible) {
-                    case DOWN_OFF:
-                        if (currentActive == EnumControllerActiveDirection.UP) {
-                            currentVisible = EnumControllerVisibleState.UP_ON;
-                            break;
-                        }
-                    case DOWN_ON:
-                        currentVisible = EnumControllerVisibleState.UP_OFF;
-                        break;
-                    case UP_OFF:
-                        if (currentActive == EnumControllerActiveDirection.NORTH) {
-                            currentVisible = EnumControllerVisibleState.NORTH_ON;
-                            break;
-                        }
-                    case UP_ON:
-                        currentVisible = EnumControllerVisibleState.NORTH_OFF;
-                        break;
-                    case NORTH_OFF:
-                        if (currentActive == EnumControllerActiveDirection.EAST) {
-                            currentVisible = EnumControllerVisibleState.EAST_ON;
-                            break;
-                        }
-                    case NORTH_ON:
-                        currentVisible = EnumControllerVisibleState.EAST_OFF;
-                        break;
-                    case EAST_OFF:
-                        if (currentActive == EnumControllerActiveDirection.SOUTH) {
-                            currentVisible = EnumControllerVisibleState.SOUTH_ON;
-                            break;
-                        }
-                    case EAST_ON:
-                        currentVisible = EnumControllerVisibleState.SOUTH_OFF;
-                        break;
-                    case SOUTH_OFF:
-                        if (currentActive == EnumControllerActiveDirection.WEST) {
-                            currentVisible = EnumControllerVisibleState.WEST_ON;
-                            break;
-                        }
-                    case SOUTH_ON:
-                        currentVisible = EnumControllerVisibleState.WEST_OFF;
-                        break;
-                    case WEST_OFF:
-                        if (currentActive == EnumControllerActiveDirection.DOWN) {
-                            currentVisible = EnumControllerVisibleState.DOWN_ON;
-                            break;
-                        }
-                    case WEST_ON:
-                        currentVisible = EnumControllerVisibleState.DOWN_OFF;
-                        break;
-                }
-                stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
-            }
-            else {
-                //Change active direction
-                EnumControllerVisibleState currentVisible = EnumControllerVisibleState.getFromCombinedMeta(i);
-                EnumControllerActiveDirection currentActive = EnumControllerActiveDirection.getFromCombinedMeta(i);
-                switch (currentVisible) {
-                    case DOWN_OFF:
-                        currentActive = EnumControllerActiveDirection.DOWN;
-                        currentVisible = EnumControllerVisibleState.DOWN_ON;
-                        break;
-                    case DOWN_ON:
-                        currentActive = EnumControllerActiveDirection.NONE;
-                        currentVisible = EnumControllerVisibleState.DOWN_OFF;
-                        break;
-                    case UP_OFF:
-                        currentActive = EnumControllerActiveDirection.UP;
+        if (playerIn.isSneaking()) {
+            //Change displayed direction
+            EnumControllerVisibleState currentVisible = EnumControllerVisibleState.getFromCombinedMeta(i);
+            EnumControllerActiveDirection currentActive = EnumControllerActiveDirection.getFromCombinedMeta(i);
+            switch (currentVisible) {
+                case DOWN_OFF:
+                    if (currentActive == EnumControllerActiveDirection.UP) {
                         currentVisible = EnumControllerVisibleState.UP_ON;
                         break;
-                    case UP_ON:
-                        currentActive = EnumControllerActiveDirection.NONE;
-                        currentVisible = EnumControllerVisibleState.UP_OFF;
-                        break;
-                    case NORTH_OFF:
-                        currentActive = EnumControllerActiveDirection.NORTH;
+                    }
+                case DOWN_ON:
+                    currentVisible = EnumControllerVisibleState.UP_OFF;
+                    break;
+                case UP_OFF:
+                    if (currentActive == EnumControllerActiveDirection.NORTH) {
                         currentVisible = EnumControllerVisibleState.NORTH_ON;
                         break;
-                    case NORTH_ON:
-                        currentActive = EnumControllerActiveDirection.NONE;
-                        currentVisible = EnumControllerVisibleState.NORTH_OFF;
-                        break;
-                    case EAST_OFF:
-                        currentActive = EnumControllerActiveDirection.EAST;
+                    }
+                case UP_ON:
+                    currentVisible = EnumControllerVisibleState.NORTH_OFF;
+                    break;
+                case NORTH_OFF:
+                    if (currentActive == EnumControllerActiveDirection.EAST) {
                         currentVisible = EnumControllerVisibleState.EAST_ON;
                         break;
-                    case EAST_ON:
-                        currentActive = EnumControllerActiveDirection.NONE;
-                        currentVisible = EnumControllerVisibleState.EAST_OFF;
-                        break;
-                    case SOUTH_OFF:
-                        currentActive = EnumControllerActiveDirection.SOUTH;
+                    }
+                case NORTH_ON:
+                    currentVisible = EnumControllerVisibleState.EAST_OFF;
+                    break;
+                case EAST_OFF:
+                    if (currentActive == EnumControllerActiveDirection.SOUTH) {
                         currentVisible = EnumControllerVisibleState.SOUTH_ON;
                         break;
-                    case SOUTH_ON:
-                        currentActive = EnumControllerActiveDirection.NONE;
-                        currentVisible = EnumControllerVisibleState.SOUTH_OFF;
-                        break;
-                    case WEST_OFF:
-                        currentActive = EnumControllerActiveDirection.WEST;
+                    }
+                case EAST_ON:
+                    currentVisible = EnumControllerVisibleState.SOUTH_OFF;
+                    break;
+                case SOUTH_OFF:
+                    if (currentActive == EnumControllerActiveDirection.WEST) {
                         currentVisible = EnumControllerVisibleState.WEST_ON;
                         break;
-                    case WEST_ON:
-                        currentActive = EnumControllerActiveDirection.NONE;
-                        currentVisible = EnumControllerVisibleState.WEST_OFF;
+                    }
+                case SOUTH_ON:
+                    currentVisible = EnumControllerVisibleState.WEST_OFF;
+                    break;
+                case WEST_OFF:
+                    if (currentActive == EnumControllerActiveDirection.DOWN) {
+                        currentVisible = EnumControllerVisibleState.DOWN_ON;
                         break;
-                }
-                stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
+                    }
+                case WEST_ON:
+                    currentVisible = EnumControllerVisibleState.DOWN_OFF;
+                    break;
             }
+            stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
+        }
+        else {
+            //Change active direction
+            EnumControllerVisibleState currentVisible = EnumControllerVisibleState.getFromCombinedMeta(i);
+            EnumControllerActiveDirection currentActive = EnumControllerActiveDirection.getFromCombinedMeta(i);
+            switch (currentVisible) {
+                case DOWN_OFF:
+                    currentActive = EnumControllerActiveDirection.DOWN;
+                    currentVisible = EnumControllerVisibleState.DOWN_ON;
+                    break;
+                case DOWN_ON:
+                    currentActive = EnumControllerActiveDirection.NONE;
+                    currentVisible = EnumControllerVisibleState.DOWN_OFF;
+                    break;
+                case UP_OFF:
+                    currentActive = EnumControllerActiveDirection.UP;
+                    currentVisible = EnumControllerVisibleState.UP_ON;
+                    break;
+                case UP_ON:
+                    currentActive = EnumControllerActiveDirection.NONE;
+                    currentVisible = EnumControllerVisibleState.UP_OFF;
+                    break;
+                case NORTH_OFF:
+                    currentActive = EnumControllerActiveDirection.NORTH;
+                    currentVisible = EnumControllerVisibleState.NORTH_ON;
+                    break;
+                case NORTH_ON:
+                    currentActive = EnumControllerActiveDirection.NONE;
+                    currentVisible = EnumControllerVisibleState.NORTH_OFF;
+                    break;
+                case EAST_OFF:
+                    currentActive = EnumControllerActiveDirection.EAST;
+                    currentVisible = EnumControllerVisibleState.EAST_ON;
+                    break;
+                case EAST_ON:
+                    currentActive = EnumControllerActiveDirection.NONE;
+                    currentVisible = EnumControllerVisibleState.EAST_OFF;
+                    break;
+                case SOUTH_OFF:
+                    currentActive = EnumControllerActiveDirection.SOUTH;
+                    currentVisible = EnumControllerVisibleState.SOUTH_ON;
+                    break;
+                case SOUTH_ON:
+                    currentActive = EnumControllerActiveDirection.NONE;
+                    currentVisible = EnumControllerVisibleState.SOUTH_OFF;
+                    break;
+                case WEST_OFF:
+                    currentActive = EnumControllerActiveDirection.WEST;
+                    currentVisible = EnumControllerVisibleState.WEST_ON;
+                    break;
+                case WEST_ON:
+                    currentActive = EnumControllerActiveDirection.NONE;
+                    currentVisible = EnumControllerVisibleState.WEST_OFF;
+                    break;
+            }
+            stack.setItemDamage(getCombinedMetaFor(currentActive, currentVisible));
         }
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
     }

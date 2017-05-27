@@ -12,6 +12,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
+import javax.annotation.Nullable;
+
 /**
  * Created by Mysteryem on 2017-01-25.
  */
@@ -21,7 +23,11 @@ public class ModelGravityGoggles extends ModelBiped {
     private static final ItemStack STACK = new ItemStack(StaticItems.GRAVITY_FIELD_GOGGLES);
 
     @Override
-    public void render(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
+    public void render(@Nullable Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
+        if (entityIn == null) {
+            return;
+        }
+
         RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
 
         GlStateManager.pushMatrix();

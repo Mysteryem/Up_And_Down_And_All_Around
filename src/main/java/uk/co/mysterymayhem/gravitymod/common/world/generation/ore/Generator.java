@@ -135,7 +135,7 @@ public class Generator implements IWorldGenerator {
         }
 
         public ChunkRef(Chunk chunk, WorldProvider provider) {
-            this(chunk.xPosition, chunk.zPosition, provider);
+            this(chunk.x, chunk.z, provider);
         }
 
         public ChunkRef(int chunkX, int chunkZ, WorldProvider provider) {
@@ -151,7 +151,7 @@ public class Generator implements IWorldGenerator {
         }
 
         public ChunkRef(ChunkPos chunkPos, WorldProvider provider) {
-            this(chunkPos.chunkXPos, chunkPos.chunkZPos, provider);
+            this(chunkPos.x, chunkPos.z, provider);
         }
 
         public ChunkRef(int chunkX, int chunkZ, World world) {

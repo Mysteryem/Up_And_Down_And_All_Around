@@ -72,7 +72,7 @@ public class GravityDirectionCapability {
     }
 
     public static void setGravityDirection(EntityPlayer player, EnumGravityDirection newDirection, boolean noTimeout) {
-        final boolean clientSide = player.worldObj.isRemote;
+        final boolean clientSide = player.world.isRemote;
 
         // Get the player's capability
         IGravityDirectionCapability capability = getGravityCapability(player);

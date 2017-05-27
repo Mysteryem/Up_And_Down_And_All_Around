@@ -17,6 +17,7 @@ import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
@@ -97,7 +98,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
+    public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> subItems) {
         for (int damage = 0; damage < EnumGravityDirection.values().length; damage++) {
             subItems.add(new ItemStack(itemIn, 1, damage));
         }
@@ -326,7 +327,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
                     }
                 }
                 else {
-                    EnumFacing relativeHorizontalFacing = EnumFacing.getHorizontal(MathHelper.floor_double((relativeYaw * 4.0F / 360.0F) + 0.5D) & 3);
+                    EnumFacing relativeHorizontalFacing = EnumFacing.getHorizontal(MathHelper.floor((relativeYaw * 4.0F / 360.0F) + 0.5D) & 3);
                     EnumFacing absoluteHorizontalFacing;
 
                     switch (entityGravityDirection.getInverseAdjustmentFromDOWNDirection()) {

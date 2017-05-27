@@ -15,6 +15,7 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -152,7 +153,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
                         }
                     }
                     else if (isItemArmour(stack, item) || isItemBauble(item)) {
-                        if (stack.stackSize != 1 || hasPasteTag(stack) || item instanceof IWeakGravityEnabler) {
+                        if (stack.getCount() != 1 || hasPasteTag(stack) || item instanceof IWeakGravityEnabler) {
                             return false;
                         }
                         else if (++nonPasteItemsFound > 1) {
@@ -203,7 +204,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         }
 
         @Override
-        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
+        public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
             return ForgeHooks.defaultRecipeGetRemainingItems(inv);
         }
     }
@@ -238,14 +239,14 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             int waterBucketItemsFound = 0;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 ItemStack stack = inv.getStackInSlot(i);
-                if (stack != null) {
+                if (!stack.isEmpty()) {
                     Item item = stack.getItem();
                     if (item == Items.WATER_BUCKET) {
                         if (++waterBucketItemsFound > 1) {
                             return false;
                         }
                     }
-                    else if (stack.stackSize == 1 && (isItemArmour(stack, item) || isItemBauble(item)) && hasPasteTag(stack)) {
+                    else if (stack.getCount() == 1 && (isItemArmour(stack, item) || isItemBauble(item)) && hasPasteTag(stack)) {
                         if (++pasteItemsFound > 1) {
                             // Found too many paste items
                             return false;
@@ -264,10 +265,10 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         @Nullable
         @Override
         public ItemStack getCraftingResult(InventoryCrafting inv) {
-            ItemStack armourStack = null;
+            ItemStack armourStack = ItemStack.EMPTY;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 armourStack = inv.getStackInSlot(i);
-                if (armourStack != null && armourStack.getItem() != Items.WATER_BUCKET) {
+                if (!armourStack.isEmpty() && armourStack.getItem() != Items.WATER_BUCKET) {
                     break;
                 }
             }
@@ -292,7 +293,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
 
 
         @Override
-        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
+        public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
             return ForgeHooks.defaultRecipeGetRemainingItems(inv);
         }
     }

@@ -38,7 +38,7 @@ public class Ref {
     public static final MethodName Entity$getForward_name = new MethodName("getForward", "func_189651_aD");
     public static final MethodName Entity$getLookVec_name = new MethodName("getLookVec", "func_70040_Z");
     public static final MethodName Entity$isOffsetPositionInLiquid_name = new MethodName("isOffsetPositionInLiquid", "func_70038_c");
-    public static final MethodName Entity$moveEntity_name = new MethodName("moveEntity", "func_70091_d");
+    public static final MethodName Entity$move_name = new MethodName("move", "func_70091_d");
     public static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
     public static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
     public static final MethodName Entity$pushOutOfBlocks = new MethodName("pushOutOfBlocks", "func_145771_j");
@@ -123,6 +123,7 @@ public class Ref {
     public static final ObjectName FoodStats = new ObjectName("net/minecraft/util/FoodStats");
     public static final ObjectName Item = new ObjectName("net/minecraft/item/Item");
     public static final ObjectName ItemStack = new ObjectName("net/minecraft/item/ItemStack");
+    public static final ObjectName MoverType = new ObjectName("net/minecraft/entity/MoverType");
     public static final ObjectName NetHandlerPlayServer = new ObjectName("net/minecraft/network/NetHandlerPlayServer");
     public static final ObjectName Vec3d = new ObjectName("net/minecraft/util/math/Vec3d");
     public static final ObjectName World = new ObjectName("net/minecraft/world/World");
@@ -271,6 +272,7 @@ public class Ref {
     /*
         Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)
      */
-    public static final MethodInsn AbstractClientPlayer$moveEntity_SPECIAL = new MethodInsn(Opcodes.INVOKESPECIAL, AbstractClientPlayer, Entity$moveEntity_name, new MethodDesc(VOID, DOUBLE, DOUBLE, DOUBLE));
+    public static final MethodInsn AbstractClientPlayer$moveEntity_SPECIAL = new MethodInsn(Opcodes.INVOKESPECIAL, AbstractClientPlayer, Entity$move_name,
+            new MethodDesc(MoverType, VOID, DOUBLE, DOUBLE, DOUBLE));
     public static final MethodInsn AbstractClientPlayer$updateAutoJump_SPECIAL = new MethodInsn(Opcodes.INVOKESPECIAL, AbstractClientPlayer, EntityPlayerSP$updateAutoJump_name, new MethodDesc(VOID, FLOAT, FLOAT));
 }

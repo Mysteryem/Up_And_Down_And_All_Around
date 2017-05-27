@@ -5,6 +5,7 @@ import gnu.trove.stack.array.TDoubleArrayStack;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
@@ -107,8 +108,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             this.setEntityBoundingBox(newAABB);
 
-            if (this.width > oldWidth && !this.firstUpdate && !this.worldObj.isRemote) {
-                this.moveEntity((double)(oldWidth - this.width), 0, (double)(oldWidth - this.width));
+            if (this.width > oldWidth && !this.firstUpdate && !this.world.isRemote) {
+                this.move(MoverType.SELF, (double)(oldWidth - this.width), 0, (double)(oldWidth - this.width));
             }
         }
     }
@@ -130,7 +131,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @Override
-    public void moveEntity(double x, double y, double z) {
+    public void move(MoverType moverType, double x, double y, double z) {
         if (this.isMotionAbsolute()) {
             // If moveEntity is called outside of the player tick, then some external force is moving the player
             double[] doubles = Hooks.inverseAdjustXYZ(this, x, y, z);
@@ -138,11 +139,11 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             y = doubles[1];
             z = doubles[2];
             this.makeMotionRelative();
-            super.moveEntity(x, y, z);
+            super.move(moverType, x, y, z);
             this.popMotionStack();
         }
         else {
-            super.moveEntity(x, y, z);
+            super.move(moverType, x, y, z);
         }
     }
 
@@ -239,14 +240,14 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 double zMovement = (double)(((float)((i >> 2) % 2) - 0.5F) * this.width * 0.8F);
                 double[] d = direction.adjustXYZValues(xMovement, yMovement, zMovement);
 
-                int j = MathHelper.floor_double(origin.yCoord + d[1]);
-                int k = MathHelper.floor_double(origin.xCoord + d[0]);
-                int l = MathHelper.floor_double(origin.zCoord + d[2]);
+                int j = MathHelper.floor(origin.yCoord + d[1]);
+                int k = MathHelper.floor(origin.xCoord + d[0]);
+                int l = MathHelper.floor(origin.zCoord + d[2]);
 
                 if (blockpos$pooledmutableblockpos.getX() != k || blockpos$pooledmutableblockpos.getY() != j || blockpos$pooledmutableblockpos.getZ() != l) {
                     blockpos$pooledmutableblockpos.setPos(k, j, l);
 
-                    if (this.worldObj.getBlockState(blockpos$pooledmutableblockpos).getBlock().isVisuallyOpaque()) {
+                    if (this.world.getBlockState(blockpos$pooledmutableblockpos).causesSuffocation()) {
                         blockpos$pooledmutableblockpos.release();
                         return true;
                     }
@@ -277,13 +278,13 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
             BlockPos blockpos = new BlockPos(gBB.offset(0, 0.001, 0).getOrigin());
-            IBlockState iblockstate = this.worldObj.getBlockState(blockpos);
+            IBlockState iblockstate = this.world.getBlockState(blockpos);
 
-            boolean isOnLadder = net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, this.worldObj, blockpos, this);
+            boolean isOnLadder = net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate, this.world, blockpos, this);
 
             //iblockstate will never be null (will be air or will throw an exception if stuff isn't right)
 //            if (iblockstate != null) {
-            if (iblockstate.getBlock().isLadder(iblockstate, this.worldObj, blockpos, this)) {
+            if (iblockstate.getBlock().isLadder(iblockstate, this.world, blockpos, this)) {
                 EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
                 if (facing != null) {
                     EnumGravityDirection direction = gBB.getDirection();
@@ -294,15 +295,15 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             if (!isOnLadder) {
                 Vec3d topOfHead = gBB.offset(0, this.height, 0).getOrigin();
                 blockpos = new BlockPos(topOfHead);
-                iblockstate = this.worldObj.getBlockState(blockpos);
+                iblockstate = this.world.getBlockState(blockpos);
                 //As before, iblockstate will not be null
 //                if (iblockstate != null) {
-                if (iblockstate.getBlock().isLadder(iblockstate, this.worldObj, blockpos, this)) {
+                if (iblockstate.getBlock().isLadder(iblockstate, this.world, blockpos, this)) {
                     EnumFacing facing = BlockStateHelper.getFacingOfBlockState(iblockstate);
                     if (facing != null) {
                         EnumGravityDirection direction = gBB.getDirection();
                         isOnLadder = facing == direction.getFacingEquivalent() && net.minecraftforge.common.ForgeHooks.isLivingOnLadder(iblockstate,
-                                this.worldObj, blockpos,
+                                this.world, blockpos,
                                 this);
                         isMonkeyBars = true;
                     }
@@ -332,7 +333,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             }
             else {
                 // Bypass check for pos.up().getBlock() == Blocks.SNOW_LAYER
-                SoundType soundtype = blockIn.getSoundType(this.worldObj.getBlockState(pos), this.worldObj, pos, this);
+                SoundType soundtype = blockIn.getSoundType(this.world.getBlockState(pos), this.world, pos, this);
 
                 if (!blockIn.getDefaultState().getMaterial().isLiquid()) {
                     this.playSound(soundtype.getStepSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
@@ -469,7 +470,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     }
 
     @Override
-    public void setAngles(float yaw, float pitch) {
+    public void turn(float yaw, float pitch) {
         final EnumGravityDirection direction = API.getGravityDirection(this);
         final EnumGravityDirection reverseDirection = direction.getInverseAdjustmentFromDOWNDirection();
 
@@ -533,7 +534,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         float yawParam = (float)((absoluteYawChange) / 0.15);
         float pitchParam = (float)((this.rotationPitch - changedAbsolutePitch) / 0.15);
 
-        super.setAngles(yawParam, pitchParam);
+        super.turn(yawParam, pitchParam);
     }
 
     /**
@@ -600,14 +601,14 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
             Vec3d belowBlock = gBB.addCoord(0, -0.20000000298023224D, 0).getOrigin();
             BlockPos blockpos = new BlockPos(belowBlock);
-            IBlockState iblockstate = this.worldObj.getBlockState(blockpos);
+            IBlockState iblockstate = this.world.getBlockState(blockpos);
 
             if (iblockstate.getRenderType() != EnumBlockRenderType.INVISIBLE) {
                 Vec3d particleSpawnPoint = gBB.addCoord(((double)this.rand.nextFloat() - 0.5D) * (double)this.width, 0.1D, ((double)this.rand.nextFloat() -
                         0.5D) * (double)this.width)
                         .getOrigin();
                 double[] d = gBB.getDirection().adjustXYZValues(-this.motionX * 4.0D, 1.5D, -this.motionZ * 4.0D);
-                this.worldObj.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
+                this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
                         particleSpawnPoint.xCoord,
                         particleSpawnPoint.yCoord,
                         particleSpawnPoint.zCoord,
@@ -638,7 +639,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     //TODO: ASM the EntityPlayerMP class instead
     @Override
     protected void updateFallState(double y, boolean onGroundIn, IBlockState state, BlockPos pos) {
-        if (!this.worldObj.isRemote) {
+        if (!this.world.isRemote) {
 
             BlockPos blockpos;
 
@@ -651,19 +652,19 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             else {
                 // Fallback
                 int i, j, k;
-                i = MathHelper.floor_double(this.posX);
-                j = MathHelper.floor_double(this.posY - 0.20000000298023224D);
-                k = MathHelper.floor_double(this.posZ);
+                i = MathHelper.floor(this.posX);
+                j = MathHelper.floor(this.posY - 0.20000000298023224D);
+                k = MathHelper.floor(this.posZ);
                 blockpos = new BlockPos(i, j, k);
                 GravityMod.logWarning("Player bounding box is not gravity aware. In [UpAndDownAndAllAround]:EntityPlayerWithGravity::updateFallState");
             }
 
-            IBlockState iblockstate = this.worldObj.getBlockState(blockpos);
+            IBlockState iblockstate = this.world.getBlockState(blockpos);
 
-            if (iblockstate.getBlock().isAir(iblockstate, this.worldObj, blockpos)) {
+            if (iblockstate.getBlock().isAir(iblockstate, this.world, blockpos)) {
                 BlockPos blockpos1 = API.getGravityDirection(this).makeRelativeBlockPos(blockpos).down();
 
-                IBlockState iblockstate1 = this.worldObj.getBlockState(blockpos1);
+                IBlockState iblockstate1 = this.world.getBlockState(blockpos1);
                 Block block = iblockstate1.getBlock();
 
                 if (block instanceof BlockFence || block instanceof BlockWall || block instanceof BlockFenceGate) {
@@ -715,7 +716,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             //end ASM
 //            axisalignedbb = Hooks.getGravityAdjustedHitbox(this, f, f1);
 
-            if (!this.worldObj.collidesWithAnyBlock(axisalignedbb)) {
+            if (!this.world.collidesWithAnyBlock(axisalignedbb)) {
                 this.setSize(f, f1);
             }
         }

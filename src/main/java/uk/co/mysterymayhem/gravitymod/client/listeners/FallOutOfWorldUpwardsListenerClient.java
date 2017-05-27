@@ -36,7 +36,7 @@ public class FallOutOfWorldUpwardsListenerClient extends FallOutOfWorldUpwardsLi
 
     @Override
     protected void processSidedPlayer(EntityPlayer player) {
-        if (player.worldObj.isRemote) {
+        if (player.world.isRemote) {
             this.processClientPlayer(player);
         }
         else {
@@ -78,8 +78,8 @@ public class FallOutOfWorldUpwardsListenerClient extends FallOutOfWorldUpwardsLi
                             int left = resolution.getScaledWidth() / 2 + 91;
                             int top = resolution.getScaledHeight() - GuiIngameForge.right_height;
 
-                            int full = MathHelper.ceiling_double_int((double)(air - 2) * 10.0D / 300.0D);
-                            int partial = MathHelper.ceiling_double_int((double)air * 10.0D / 300.0D) - full;
+                            int full = MathHelper.ceil((double)(air - 2) * 10.0D / 300.0D);
+                            int partial = MathHelper.ceil((double)air * 10.0D / 300.0D) - full;
 
                             for (int i = 0; i < full + partial; ++i) {
                                 minecraft.ingameGUI.drawTexturedModalRect(left - i * 8 - 9, top, (i < full ? 16 : 25), 18, 9, 9);
@@ -109,7 +109,7 @@ public class FallOutOfWorldUpwardsListenerClient extends FallOutOfWorldUpwardsLi
 
     @Override
     public Integer getSpecialAir(EntityPlayer player) {
-        if (player.worldObj.isRemote) {
+        if (player.world.isRemote) {
             return clientMap.get(player);
         }
         else {
@@ -146,7 +146,7 @@ public class FallOutOfWorldUpwardsListenerClient extends FallOutOfWorldUpwardsLi
 
     @Override
     public void setSpecialAir(EntityPlayer player, int air) {
-        if (player.worldObj.isRemote) {
+        if (player.world.isRemote) {
             clientMap.put(player, air);
         }
         else {

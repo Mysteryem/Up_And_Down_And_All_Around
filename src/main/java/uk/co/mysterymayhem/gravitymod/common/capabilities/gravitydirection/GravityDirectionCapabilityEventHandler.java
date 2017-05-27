@@ -10,6 +10,8 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
+import javax.annotation.Nonnull;
+
 /**
  * Listens to the construction of entities and adds the GravityDirectionCapability to them if they're a player.
  * Also sets the player's initial bounding box.
@@ -34,12 +36,12 @@ public class GravityDirectionCapabilityEventHandler {
                 }
 
                 @Override
-                public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+                public boolean hasCapability(@Nonnull Capability<?> capability, EnumFacing facing) {
                     return GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE == capability;
                 }
 
                 @Override
-                public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+                public <T> T getCapability(@Nonnull Capability<T> capability, EnumFacing facing) {
                     return capability == GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE ? GravityDirectionCapability.GRAVITY_CAPABILITY_INSTANCE.<T>cast(this.instance) : null;
                 }
 

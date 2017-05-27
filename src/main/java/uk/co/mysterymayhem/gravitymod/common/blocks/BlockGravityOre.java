@@ -11,9 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
@@ -28,7 +26,6 @@ import uk.co.mysterymayhem.mystlib.setup.singletons.AbstractModBlockWithItem;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
@@ -60,7 +57,9 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
     }
 
     @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, ItemStack stack) {
+    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase
+            placer, EnumHand hand) {
+        ItemStack stack = placer.getHeldItem(hand);
         if (stack.getMetadata() == 0) {
             IBlockState placedAgainstState = world.getBlockState(pos.offset(facing.getOpposite()));
             Block placedAgainstBlock = placedAgainstState.getBlock();
@@ -118,7 +117,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
+    public void getSubBlocks(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
         for (Type blockType : Type.values()) {
             list.add(new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TYPE, blockType))));
         }
@@ -178,7 +177,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
 
     @Nullable
     @Override
-    protected ItemStack createStackedBlock(IBlockState state) {
+    protected ItemStack getSilkTouchDrop(IBlockState state) {
         return new ItemStack(this);
     }
 

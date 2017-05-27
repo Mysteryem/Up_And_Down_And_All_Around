@@ -87,12 +87,12 @@ public class OreGenLarge extends BlockStateMappedGenerator {
                 // Always greater than zero?
                 double horizontalDouble = 0.5 * (MathHelper.sin((float)Math.PI * percentOfNumBlocks) + 1.0F * zeroTo16thNumBlocks + 1.0D);
                 double verticalDouble = 0.5 * (MathHelper.sin((float)Math.PI * percentOfNumBlocks) + 1.0F * zeroTo16thNumBlocks + 1.0D);
-                int xMin = MathHelper.floor_double(interpXPos - horizontalDouble);
-                int yMin = MathHelper.floor_double(interpYPos - verticalDouble);
-                int zMin = MathHelper.floor_double(interpZPos - horizontalDouble);
-                int xMax = MathHelper.floor_double(interpXPos + horizontalDouble);
-                int yMax = MathHelper.floor_double(interpYPos + verticalDouble);
-                int zMax = MathHelper.floor_double(interpZPos + horizontalDouble);
+                int xMin = MathHelper.floor(interpXPos - horizontalDouble);
+                int yMin = MathHelper.floor(interpYPos - verticalDouble);
+                int zMin = MathHelper.floor(interpZPos - horizontalDouble);
+                int xMax = MathHelper.floor(interpXPos + horizontalDouble);
+                int yMax = MathHelper.floor(interpYPos + verticalDouble);
+                int zMax = MathHelper.floor(interpZPos + horizontalDouble);
 
                 for (int x = xMin; x <= xMax; ++x) {
                     double d12 = (x + 0.5D - interpXPos) / horizontalDouble;

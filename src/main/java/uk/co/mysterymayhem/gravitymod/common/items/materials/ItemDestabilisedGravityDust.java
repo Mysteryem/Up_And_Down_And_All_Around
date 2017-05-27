@@ -59,7 +59,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             dissipationEntity.prevPosX = location.prevPosX;
             dissipationEntity.prevPosY = location.prevPosY;
             dissipationEntity.prevPosZ = location.prevPosZ;
-            dissipationEntity.originalStackSize = ((EntityItem)location).getEntityItem().stackSize;
+            dissipationEntity.originalStackSize = ((EntityItem)location).getEntityItem().getCount();
 
             return dissipationEntity;
         }
@@ -90,7 +90,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
 
         @Override
         public void onUpdate() {
-            World worldObj = this.worldObj;
+            World worldObj = this.world;
             if (worldObj.isRemote) {
                 // Spawn some particles
 

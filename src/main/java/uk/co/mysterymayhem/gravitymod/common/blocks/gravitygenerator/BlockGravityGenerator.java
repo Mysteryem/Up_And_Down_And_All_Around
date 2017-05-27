@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator;
 
 import net.minecraft.block.BlockDirectional;
-import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
@@ -20,6 +19,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
@@ -38,9 +38,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.StaticGUIs;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.block.metaconverters.AbstractMetaMapper.MetaHelper;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-10-10.
@@ -152,7 +150,7 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (!worldIn.isRemote) {
             TileEntity tileEntity = worldIn.getTileEntity(pos);
 
@@ -172,7 +170,7 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if (tileEntity instanceof TileGravityGenerator) {
             TileGravityGenerator generator = (TileGravityGenerator)tileEntity;
-            generator.setFacing(BlockPistonBase.getFacingFromEntity(pos, placer));
+            generator.setFacing(EnumFacing.getDirectionFromEntityLiving(pos, placer));
         }
         else {
             GravityMod.logWarning("BlockGravityGenerator places, but found a %s of class %s at %s",
@@ -183,7 +181,7 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
     }
 
     @Override
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
+    public void getSubBlocks(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
         for (Boolean isReversed : REVERSED.getAllowedValues()) {
             for (EnumGravityTier tier : EnumGravityTier.values()) {
 //                list.add(new ItemStack(this, 1, tier.ordinal()/*this.getMetaFromState(defaultState.withProperty(TIER, tier))*/));
@@ -199,7 +197,7 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
 
     @Override
     public TileEntity createTileEntity(World world, IBlockState state) {
-        Collection<IProperty<?>> propertyNames = state.getPropertyNames();
+        Collection<IProperty<?>> propertyNames = state.getPropertyKeys();
         if (propertyNames.contains(FACING)) {
             return new TileGravityGenerator(state.getValue(TIER), state.getValue(FACING), state.getValue(REVERSED));
         }
@@ -210,11 +208,12 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
     }
 
     @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, ItemStack stack) {
+    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase
+            placer, EnumHand hand) {
         if (placer != null) {
-            facing = BlockPistonBase.getFacingFromEntity(pos, placer);
+            facing = EnumFacing.getDirectionFromEntityLiving(pos, placer);
         }
-        int metadata = stack.getMetadata();
+        int metadata = placer.getHeldItem(hand).getMetadata();
         return this.getStateFromMeta(metadata).withProperty(FACING, facing);
     }
 

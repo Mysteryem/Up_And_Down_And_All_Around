@@ -428,7 +428,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 
     @Override
     public void onLoad() {
-        if (this.missingTagsOnLoad && !this.worldObj.isRemote) {
+        if (this.missingTagsOnLoad && !this.world.isRemote) {
             // Stack overflow as markDirty tries to load the chunk again, which loads the tile entities again, which calls this method again...
             // This is because addScheduledTask will immediately execute the task
 //            ((WorldServer)this.worldObj).addScheduledTask(this::markDirty);
@@ -437,7 +437,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 
             // This seems to be safe, since the task is not executed immediately, instead added to a queue that will be emptied during
             // MinecraftServer::updateTimeLightAndEntities or IntegratedServer::tick
-            MinecraftServer minecraftServer = this.worldObj.getMinecraftServer();
+            MinecraftServer minecraftServer = this.world.getMinecraftServer();
             // Probably can't be null. Probably. I hope.
             if (minecraftServer != null) {
                 minecraftServer.futureTaskQueue.add(new FutureTask<>(Executors.callable(() -> {
@@ -460,9 +460,9 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         this.handleUpdateTag(pkt.getNbtCompound());
         BlockPos pos = this.pos;
-        IBlockState blockState = this.worldObj.getBlockState(pos);
+        IBlockState blockState = this.world.getBlockState(pos);
         // Update rendering of the block on the client side
-        this.worldObj.notifyBlockUpdate(pos, blockState, blockState, 3);
+        this.world.notifyBlockUpdate(pos, blockState, blockState, 3);
     }
 
     @Override
@@ -472,8 +472,8 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
 
     @Override
     public void update() {
-        this.powered = this.worldObj.isBlockPowered(this.getPos());
-        if (!this.worldObj.isRemote) {
+        this.powered = this.world.isBlockPowered(this.getPos());
+        if (!this.world.isRemote) {
 //            IBlockState blockState = this.worldObj.getBlockState(this.getPos());
 //            if (this.setupRequired) {
 //                if (!blockState.getPropertyNames().contains(BlockGravityGenerator.FACING)) {
@@ -498,7 +498,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
                 AxisAlignedBB volumeToCheck = this.searchVolume;
 //                RenderGlobal.renderFilledBox(volumeToCheck, 1f, 1f, 1f, 0.5f);
 
-                List<EntityPlayerMP> entitiesWithinAABB = this.worldObj.getEntitiesWithinAABB(
+                List<EntityPlayerMP> entitiesWithinAABB = this.world.getEntitiesWithinAABB(
                         EntityPlayerMP.class,
                         volumeToCheck,
                         input -> (!(input instanceof FakePlayer) && TileGravityGenerator.this.affectsPlayer(input)));
@@ -575,7 +575,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
                 EnumGravityDirection direction = this.reverseDirection ? this.gravityDirection.getOpposite() : this.gravityDirection;
                 if ((this.clientTicksLived + (sharedRandom.nextBoolean() ? 1 : 0)) % (particleSetting == 0 ? this.ticksPerSpawn : this.ticksPerSpawn * 2) == 0) {
                     Minecraft.getMinecraft().effectRenderer.addEffect(new GravityParticle(direction, this
-                            .searchVolume, this.gravityTier, this.worldObj));
+                            .searchVolume, this.gravityTier, this.world));
                 }
 //                }
 //                else {

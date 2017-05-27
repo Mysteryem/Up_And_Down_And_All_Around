@@ -3,6 +3,7 @@ package uk.co.mysterymayhem.gravitymod.common.entities;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.MoverType;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -57,7 +58,7 @@ public class EntityFloatingItem extends EntityItem {
         if (event.isCanceled()
                 && (entity = event.getEntity()) != null
                 && entity instanceof EntityFloatingItem
-                && (world = entity.worldObj) != null
+                && (world = entity.world) != null
                 && !world.isRemote) {
             // Spawn the extra item that would be dropped normally
             EntityItem newItem = new EntityItem(world, entity.posX, entity.posY, entity.posZ, new ItemStack(StaticItems.GRAVITY_DUST, ConfigHandler.gravityDustAmountDropped));
@@ -65,7 +66,7 @@ public class EntityFloatingItem extends EntityItem {
             newItem.motionY *= 0.1;
             newItem.motionZ *= 0.1;
             newItem.setEntityInvulnerable(true);
-            world.spawnEntityInWorld(newItem);
+            world.spawnEntity(newItem);
         }
     }
 
@@ -75,9 +76,9 @@ public class EntityFloatingItem extends EntityItem {
             if (this.motionY > 0.04) {
                 this.motionY = 0.04;
             }
-            if (this.worldObj.isRemote) {
+            if (this.world.isRemote) {
                 BlockPos blockPosIn = new BlockPos(this);
-                World world = this.worldObj;
+                World world = this.world;
 //                entityItem.worldObj.playEvent(2003, new BlockPos(entityItem), 0);
                 double d0 = this.posX;
                 double d1 = this.posY + 0.5;
@@ -91,7 +92,7 @@ public class EntityFloatingItem extends EntityItem {
             }
         }
 
-        boolean remote = this.worldObj.isRemote;
+        boolean remote = this.world.isRemote;
 
         if (this.onGround) {
 //            this.isCollidedVertically = false;
@@ -138,15 +139,15 @@ public class EntityFloatingItem extends EntityItem {
             squareLength = minMovementSquared;
         }
         if (squareLength < minMovementSquared) {
-            motionVec = motionVec.scale(MathHelper.sqrt_double(minMovementSquared / squareLength));
+            motionVec = motionVec.scale(MathHelper.sqrt(minMovementSquared / squareLength));
         }
         double maxSpeed = 0.1;
         this.motionX = motionVec.xCoord;
         this.motionY = motionVec.yCoord;
         this.motionZ = motionVec.zCoord;
-        this.motionX = MathHelper.clamp_double(this.motionX, -maxSpeed, maxSpeed);
-        this.motionY = MathHelper.clamp_double(this.motionY, -maxSpeed, maxSpeed);
-        this.motionZ = MathHelper.clamp_double(this.motionZ, -maxSpeed, maxSpeed);
+        this.motionX = MathHelper.clamp(this.motionX, -maxSpeed, maxSpeed);
+        this.motionY = MathHelper.clamp(this.motionY, -maxSpeed, maxSpeed);
+        this.motionZ = MathHelper.clamp(this.motionZ, -maxSpeed, maxSpeed);
 
         if (remote) {
             float yOffset = 0.6f;
@@ -154,9 +155,12 @@ public class EntityFloatingItem extends EntityItem {
             // Smoke trail effect
 //            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, this.posY-0.3, this.posZ, f-this.motionX+f*this.rand.nextFloat(), f-this.motionY+f*this.rand.nextFloat(), f-this.motionZ+f*this.rand.nextFloat());
 
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this.randParticleMotion(), -this.motionZ + this.randParticleMotion());
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this.randParticleMotion(), -this.motionZ + this.randParticleMotion());
-            this.worldObj.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this.randParticleMotion(), -this.motionZ + this.randParticleMotion());
+            this.world.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this
+                    .randParticleMotion(), -this.motionZ + this.randParticleMotion());
+            this.world.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this
+                    .randParticleMotion(), -this.motionZ + this.randParticleMotion());
+            this.world.spawnParticle(EnumParticleTypes.PORTAL, this.posX, yPos, this.posZ, -this.motionX + this.randParticleMotion(), 0.1 - this.motionY + this
+                    .randParticleMotion(), -this.motionZ + this.randParticleMotion());
         }
     }
 
@@ -166,7 +170,7 @@ public class EntityFloatingItem extends EntityItem {
 
     @Override
     public void onCollideWithPlayer(EntityPlayer entityIn) {
-        if (!this.worldObj.isRemote) {
+        if (!this.world.isRemote) {
             if (!this.cannotPickup()) {
                 super.setNoPickupDelay();
                 super.onCollideWithPlayer(entityIn);
@@ -206,14 +210,14 @@ public class EntityFloatingItem extends EntityItem {
     public void setDead() {
         // Only spawn the new item if setDead wasn't called due to the entity despawning
 
-        if (!this.worldObj.isRemote
+        if (!this.world.isRemote
                 && ReflectionLambdas.get_EntityItem$age.applyAsInt(this) < this.lifespan
                 && ReflectionLambdas.get_EntityItem$health.applyAsInt(this) > 0
-                && this.getEntityItem() != null
+                && !this.getEntityItem().isEmpty()
                 /*&& stack.stackSize <= 0*/) {
             World world;
             if (this.getEntityItem().getItem() != StaticItems.GRAVITY_DUST) {
-                EntityItem newItem = new EntityItem(world = this.worldObj, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST,
+                EntityItem newItem = new EntityItem(world = this.world, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST,
                         ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
 //            newItem.lifespan = 20 * 10;
@@ -221,7 +225,7 @@ public class EntityFloatingItem extends EntityItem {
                 newItem.motionY *= 0.1;
                 newItem.motionZ *= 0.1;
                 newItem.setEntityInvulnerable(true);
-                world.spawnEntityInWorld(newItem);
+                world.spawnEntity(newItem);
 //            this.worldObj.playEvent(2003, new BlockPos(this), 0);
             }
         }
@@ -229,13 +233,15 @@ public class EntityFloatingItem extends EntityItem {
     }
 
     @Override
-    public void moveEntity(double x, double y, double z) {
+    public void move(MoverType moverType, double x, double y, double z) {
         double xPosBefore = this.posX;
         double yPosBefore = this.posY;
         double zPosBefore = this.posZ;
-        super.moveEntity(x, y, z);
+        super.move(moverType, x, y, z);
 
-        if (!this.worldObj.isRemote && this.isCollided/*(Math.abs(xToAdd) > 0.001 || Math.abs(yToAdd + 0.03999999910593033D) > 0.001 || Math.abs(zToAdd) > 0.001)*/) {
+        World world = this.world;
+
+        if (!world.isRemote && this.isCollided/*(Math.abs(xToAdd) > 0.001 || Math.abs(yToAdd + 0.03999999910593033D) > 0.001 || Math.abs(zToAdd) > 0.001)*/) {
 
             double xDiff = this.posX - (xPosBefore + x);
             double yDiff = this.posY - (yPosBefore + y);
@@ -245,35 +251,35 @@ public class EntityFloatingItem extends EntityItem {
 
             if (xDiff > 0) {
                 current = current.west();
-                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, world.getBlockState(current).getBlock());
             }
             else if (xDiff < 0) {
                 current = current.east();
-                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, world.getBlockState(current).getBlock());
             }
             else if (yDiff > 0) {
                 current = current.down();
                 // super call so snow layer sounds play
-                this.playBounceSoundSnowCheck(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSoundSnowCheck(current, world.getBlockState(current).getBlock());
             }
             else if (yDiff < 0) {
                 current = current.up();
-                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, world.getBlockState(current).getBlock());
             }
             else if (zDiff > 0) {
                 current = current.north();
-                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, world.getBlockState(current).getBlock());
             }
             else if (zDiff < 0) {
                 current = current.south();
-                this.playBounceSound(current, this.worldObj.getBlockState(current).getBlock());
+                this.playBounceSound(current, world.getBlockState(current).getBlock());
             }
         }
     }
 
     // Similar to this.playStepSound
     private void playBounceSound(BlockPos pos, Block blockIn) {
-        SoundType soundtype = blockIn.getSoundType(this.worldObj.getBlockState(pos), this.worldObj, pos, this);
+        SoundType soundtype = blockIn.getSoundType(this.world.getBlockState(pos), this.world, pos, this);
 
         if (!blockIn.getDefaultState().getMaterial().isLiquid()) {
             this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
@@ -283,8 +289,8 @@ public class EntityFloatingItem extends EntityItem {
     //Similar to this.playStepSound
     private void playBounceSoundSnowCheck(BlockPos pos, Block blockIn) {
 
-        if (this.worldObj.getBlockState(pos.up()).getBlock() == Blocks.SNOW_LAYER) {
-            SoundType soundtype = Blocks.SNOW_LAYER.getSoundType(this.worldObj.getBlockState(pos), this.worldObj, pos, this);
+        if (this.world.getBlockState(pos.up()).getBlock() == Blocks.SNOW_LAYER) {
+            SoundType soundtype = Blocks.SNOW_LAYER.getSoundType(this.world.getBlockState(pos), this.world, pos, this);
             this.playSound(soundtype.getHitSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
         }
         else {

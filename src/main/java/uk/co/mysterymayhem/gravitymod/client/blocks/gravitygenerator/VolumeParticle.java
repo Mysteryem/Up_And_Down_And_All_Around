@@ -54,9 +54,9 @@ public class VolumeParticle extends Particle {
     public boolean isAlive() {
         return this.age < AGE_LIMIT
                 && this.owner.getVolumeParticle() == this
-                && this.owner.hasWorldObj()
+                && this.owner.hasWorld()
                 && !this.owner.isInvalid()
-                && this.worldObj.getTileEntity(this.owner.getPos()) == this.owner;
+                && this.world.getTileEntity(this.owner.getPos()) == this.owner;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class VolumeParticle extends Particle {
     public void renderParticle(VertexBuffer worldRendererIn, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
 //        GlStateManager.translate(-interpPosX, -interpPosY, -interpPosZ);
 //        GlStateManager.color(this.red, this.green, this.blue, this.alpha);
-        EntityPlayerSP thePlayer = Minecraft.getMinecraft().thePlayer;
+        EntityPlayerSP thePlayer = Minecraft.getMinecraft().player;
         if (thePlayer != null) {
 
             GlStateManager.pushMatrix();

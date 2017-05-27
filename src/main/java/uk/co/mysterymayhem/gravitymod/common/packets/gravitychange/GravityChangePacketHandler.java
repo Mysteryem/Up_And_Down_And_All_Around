@@ -17,11 +17,12 @@ public class GravityChangePacketHandler implements IMessageHandler<GravityChange
     public IMessage onMessage(GravityChangeMessage message, MessageContext ctx) {
         if (message.getPacketType() == EnumChangePacketType.CLIENT_REQUEST_GRAVITY_OF_PLAYER) {
             if (GravityMod.GENERAL_DEBUG) {
-                GravityMod.logInfo("Received gravity data request for %s, from %s", message.toSend, ctx.getServerHandler().playerEntity);
+                GravityMod.logInfo("Received gravity data request for %s, from %s", message.toSend, ctx.getServerHandler().player);
             }
-            EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(message.getStringData(), ctx.getServerHandler().playerEntity.getEntityWorld());
+            EnumGravityDirection gravityDirection = GravityDirectionCapability.getGravityDirection(message.getStringData(), ctx.getServerHandler().player
+                    .getEntityWorld());
             if (GravityMod.GENERAL_DEBUG) {
-                GravityMod.logInfo("Responding with gravity data for %s to %s", message.toSend, ctx.getServerHandler().playerEntity);
+                GravityMod.logInfo("Responding with gravity data for %s to %s", message.toSend, ctx.getServerHandler().player);
             }
             return new GravityChangeMessage(message.getStringData(), gravityDirection, true);
         }

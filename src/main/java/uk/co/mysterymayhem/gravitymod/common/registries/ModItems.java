@@ -1,8 +1,8 @@
 package uk.co.mysterymayhem.gravitymod.common.registries;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.relauncher.Side;
@@ -25,7 +25,6 @@ import uk.co.mysterymayhem.mystlib.setup.registries.AbstractItemRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Mysteryem on 2016-08-08.
@@ -61,13 +60,14 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
     static {
         UP_AND_DOWN_CREATIVE_TAB = new CreativeTabs(GravityMod.MOD_ID) {
             @Override
-            public Item getTabIconItem() {
-                return creativeTabIcon;
+            public ItemStack getTabIconItem() {
+                // TODO: Replace with getting static ItemStack reference
+                return new ItemStack(creativeTabIcon);
             }
 
             @SideOnly(Side.CLIENT)
             @Override
-            public void displayAllRelevantItems(@Nonnull List<ItemStack> itemList) {
+            public void displayAllRelevantItems(@Nonnull NonNullList<ItemStack> itemList) {
                 itemList.add(StaticItems.LIQUID_ANTI_MASS_BUCKET);
                 super.displayAllRelevantItems(itemList);
             }
@@ -79,8 +79,9 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
         // Add our 'fake' tab (this creates a new array with an increased size)
         FAKE_TAB_FOR_CONTROLLERS = new CreativeTabs(GravityMod.MOD_ID + "allcontrollers") {
             @Override
-            public Item getTabIconItem() {
-                return creativeTabIcon;
+            public ItemStack getTabIconItem() {
+                // TODO: Replace with getting static ItemStack reference
+                return new ItemStack(creativeTabIcon);
             }
         };
 

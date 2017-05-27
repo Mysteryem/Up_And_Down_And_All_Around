@@ -155,7 +155,7 @@ public class PatchEntityPlayerSP extends ClassPatcher {
         //      DEBUG_AUTO_JUMP instead calls super to help with debugging EntityPlayerWithGravity::updateAutoJump
         if (Transformer.DEBUG_AUTO_JUMP) {
             // Replace method with super call for debugging purposes
-            this.addMethodPatch(Ref.Entity$moveEntity_name::is, (node, iterator) -> {
+            this.addMethodPatch(Ref.Entity$move_name::is, (node, iterator) -> {
                 if (node instanceof LineNumberNode) {
                     iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));
                     iterator.add(new VarInsnNode(Opcodes.DLOAD, 1));
@@ -178,7 +178,7 @@ public class PatchEntityPlayerSP extends ClassPatcher {
             //       be called via reflection as we can't safely 'underride' the method in EntityPlayerWithGravity as it won't be reobfuscated, so it can
             //       only work in either a dobfuscated or normal environment and not both).
             // This method starts by storing the current x, y and z positions of the player
-            this.addMethodPatch(Ref.Entity$moveEntity_name::is, this::moveEntityPatch);
+            this.addMethodPatch(Ref.Entity$move_name::is, this::moveEntityPatch);
         }
     }
 

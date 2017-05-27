@@ -40,7 +40,7 @@ public class PatchEntity extends ClassPatcher {
         // be a GravityAxisAlignedBB), it calls the instance method on a bounding box found in the world. These are the
         // calculateX/Y/ZOffset methods, we replace their calls with static hooks that effectively run the same code, but
         // on the player's bounding box instead of those found in the world.
-        this.addMethodPatch(Ref.Entity$moveEntity_name::is, methodNode -> {
+        this.addMethodPatch(Ref.Entity$move_name::is, methodNode -> {
             int numReplaced = 0;
             for (ListIterator<AbstractInsnNode> iterator = methodNode.instructions.iterator(); iterator.hasNext(); /**/) {
                 AbstractInsnNode node = iterator.next();
@@ -61,11 +61,11 @@ public class PatchEntity extends ClassPatcher {
                 }
             }
             if (numReplaced < 1) {
-                Transformer.die("Failed to find any calculateX/Y/Z method instructions in " + Ref.Entity$moveEntity_name.getDeobf());
+                Transformer.die("Failed to find any calculateX/Y/Z method instructions in " + Ref.Entity$move_name.getDeobf());
             }
         });
 
-        MethodPatcher secondMoveEntityPatch = this.addMethodPatch(Ref.Entity$moveEntity_name::is);
+        MethodPatcher secondMoveEntityPatch = this.addMethodPatch(Ref.Entity$move_name::is);
 
         // To work out what block the player has landed/walked on, the vanilla method creates a BlockPos
         // about 0.2 of a block below the player's position. We need to adjust this code so that the new
@@ -136,21 +136,34 @@ public class PatchEntity extends ClassPatcher {
                 iterator.previous(); // should be ALOAD 29
 
                 int countToUndo = 0;
-                final int posZVar; //34/77
-                while (true) {
+                int posZVar = -1; //33/39
+                int posYVar = -1; //31/76 // Some interesting changes in compiler optimisation since 1.10.2
+                int posXVar = -1; //29/74
+
+                int foundStores = 0;
+                while (foundStores < 3) {
                     countToUndo++;
                     AbstractInsnNode previous = iterator.previous();
                     if (previous.getOpcode() == Opcodes.DSTORE) {
-                        posZVar = ((VarInsnNode)previous).var;
-                        break;
+                        foundStores++;
+                        switch (foundStores) {
+                            case 1:
+                                posZVar = ((VarInsnNode)previous).var;
+                                break;
+                            case 2:
+                                posYVar = ((VarInsnNode)previous).var;
+                                break;
+                            case 3:
+                                posXVar = ((VarInsnNode)previous).var;
+                                break;
+                        }
                     }
                 }
                 while (countToUndo > 0) {
                     iterator.next();
                     countToUndo--;
                 }
-                final int posYVar = posZVar - 2; //32/75
-                final int posXVar = posYVar - 2; //30/73
+
 
                 //TODO: Replace DUPs with adding a new local variable
                 // Start adding instructions just before the ALOAD 29 instruction

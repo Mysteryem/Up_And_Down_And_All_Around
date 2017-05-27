@@ -44,10 +44,10 @@ public class GravityMod {
     // [M.m,M.m+1), e.g. [2.5,2.6)
     public static final String ACCEPTABLE_VERSIONS = "[" + MAJOR_VERSION + '.' + MINOR_VERSION + ',' + MAJOR_VERSION + '.' + (MINOR_VERSION + 1) + ")";
     public static final String MOD_ID = "mysttmtgravitymod";
-    public static final String MINECRAFT_VERSION = "1.10.2";
+    public static final String MINECRAFT_VERSION = "1.11.2";
     //Forge 12.18.2.2107 adds Block#getStateForPlacement
     //Baubles 1.3.BETA9 adds default methods to IRenderBauble
-    public static final String DEPENDENCIES_LIST = "required-after:Forge@[12.18.2.2107,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
+    public static final String DEPENDENCIES_LIST = "required-after:forge@[12.18.2.2107,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
     public static final String GUI_FACTORY = "uk.co.mysterymayhem.gravitymod.client.config.GravityModGuiFactory";
 

@@ -7,7 +7,6 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.RenderEntityItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
@@ -33,9 +32,8 @@ public class RenderGravityEntityItem extends RenderEntityItem {
     public int transformModelCount(EntityItem itemIn, double xPos, double yPos, double zPos, float partialTicks, IBakedModel bakedModel) {
         if (itemIn instanceof EntityGravityItem) {
             ItemStack itemstack = itemIn.getEntityItem();
-            Item item = itemstack.getItem();
 
-            if (item == null) {
+            if (itemstack.isEmpty()) {
                 return 0;
             }
             else {

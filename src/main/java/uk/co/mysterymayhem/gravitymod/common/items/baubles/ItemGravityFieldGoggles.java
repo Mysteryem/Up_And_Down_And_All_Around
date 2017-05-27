@@ -92,22 +92,24 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
         if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
             IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(playerIn);
+
+            ItemStack itemStackIn = playerIn.getHeldItem(hand);
 
             int[] validSlots = this.getBaubleType(itemStackIn).getValidSlots();
             for (int slot : validSlots) {
                 ItemStack stackInSlot = baublesHandler.getStackInSlot(slot);
-                if (stackInSlot == null) {
+                if (!stackInSlot.isEmpty()) {
 //                    baublesHandler.setStackInSlot();
                     baublesHandler.insertItem(slot, itemStackIn.copy(), false);
-                    itemStackIn.stackSize = 0;
+                    itemStackIn.setCount(0);
                     return ActionResult.newResult(EnumActionResult.SUCCESS, itemStackIn);
                 }
             }
         }
-        return super.onItemRightClick(itemStackIn, worldIn, playerIn, hand);
+        return super.onItemRightClick(worldIn, playerIn, hand);
     }
 
     @Override
@@ -140,7 +142,7 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
             }
 
             ItemStack helmet = entityPlayer.inventory.armorItemInSlot(3);
-            if (helmet != null && helmet.getItem() == this) {
+            if (!helmet.isEmpty() && helmet.getItem() == this) {
                 //We're already wearing a pair of goggles in our helmet slot, so render the bauble ones in a slightly
                 //different position
 //                GlStateManager.translate(0.2, -0.2, 0);

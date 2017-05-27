@@ -65,32 +65,32 @@ public class GravityPriorityRegistry {
     }
 
     public static int interpolateNormal(double percent) {
-        percent = MathHelper.clamp_double(percent, 0.0, 1.0);
+        percent = MathHelper.clamp(percent, 0.0, 1.0);
         return (int)(NORMAL_MIN + PRIORITY_SIZE * percent);
     }
 
     public static int interpolateNormal(float percent) {
-        percent = MathHelper.clamp_float(percent, 0.0f, 1.0f);
+        percent = MathHelper.clamp(percent, 0.0f, 1.0f);
         return (int)(NORMAL_MIN + PRIORITY_SIZE * percent);
     }
 
     public static int interpolateStrong(double percent) {
-        percent = MathHelper.clamp_double(percent, 0.0, 1.0);
+        percent = MathHelper.clamp(percent, 0.0, 1.0);
         return (int)(STRONG_MIN + PRIORITY_SIZE * percent);
     }
 
     public static int interpolateStrong(float percent) {
-        percent = MathHelper.clamp_float(percent, 0.0f, 1.0f);
+        percent = MathHelper.clamp(percent, 0.0f, 1.0f);
         return (int)(STRONG_MIN + PRIORITY_SIZE * percent);
     }
 
     public static int interpolateWeak(double percent) {
-        percent = MathHelper.clamp_double(percent, 0.0, 1.0);
+        percent = MathHelper.clamp(percent, 0.0, 1.0);
         return (int)(WEAK_MIN + PRIORITY_SIZE * percent);
     }
 
     public static int interpolateWeak(float percent) {
-        percent = MathHelper.clamp_float(percent, 0.0f, 1.0f);
+        percent = MathHelper.clamp(percent, 0.0f, 1.0f);
         return (int)(WEAK_MIN + PRIORITY_SIZE * percent);
     }
 }

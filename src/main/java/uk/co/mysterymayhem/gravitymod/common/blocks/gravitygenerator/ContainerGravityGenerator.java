@@ -89,7 +89,7 @@ public class ContainerGravityGenerator extends Container {
     @Override
     public boolean canInteractWith(@Nonnull EntityPlayer playerIn) {
         BlockPos pos = this.tileGravityGenerator.getPos();
-        return playerIn.worldObj.getTileEntity(pos) == this.tileGravityGenerator
+        return playerIn.world.getTileEntity(pos) == this.tileGravityGenerator
                 && playerIn.getDistanceSqToCenter(pos) < MAX_DISTANCE_SQUARED;
     }
 }

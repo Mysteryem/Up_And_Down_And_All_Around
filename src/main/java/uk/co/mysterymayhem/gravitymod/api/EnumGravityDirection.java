@@ -646,7 +646,7 @@ public enum EnumGravityDirection implements IStringSerializable {
         AxisAlignedBB axisAlignedBB = this.getGravityAdjustedAABB(player);
         player.resetPositionToBB();
 
-        if (player.worldObj.collidesWithAnyBlock(axisAlignedBB)) {
+        if (player.world.collidesWithAnyBlock(axisAlignedBB)) {
             // After rotating about the player's centre of gravity, the player is now partially inside of a block
 
             // TODO: Test being a 'spider' player and trying to change gravity direction in tight places
@@ -691,12 +691,12 @@ public enum EnumGravityDirection implements IStringSerializable {
 
 
             // We try 'up' first because even if we move the player too far, their gravity will move them back 'down'
-            if (player.worldObj.collidesWithAnyBlock(secondTry)) {
+            if (player.world.collidesWithAnyBlock(secondTry)) {
 
                 // Moving 'down' from the rotated player's perspective
                 AxisAlignedBB thirdTry = axisAlignedBB.offset(-adjustedMovement[0], -adjustedMovement[1], -adjustedMovement[2]);
 
-                if (player.worldObj.collidesWithAnyBlock(thirdTry)) {
+                if (player.world.collidesWithAnyBlock(thirdTry)) {
                     // Uh oh, looks like the player decided to rotate in a too small place
                     // Imagine a 2 block tall, 1 block wide player standing in a 2 block tall, one block wide space
                     // and then changing from UP/DOWN gravity to NORTH/EAST/SOUTH/WEST gravity
@@ -718,7 +718,7 @@ public enum EnumGravityDirection implements IStringSerializable {
                     //Try one block up (relative) from the found position to start with, to try and avoid falling through the block that is now at our feet
                     givenUp = givenUp.offset(0, difference + 1, 0);
                     //If one block up collided, then we have no choice but to choose the block below
-                    if (player.worldObj.collidesWithAnyBlock(givenUp)) {
+                    if (player.world.collidesWithAnyBlock(givenUp)) {
                         givenUp = givenUp.offset(0, -1, 0);
                     }
                     axisAlignedBB = givenUp;

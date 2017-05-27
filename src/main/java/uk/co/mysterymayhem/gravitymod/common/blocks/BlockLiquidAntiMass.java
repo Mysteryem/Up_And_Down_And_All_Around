@@ -10,6 +10,7 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ShapelessRecipes;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -45,7 +46,7 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IModBlock<
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock) {/**/}
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock, BlockPos neighborPos) {/**/}
 
     @Override
     public void onBlockAdded(World world, BlockPos pos, IBlockState state) {/**/}
@@ -89,12 +90,12 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IModBlock<
         }
 
         @Override
-        public ItemStack[] getRemainingItems(InventoryCrafting inv) {
-            ItemStack[] remainingItems = super.getRemainingItems(inv);
-            for (int i = 0; i < remainingItems.length; i++) {
-                ItemStack remainingItem = remainingItems[i];
-                if (remainingItem != null && remainingItem.getItem() == Items.BUCKET) {
-                    remainingItems[i] = null;
+        public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
+            NonNullList<ItemStack> remainingItems = super.getRemainingItems(inv);
+            for (int i = 0; i < remainingItems.size(); i++) {
+                ItemStack remainingItem = remainingItems.get(i);
+                if (!remainingItem.isEmpty() && remainingItem.getItem() == Items.BUCKET) {
+                    remainingItems.set(i, ItemStack.EMPTY);
                     break;
                 }
             }

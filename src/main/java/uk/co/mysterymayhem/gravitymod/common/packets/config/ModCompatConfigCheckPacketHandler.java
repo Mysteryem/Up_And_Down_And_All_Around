@@ -35,11 +35,11 @@ public class ModCompatConfigCheckPacketHandler implements IMessageHandler<ModCom
                 break;
             case CLIENT_TO_SERVER_WRONG_CLIENT_SIDE_HASH:
                 if (ctx.side == Side.SERVER) {
-                    String playerName = ctx.getServerHandler().playerEntity.getName();
+                    String playerName = ctx.getServerHandler().player.getName();
                     if (ConfigHandler.kickPlayersWithMismatchingModCompatHashes) {
                         GravityMod.logInfo("%s has a different mod compatibility config to the server, kicking them", playerName);
                         FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(()
-                                -> ctx.getServerHandler().kickPlayerFromServer("UpAndDown mod compatibility config doesn't match server"));
+                                -> ctx.getServerHandler().disconnect("UpAndDown mod compatibility config doesn't match server"));
                     }
                     else {
                         GravityMod.logWarning("%s has a different mod compatibility config to the server", playerName);

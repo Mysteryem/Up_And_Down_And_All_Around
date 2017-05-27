@@ -19,6 +19,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -153,7 +155,7 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
+    public void getSubBlocks(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
         super.getSubBlocks(itemIn, tab, list);
         if (itemIn == this.getItem()) {
             list.add(new ItemStack(itemIn, 1, 1));
@@ -174,7 +176,7 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
     @SuppressWarnings("deprecation")
     @Nullable
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, World worldIn, BlockPos pos) {
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
         return NULL_AABB;
     }
 
@@ -199,8 +201,8 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
     }
 
     @Override
-    public boolean isPassable(IBlockAccess worldIn, BlockPos pos) {
-        return true;
+    public boolean blocksMovement(IBlockAccess worldIn, BlockPos pos) {
+        return false;
     }
 
     /**
@@ -213,14 +215,14 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
 
     @Override
     public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase
-            placer, ItemStack stack) {
+            placer, EnumHand hand) {
         if (this.canBlockStay(world, pos, facing)) {
-            return this.getDefaultState().withProperty(BlockDirectional.FACING, facing).withProperty(GLOWING, stack.getItemDamage() != 0);
+            return this.getDefaultState().withProperty(BlockDirectional.FACING, facing).withProperty(GLOWING, placer.getHeldItem(hand).getItemDamage() != 0);
         }
         else {
             for (EnumFacing enumfacing : EnumFacing.values()) {
                 if (this.canBlockStay(world, pos, enumfacing)) {
-                    return this.getDefaultState().withProperty(BlockDirectional.FACING, enumfacing).withProperty(GLOWING, stack.getItemDamage() != 0);
+                    return this.getDefaultState().withProperty(BlockDirectional.FACING, enumfacing).withProperty(GLOWING, placer.getHeldItem(hand).getItemDamage() != 0);
                 }
             }
 
@@ -250,7 +252,7 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
      */
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn) {
+    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos changedPos) {
         EnumFacing enumfacing = state.getValue(BlockDirectional.FACING);
 
         if (!this.canBlockStay(worldIn, pos, enumfacing)) {
@@ -258,7 +260,7 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
             worldIn.setBlockToAir(pos);
         }
 
-        super.neighborChanged(state, worldIn, pos, blockIn);
+        super.neighborChanged(state, worldIn, pos, blockIn, changedPos);
     }
 
     @SuppressWarnings("deprecation")

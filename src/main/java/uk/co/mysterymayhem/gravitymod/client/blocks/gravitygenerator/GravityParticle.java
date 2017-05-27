@@ -74,12 +74,12 @@ public class GravityParticle extends Particle {
         this.motionZ = d[2];
 
 //        this.motionY -= 0.04D * (double)this.particleGravity;
-        this.moveEntity(this.motionX, this.motionY, this.motionZ);
+        this.move(this.motionX, this.motionY, this.motionZ);
         this.motionX *= 0.9800000190734863D;
         this.motionY *= 0.9800000190734863D;
         this.motionZ *= 0.9800000190734863D;
 
-        if (this.isCollided || this.isOutOfBounds()) {
+        if (this.onGround || this.isOutOfBounds()) {
             this.isExpired = true;
         }
     }

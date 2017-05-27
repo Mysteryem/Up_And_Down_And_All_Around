@@ -44,9 +44,9 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
 
     // Non-block use
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
         playerIn.setActiveHand(hand);
-        return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
+        return new ActionResult<>(EnumActionResult.SUCCESS, playerIn.getHeldItem(hand));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
     }
 
     private static void pushPullNearbyEntities(EntityPlayer playerIn) {
-        World world = playerIn.worldObj;
+        World world = playerIn.world;
 
         double range = ConfigHandler.gravitonPearlRange;
         float baseStrength = ConfigHandler.baseGravitonPearlStrength;
@@ -203,7 +203,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
         int age = ReflectionLambdas.get_EntityItem$age.applyAsInt(entityItem);
-        if (entityItem.worldObj.isRemote) {
+        if (entityItem.world.isRemote) {
             // For some reason this fixes some client/server desync. Is there perhaps a bigger vanilla issue at play here?
             age++;
         }

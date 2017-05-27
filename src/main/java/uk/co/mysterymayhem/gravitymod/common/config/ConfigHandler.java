@@ -403,11 +403,7 @@ public class ConfigHandler {
             else {
                 ConfigCategory category = config.getCategory(categoryName);
                 Set<String> categoryPropertyKeys = category.keySet();
-                for (Iterator<String> iterator = categoryPropertyKeys.iterator(); iterator.hasNext(); /**/) {
-                    if (!knownPropertyKeys.contains(iterator.next())) {
-                        iterator.remove();
-                    }
-                }
+                categoryPropertyKeys.removeIf(s -> !knownPropertyKeys.contains(s));
             }
         }
     }
@@ -438,11 +434,7 @@ public class ConfigHandler {
     private static Property process(Property prop) {
         setLangKey(prop);
         order(prop);
-        Set<String> propKeys = configNameToPropertyKeySet.get(category);
-        if (propKeys == null) {
-            propKeys = new HashSet<>();
-            configNameToPropertyKeySet.put(category, propKeys);
-        }
+        Set<String> propKeys = configNameToPropertyKeySet.computeIfAbsent(category, k -> new HashSet<>());
         propKeys.add(prop.getName());
         return prop;
     }

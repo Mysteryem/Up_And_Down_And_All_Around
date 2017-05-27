@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.mystlib.setup.singletons;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
@@ -15,6 +16,7 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
     @Override
     default void preInit() {
         EntityRegistry.registerModEntity(
+                new ResourceLocation(this.getModID(), this.getModObjectName()),
                 this.getEntityClass(),
                 this.getModObjectName(),
                 this.getUniqueID(),
@@ -30,7 +32,7 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
     int getUniqueID();
 
     /**
-     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
+     * See {@link net.minecraft.entity.EntityTracker#track(Entity)} for vanilla entities
      * <p>
      * Default for living mobs: 80.
      *
@@ -39,7 +41,7 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
     int getTrackingRange();
 
     /**
-     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
+     * See {@link net.minecraft.entity.EntityTracker#track(Entity)} for vanilla entities
      * <p>
      * Default for living mobs: 3.
      *
@@ -48,7 +50,7 @@ public interface IModEntityClassWrapper<T extends Entity> extends IModObject {
     int getUpdateFrequency();
 
     /**
-     * See {@link net.minecraft.entity.EntityTracker#trackEntity(Entity)} for vanilla entities
+     * See {@link net.minecraft.entity.EntityTracker#track(Entity)} for vanilla entities
      * <p>
      * Default for living mobs: true.
      *

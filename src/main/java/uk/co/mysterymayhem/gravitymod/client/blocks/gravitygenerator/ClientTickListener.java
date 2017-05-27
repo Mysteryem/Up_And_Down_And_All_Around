@@ -38,7 +38,7 @@ public class ClientTickListener {
 //        final int heldItemTicks = 5;
 
         if (event.phase == TickEvent.Phase.END) {
-            EntityPlayerSP thePlayer = Minecraft.getMinecraft().thePlayer;
+            EntityPlayerSP thePlayer = Minecraft.getMinecraft().player;
 //            final int heldItemTicks = DELAY_TICKS;//(int)thePlayer.getCooldownPeriod(); // probably always returns 5f for the goggles item
             if (thePlayer != null) {
                 Iterable<ItemStack> armorInventoryList = thePlayer.getArmorInventoryList();

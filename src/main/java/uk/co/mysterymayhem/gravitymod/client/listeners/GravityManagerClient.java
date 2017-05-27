@@ -30,14 +30,14 @@ public class GravityManagerClient extends GravityManagerCommon {
 
     @Override
     public EnumGravityDirection getGravityDirection(String playerName) {
-        if (Minecraft.getMinecraft().thePlayer.getName().equals(playerName)) {
+        if (Minecraft.getMinecraft().player.getName().equals(playerName)) {
             return this.getClientGravity();
         }
         return GravityDirectionCapability.getGravityDirection(playerName, FMLClientHandler.instance().getWorldClient());
     }
 
     public EnumGravityDirection getClientGravity() {
-        return GravityDirectionCapability.getGravityDirection(Minecraft.getMinecraft().thePlayer);
+        return GravityDirectionCapability.getGravityDirection(Minecraft.getMinecraft().player);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class GravityManagerClient extends GravityManagerCommon {
 
     private void setClientSideGravityDirection(String playerName, EnumGravityDirection direction, boolean noTimeout) {
         //TODO: Switch to UUIDs instead of names?
-        EntityPlayer playerEntityByName = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(playerName);
+        EntityPlayer playerEntityByName = Minecraft.getMinecraft().world.getPlayerEntityByName(playerName);
 
         if (playerEntityByName instanceof AbstractClientPlayer) {
             AbstractClientPlayer player = (AbstractClientPlayer)playerEntityByName;
