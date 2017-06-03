@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.asm.patches;
 
-import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
@@ -271,13 +270,6 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
                     break;
                 }
             }
-        }
-
-        @Override
-        protected void patchMethod(MethodNode methodNode) {
-            super.patchMethod(methodNode);
-            FMLLog.info("Patch complete");
-            Transformer.printMethodToFMLLogger(methodNode);
         }
 
         @Override
