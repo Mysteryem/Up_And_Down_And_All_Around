@@ -108,6 +108,12 @@ public abstract class MethodPatcher implements Predicate<MethodNode> {
                 }
             }
         }
+
+        if (!this.activePatches.isEmpty()) {
+            Transformer.die("Failed to complete patches for " + methodNode.name + ". " + this.activePatches.size() + " InsnPatchers still active, " + this
+                    .waitingPatches.size() +
+                    "InsnPatchers waiting");
+        }
     }
 
     // Ensure there are no cycles in the dependencies

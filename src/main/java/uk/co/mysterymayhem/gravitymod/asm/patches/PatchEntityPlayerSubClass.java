@@ -35,8 +35,8 @@ public class PatchEntityPlayerSubClass extends ClassPatcher {
     //      updateSize, (replacing with ASM looks like a good idea)
     //      setSize, (probably can be replaced with ASM?)
     //      setPosition (method pretty much entirely replaced)
-    public static final String classToReplace = Ref.EntityPlayer.toString();
-    public static final String classReplacement = Ref.EntityPlayerWithGravity.toString();
+    private static final String classToReplace = Ref.EntityPlayer.toString();
+    private static final String classReplacement = Ref.EntityPlayerWithGravity.toString();
 
     public PatchEntityPlayerSubClass(ObjectName className) {
         super(className.asClassName());

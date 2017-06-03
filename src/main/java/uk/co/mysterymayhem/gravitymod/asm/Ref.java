@@ -69,6 +69,7 @@ public class Ref {
     public static final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
     public static final MethodName Vec3d$addVector_name = new MethodName("addVector", "func_72441_c");
     public static final MethodName Vec3d$scale_name = new MethodName("scale", "func_186678_a");
+    public static final MethodName World$getCollisionBoxes_name = new MethodName("getCollisionBoxes", "func_184144_a");
     public static final MethodName World$getEntitiesInAABBexcluding_name = new MethodName("getEntitiesInAABBexcluding", "func_175674_a");
     /*
         PaulsCode method names
@@ -200,9 +201,9 @@ public class Ref {
     public static final MethodInsn EntityPlayerSP$getEntityBoundingBox = new MethodInsn(INVOKEVIRTUAL, EntityPlayerSP, Entity$getEntityBoundingBox_name, new MethodDesc(AxisAlignedBB));
     public static final MethodInsn EntityPlayerSP$getForward = new MethodInsn(INVOKEVIRTUAL, EntityPlayerSP, Entity$getForward_name, new MethodDesc(Vec3d));
     public static final MethodInsn EntityPlayer$getFoodStats = new MethodInsn(INVOKEVIRTUAL, EntityPlayerSP, EntityPlayer$getFoodStats_name, new MethodDesc(FoodStats));
-    public static final MethodInsn Item$onItemRightClick = new MethodInsn(INVOKEVIRTUAL, Item, Item$onRightClick_name, new MethodDesc(ActionResult, ItemStack, World, EntityPlayer, EnumHand));
+    public static final MethodInsn Item$onItemRightClick = new MethodInsn(INVOKEVIRTUAL, Item, Item$onRightClick_name, new MethodDesc(ActionResult, World, EntityPlayer, EnumHand));
     public static final MethodInsn Item$onItemUse = new MethodInsn(
-            INVOKEVIRTUAL, Item, Item$onItemUse_name, new MethodDesc(EnumActionResult, ItemStack, EntityPlayer, World, BlockPos, EnumHand, EnumFacing, FLOAT, FLOAT, FLOAT));
+            INVOKEVIRTUAL, Item, Item$onItemUse_name, new MethodDesc(EnumActionResult, EntityPlayer, World, BlockPos, EnumHand, EnumFacing, FLOAT, FLOAT, FLOAT));
     public static final MethodInsn Item$onPlayerStoppedUsing = new MethodInsn(INVOKEVIRTUAL, Item, Item$onPlayerStoppedUsing_name, new MethodDesc(VOID, ItemStack, World, EntityLivingBase, INT));
     public static final MethodInsn Vec3d$addVector = new MethodInsn(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
     public static final MethodInsn Vec3d$scale = new MethodInsn(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
@@ -254,6 +255,7 @@ public class Ref {
             new HookInsn("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
     public static final HookInsn Hooks$netHandlerPlayServerSetRelativeYToZero =
             new HookInsn("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    public static final HookInsn Hooks$normaliseAABB = new HookInsn("normaliseAABB", new MethodDesc(AxisAlignedBB, AxisAlignedBB));
     public static final HookInsn Hooks$onItemRightClickPost = new HookInsn("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
     public static final HookInsn Hooks$onItemRightClickPre = new HookInsn("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
     public static final HookInsn Hooks$onItemUsePost = new HookInsn("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));

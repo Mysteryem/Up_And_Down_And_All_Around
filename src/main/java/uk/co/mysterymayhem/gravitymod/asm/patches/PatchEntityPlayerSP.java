@@ -366,7 +366,7 @@ public class PatchEntityPlayerSP extends ClassPatcher {
 
     private class UpdateAutoJump extends MethodPatcher {
 
-        public UpdateAutoJump() {
+        UpdateAutoJump() {
             // Normal patches
 
             // Root node

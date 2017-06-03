@@ -63,9 +63,10 @@ public class PatchEntityLivingBase extends ClassPatcher {
 
         // When sprinting, the player's rotationYaw is used to determine the boost in forwards movement to add
         // This needs to be made relative to match the direction the player is actually sprinting in
-        this.addMethodPatch(Ref.EntityLivingBase$jump_name::is, methodNode -> {
-            Transformer.patchMethodUsingAbsoluteRotations(methodNode, Transformer.GET_ROTATIONYAW);
-        });
+        this.addMethodPatch(
+                Ref.EntityLivingBase$jump_name::is,
+                methodNode -> Transformer.patchMethodUsingAbsoluteRotations(methodNode, Transformer.GET_ROTATIONYAW)
+        );
     }
 
     private class MoveEntityWithHeading extends MethodPatcher {
@@ -169,7 +170,6 @@ public class PatchEntityLivingBase extends ClassPatcher {
             // later posY are modified
             InsnPatcher replaceGetPosX = this.addInsnPatch((node, iterator) -> {
                 if (Ref.EntityLivingBase$isOffsetPositionInLiquid.is(node)) {
-                    AbstractInsnNode foundNode = node;
 
                     PatchEntityLivingBase.this.storeData(previousisOffsetPositionInLiquidMethodInsnNode, node);
                     int numReplacementsMade = 0;
