@@ -205,6 +205,7 @@ public class Ref {
     public static final MethodInsn Item$onPlayerStoppedUsing = new MethodInsn(INVOKEVIRTUAL, Item, Item$onPlayerStoppedUsing_name, new MethodDesc(VOID, ItemStack, World, EntityLivingBase, INT));
     public static final MethodInsn Vec3d$addVector = new MethodInsn(INVOKEVIRTUAL, Vec3d, Vec3d$addVector_name, new MethodDesc(Vec3d, DOUBLE, DOUBLE, DOUBLE));
     public static final MethodInsn Vec3d$scale = new MethodInsn(INVOKEVIRTUAL, Vec3d, Vec3d$scale_name, new MethodDesc(Vec3d, DOUBLE));
+    public static final MethodName World$getCollisionBoxes_name = new MethodName("getCollisionBoxes", "func_184144_a");
     public static final MethodInsn WorldClient$getEntitiesInAABBexcluding = new MethodInsn(
             INVOKEVIRTUAL, WorldClient, World$getEntitiesInAABBexcluding_name, new MethodDesc(List, Entity, AxisAlignedBB, Predicate));
 
@@ -253,6 +254,7 @@ public class Ref {
             new HookInsn("netHandlerPlayServerHandleFallingYChange", new MethodDesc(DOUBLE, EntityPlayerMP, DOUBLE, DOUBLE, DOUBLE));
     public static final HookInsn Hooks$netHandlerPlayServerSetRelativeYToZero =
             new HookInsn("netHandlerPlayServerSetRelativeYToZero", new MethodDesc(DOUBLE.asArray(), NetHandlerPlayServer, DOUBLE, DOUBLE, DOUBLE));
+    public static final HookInsn Hooks$normaliseAABB = new HookInsn("normaliseAABB", new MethodDesc(AxisAlignedBB, AxisAlignedBB));
     public static final HookInsn Hooks$onItemRightClickPost = new HookInsn("onItemRightClickPost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));
     public static final HookInsn Hooks$onItemRightClickPre = new HookInsn("onItemRightClickPre", new MethodDesc(ItemStackAndBoolean, ItemStack, EntityPlayer));
     public static final HookInsn Hooks$onItemUsePost = new HookInsn("onItemUsePost", new MethodDesc(VOID, ItemStackAndBoolean, ItemStack, EntityPlayer));

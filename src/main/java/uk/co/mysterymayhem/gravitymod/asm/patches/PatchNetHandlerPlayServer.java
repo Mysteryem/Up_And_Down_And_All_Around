@@ -5,7 +5,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 import uk.co.mysterymayhem.gravitymod.asm.Ref;
 import uk.co.mysterymayhem.gravitymod.asm.Transformer;
-import uk.co.mysterymayhem.gravitymod.asm.util.obfuscation.ObfuscationHelper;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.ClassPatcher;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.InsnPatcher;
 import uk.co.mysterymayhem.gravitymod.asm.util.patching.MethodPatcher;
@@ -28,6 +27,7 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
     private static final String xDiffLocalVarKey = "xDiffLocalVar";
     private static final String yDiffLocalVarKey = "yDiffLocalVar";
     private static final String zDiffLocalVarKey = "zDiffLocalVar";
+    private static final String previousPacketGetZLocalVarKey = "previousPacketGetZLocalVar";
     private static final String initialXPosLocalVarKey = "initialXPosLocalVar";
     private static final String initialZPosLocalVarKey = "initialZPosLocalVar";
 
@@ -73,10 +73,7 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
 
     private class ProcessPlayer extends MethodPatcher {
 
-        private int arrayLocalVarIndex = -1;
-        private int extraDoubleVar = -1;
-
-        public ProcessPlayer() {
+        ProcessPlayer() {
 
             InsnPatcher findInitialXZPosVarIndices = this.addInsnPatch(this::findInitialXZPlayerPosVariables);
             // The player has handleFalling called on them, but the vanilla code passes the change in Y position as one of the arguments, this has to be
@@ -95,6 +92,8 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
             // The indices for the x, y and z difference variables are stored in the owning PatchNetHandlerPlayServer's data storage
             InsnPatcher findLocalVarIndices = this.addInsnPatch(this::findXYZDifferenceVariables);
 
+            InsnPatcher findPreviousPacketGetX = this.addInsnPatch(this::findPreviousPacketGetZResult);
+
             // The local variable that stores the difference in the y direction is loaded 5 times.
             // For all but the second occurrence, we need to change the value that gets put on the top of the stack to be the _relative_ y difference
 
@@ -108,7 +107,14 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
             });
 
             // On the second occurrence, we have a no-op
-            InsnPatcher secondYFound = this.addInsnPatch((node, iterator) -> this.isYDiffLoadInsn(node));
+            InsnPatcher secondYFound = this.addInsnPatch((node, iterator) -> {
+                if (this.isYDiffLoadInsn(node)) {
+                    // Need to move to the next instruction or otherwise the next patcher will immediately be called on the VarInsnNode we're trying to skip
+                    iterator.next();
+                    return true;
+                }
+                return false;
+            });
 
             // The third occurrence requires the same as the first, so we just make a copy of the first one
             InsnPatcher thirdYFound = this.addInsnPatch(firstYFound.copy());
@@ -122,6 +128,7 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
                 if (this.isYDiffLoadInsn(node)) {
                     this.setZDifferenceEarly(iterator);
                     this.replaceAbsoluteYDifferenceWithRelative(iterator);
+                    return true;
                 }
                 return false;
             });
@@ -132,6 +139,7 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
                 if (this.isYDiffLoadInsn(node)) {
                     this.replaceAbsoluteYDifferenceWithRelative(iterator);
                     this.setRelativeYDiffToZeroInsteadOfAbsoluteYDiff(iterator);
+                    return true;
                 }
                 return false;
             });
@@ -139,6 +147,7 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
             // Child patches only become 'active' once their parent patches have been completed (patcher won't even try to apply inactive patches)
             InsnPatcher.sequentialOrder(
                     findLocalVarIndices,
+                    findPreviousPacketGetX,
                     firstYFound,
                     secondYFound,
                     thirdYFound,
@@ -188,16 +197,11 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
             // called instead of loading [yDiffLocalVar]/[d8]/[21]
             iterator.previous(); // the DLOAD [yDiffLocalVar]/[21] instruction
 
-            // Get z from the packet, (instead of tracking the localvariable's index)
-            // In which case, you would add this:
-            //iterator.add(new VarInsnNode(Opcodes.DLOAD, [zPosFromPacket]));
-            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
-            iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); //this, packetIn
-            Ref.Hooks$netHandlerPlayServerGetPacketZ.addTo(iterator); //packetIn.getZ(this.playerEntity.posZ), same as local variable d6
-            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));//'d6', this
-            Ref.NetHandlerPlayServer$playerEntity_GET.addTo(iterator);//'d6', this.playerEntity
-            Ref.EntityPlayerMP$posZ_GET.addTo(iterator);//'d6', this.playerEntity.posZ
-            iterator.add(new InsnNode(Opcodes.DSUB));//'d6' - this.playerEntity.posZ
+            iterator.add(new VarInsnNode(Opcodes.DLOAD, (Integer)PatchNetHandlerPlayServer.this.getData(previousPacketGetZLocalVarKey))); // d6
+            iterator.add(new VarInsnNode(Opcodes.ALOAD, 0));//d6, this
+            Ref.NetHandlerPlayServer$playerEntity_GET.addTo(iterator);//d6, this.playerEntity
+            Ref.EntityPlayerMP$posZ_GET.addTo(iterator);//d6, this.playerEntity.posZ
+            iterator.add(new InsnNode(Opcodes.DSUB));//d6 - this.playerEntity.posZ
             iterator.add(new VarInsnNode(Opcodes.DSTORE, zDiffLocalVar));//[empty]
             iterator.next(); // back to the DLOAD [yDiffLocalVar]/[21] instruction
         }
@@ -215,54 +219,49 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
             while (true) {
                 if (iterator.next().getOpcode() == Opcodes.DCONST_0) {
                     iterator.previous(); // DCONST_0 again
-                    iterator.add(new VarInsnNode(Opcodes.ALOAD, yDiffLocalVar));
-                    iterator.add(new VarInsnNode(Opcodes.ASTORE, this.extraDoubleVar));
 
-                    // Skip over the instructions we're basically ignoring
+                    // Storing the value on the stack
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, yDiffLocalVar));
+
+                    // Skip over the instructions we're basically ignoring (not removing them as that's bad practice)
                     iterator.next(); // DCONST_0 again
                     iterator.next(); // DSTORE [yDiffLocalVar]
 
                     // Put [yDiffLocalVar] back to normal
-                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.extraDoubleVar));
-                    iterator.add(new VarInsnNode(Opcodes.ASTORE, yDiffLocalVar));
+                    iterator.add(new VarInsnNode(Opcodes.DSTORE, yDiffLocalVar));
 
                     // Load this and the localvariables
-                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //this
-                    iterator.add(new VarInsnNode(Opcodes.DLOAD, xDiffLocalVar)); //this, xDiff
-                    iterator.add(new VarInsnNode(Opcodes.DLOAD, yDiffLocalVar)); //this, xDiff, yDiff
-                    iterator.add(new VarInsnNode(Opcodes.DLOAD, zDiffLocalVar)); //this, xDiff, yDiff, zDiff
+                    iterator.add(new VarInsnNode(Opcodes.ALOAD, 0)); //              this
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, xDiffLocalVar)); //       this, xDiff
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, yDiffLocalVar)); // this, xDiff, yDiff(old value)
+                    iterator.add(new VarInsnNode(Opcodes.DLOAD, zDiffLocalVar)); //       this, xDiff, yDiff, zDiff
                     // Call the hook that returns an array of size == 3
                     Ref.Hooks$netHandlerPlayServerSetRelativeYToZero.addTo(iterator); //double[]
 
-                    iterator.add(new VarInsnNode(Opcodes.ASTORE, this.arrayLocalVarIndex)); //[empty]
+                    //iterator.add(new VarInsnNode(Opcodes.ASTORE, this.arrayLocalVarIndex)); //[empty]
+                    iterator.add(new InsnNode(Opcodes.DUP)); // double[], double[]
+                    iterator.add(new InsnNode(Opcodes.DUP)); // double[], double[], double[]
 
                     // double[0] -> xDiffLocalVar
-                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.arrayLocalVarIndex)); //double[]
-                    iterator.add(new InsnNode(Opcodes.ICONST_0)); //double[], 0
-                    iterator.add(new InsnNode(Opcodes.DALOAD)); //double[0]
-                    iterator.add(new VarInsnNode(Opcodes.DSTORE, xDiffLocalVar)); //[empty]
+//                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.arrayLocalVarIndex)); //double[]
+                    iterator.add(new InsnNode(Opcodes.ICONST_0)); //                 double[], double[], double[], 0
+                    iterator.add(new InsnNode(Opcodes.DALOAD)); //                   double[], double[], double[0]
+                    iterator.add(new VarInsnNode(Opcodes.DSTORE, xDiffLocalVar)); // double[], double[]
 
                     // double[1] -> yDiffLocalVar
-                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.arrayLocalVarIndex)); //double[]
-                    iterator.add(new InsnNode(Opcodes.ICONST_1)); //double[], 1
-                    iterator.add(new InsnNode(Opcodes.DALOAD)); //double[1]
-                    iterator.add(new VarInsnNode(Opcodes.DSTORE, yDiffLocalVar)); //[empty]
+//                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.arrayLocalVarIndex)); // double[], double[]
+                    iterator.add(new InsnNode(Opcodes.ICONST_1)); //                          double[], double[], 1
+                    iterator.add(new InsnNode(Opcodes.DALOAD)); //                            double[], double[1]
+                    iterator.add(new VarInsnNode(Opcodes.DSTORE, yDiffLocalVar)); //          double[]
 
                     // double[2] -> zDiffLocalVar
-                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.arrayLocalVarIndex)); //double[]
-                    iterator.add(new InsnNode(Opcodes.ICONST_2)); //double[], 2
-                    iterator.add(new InsnNode(Opcodes.DALOAD)); //double[2]
-                    iterator.add(new VarInsnNode(Opcodes.DSTORE, zDiffLocalVar)); //[empty]
+//                    iterator.add(new VarInsnNode(Opcodes.ALOAD, this.arrayLocalVarIndex)); //double[]
+                    iterator.add(new InsnNode(Opcodes.ICONST_2)); //                 double[], 2
+                    iterator.add(new InsnNode(Opcodes.DALOAD)); //                   double[2]
+                    iterator.add(new VarInsnNode(Opcodes.DSTORE, zDiffLocalVar)); // [empty]
                     break;
                 }
             }
-        }
-
-        @Override
-        protected void patchMethod(MethodNode methodNode) {
-            this.arrayLocalVarIndex = Transformer.addLocalVar(methodNode, ObfuscationHelper.DOUBLE.asArray());
-            this.extraDoubleVar = Transformer.addLocalVar(methodNode, ObfuscationHelper.DOUBLE);
-            super.patchMethod(methodNode);
         }
 
         @Override
@@ -340,6 +339,25 @@ public class PatchNetHandlerPlayServer extends ClassPatcher {
                     Transformer.die("Unable to find localvar that holds initial posZ after finding localvar that holds initial posX");
                 }
             }
+            return false;
+        }
+
+        private boolean findPreviousPacketGetZResult(AbstractInsnNode node, ListIterator<AbstractInsnNode> iterator) {
+            int countToUndo = 0;
+            while(iterator.hasPrevious()) {
+                AbstractInsnNode previous = iterator.previous();
+                countToUndo++;
+
+                if (previous.getOpcode() == Opcodes.DLOAD && previous instanceof VarInsnNode) {
+                    VarInsnNode varInsnNode = (VarInsnNode)previous;
+                    PatchNetHandlerPlayServer.this.storeData(previousPacketGetZLocalVarKey, varInsnNode.var);
+                    for (int i = 0; i < countToUndo; i++) {
+                        iterator.next();
+                    }
+                    return true;
+                }
+            }
+            Transformer.die("Unable to find previous DLOAD instruction");
             return false;
         }
 

@@ -34,6 +34,7 @@ import uk.co.mysterymayhem.gravitymod.common.capabilities.gravitydirection.Gravi
 import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
+import javax.annotation.Nonnull;
 import java.util.ListIterator;
 
 /**
@@ -373,7 +374,17 @@ public class Hooks {
         return entity.posX;
     }
 
-
+    /**
+     * ASM Hook used in:
+     * @param axisAlignedBB
+     * @return
+     */
+    public static AxisAlignedBB normaliseAABB(@Nonnull AxisAlignedBB axisAlignedBB) {
+        if (axisAlignedBB instanceof GravityAxisAlignedBB) {
+            return ((GravityAxisAlignedBB)axisAlignedBB).toVanilla();
+        }
+        return axisAlignedBB;
+    }
 
 
 
@@ -1419,7 +1430,7 @@ public class Hooks {
     }
 
     public static double netHandlerPlayServerGetRelativeY(NetHandlerPlayServer netHandlerPlayServer, double inX, double inY, double inZ) {
-        return Hooks.adjustXYZ(netHandlerPlayServer.playerEntity, inX, inY, inZ)[1];
+        return Hooks.inverseAdjustXYZ(netHandlerPlayServer.playerEntity, inX, inY, inZ)[1];
     }
 
     public static double netHandlerPlayServerGetPacketZ(NetHandlerPlayServer netHandlerPlayServer, CPacketPlayer packet) {
