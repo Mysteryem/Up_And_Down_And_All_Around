@@ -53,7 +53,7 @@ public class GravityManagerCommon {
             int numRequired = ConfigHandler.numNormalGravityEnablersRequiredForNormalGravity;
             int numNormalGravityEnablers = 0;
             for (ItemStack stack : armorInventory) {
-                if (stack != null) {
+                if (!stack.isEmpty()) {
                     if (stack.getItem() instanceof IWeakGravityEnabler) {
                         numNormalGravityEnablers += ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
                         if (numNormalGravityEnablers >= numRequired) {
@@ -104,7 +104,7 @@ public class GravityManagerCommon {
             int numRequired = ConfigHandler.numWeakGravityEnablersRequiredForWeakGravity;
             int numWeakGravityEnablers = 0;
             for (ItemStack stack : armorInventory) {
-                if (stack != null && stack.getItem() instanceof IWeakGravityEnabler) {
+                if (!stack.isEmpty() && stack.getItem() instanceof IWeakGravityEnabler) {
                     if (++numWeakGravityEnablers == numRequired) {
                         return true;
                     }

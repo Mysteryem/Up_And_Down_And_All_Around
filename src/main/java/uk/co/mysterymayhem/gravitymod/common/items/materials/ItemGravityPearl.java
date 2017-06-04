@@ -54,7 +54,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
         if (entityIn instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer)entityIn;
             ItemStack activeItemStack = player.getActiveItemStack();
-            if (activeItemStack != null) {
+            if (!activeItemStack.isEmpty()) {
                 if (activeItemStack.getItem() == this) {
                     pushPullNearbyEntities(player);
                 }

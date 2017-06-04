@@ -142,10 +142,9 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             return (!stack.isStackable() || stack.getMaxStackSize() == 1);
         }
 
-        @Nullable
         @Override
         public ItemStack getCraftingResult(InventoryCrafting inv) {
-            ItemStack toolStack = null;
+            ItemStack toolStack = ItemStack.EMPTY;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 toolStack = inv.getStackInSlot(i);
                 if (!toolStack.isEmpty() && toolStack.getItem() != StaticItems.SPACETIME_DISTORTER) {
@@ -153,8 +152,6 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
                 }
             }
 
-            // If it is null, then someone has messed with things they shouldn't have
-            @SuppressWarnings("ConstantConditions")
             ItemStack copy = toolStack.copy();
 
             NBTTagCompound tagCompound = copy.getTagCompound();
@@ -174,7 +171,6 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             return 2;
         }
 
-        @Nullable
         @Override
         public ItemStack getRecipeOutput() {
             return super.getRecipeOutput();

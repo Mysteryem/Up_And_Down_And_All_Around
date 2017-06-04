@@ -145,7 +145,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             int pasteItemsFound = 0;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 ItemStack stack = inv.getStackInSlot(i);
-                if (stack != null) {
+                if (!stack.isEmpty()) {
                     Item item = stack.getItem();
                     if (item == StaticItems.ARMOUR_PASTE) {
                         if (++pasteItemsFound > 1) {
@@ -168,13 +168,12 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             return nonPasteItemsFound == 1 && pasteItemsFound == 1;
         }
 
-        @Nullable
         @Override
         public ItemStack getCraftingResult(InventoryCrafting inv) {
-            ItemStack armourStack = null;
+            ItemStack armourStack = ItemStack.EMPTY;
             for (int i = 0; i < inv.getSizeInventory(); i++) {
                 armourStack = inv.getStackInSlot(i);
-                if (armourStack != null && armourStack.getItem() != StaticItems.ARMOUR_PASTE) {
+                if (!armourStack.isEmpty() && armourStack.getItem() != StaticItems.ARMOUR_PASTE) {
                     break;
                 }
             }
@@ -197,7 +196,6 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             return 2;
         }
 
-        @Nullable
         @Override
         public ItemStack getRecipeOutput() {
             return super.getRecipeOutput();
@@ -227,7 +225,6 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
             super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
         }
 
-        @Nullable
         @Override
         public ItemStack getRecipeOutput() {
             return super.getRecipeOutput();
