@@ -40,10 +40,7 @@ public class EntityRenderListener {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onNameplateRenderPre(RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
-        if (playerRotationNeedToPop) {
-            playerRotationNeedToPop = false;
-            GlStateManager.popMatrix();
-        }
+        cleanup();
         entityBeingRendered = event.getEntity();
 
         GlStateManager.pushMatrix();
@@ -74,6 +71,13 @@ public class EntityRenderListener {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onRenderPre(RenderPlayerEvent.Pre event) {
+    	if(playerRotationNeedToPop ) {
+    		// If this flag is set, we hit some nested renderer -
+    		// we only need to rotate once, doing so multiple times
+    		// will result in excessive rotation, and an imbalanced
+    		// matrix stack
+    		return;
+    	}
         EntityPlayer player = event.getEntityPlayer();
         AxisAlignedBB entityBoundingBox = player.getEntityBoundingBox();
         if (!(entityBoundingBox instanceof GravityAxisAlignedBB)) {
