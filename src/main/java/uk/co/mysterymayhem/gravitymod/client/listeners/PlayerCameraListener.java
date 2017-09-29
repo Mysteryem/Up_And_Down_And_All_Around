@@ -112,9 +112,9 @@ public class PlayerCameraListener {
 
                 transitionRollAmount = (float)(rotationAngle * multiplierOneToZero);
                 Vec3d eyePosChangeVector = capability.getEyePosChangeVector();
-                xTranslation = eyePosChangeVector.xCoord * multiplierOneToZero;
-                yTranslation = eyePosChangeVector.yCoord * multiplierOneToZero;
-                zTranslation = eyePosChangeVector.zCoord * multiplierOneToZero;
+                xTranslation = eyePosChangeVector.x * multiplierOneToZero;
+                yTranslation = eyePosChangeVector.y * multiplierOneToZero;
+                zTranslation = eyePosChangeVector.z * multiplierOneToZero;
                 minecraft.renderGlobal.setDisplayListEntitiesDirty();
             }
 

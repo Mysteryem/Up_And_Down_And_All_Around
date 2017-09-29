@@ -137,7 +137,7 @@ public class Hooks {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
             Vec3d origin = ((GravityAxisAlignedBB) entityBoundingBox).offset(0, -1, 0).getOrigin();
-            return BlockPos.PooledMutableBlockPos.retain(origin.xCoord, origin.yCoord, origin.zCoord);
+            return BlockPos.PooledMutableBlockPos.retain(origin.x, origin.y, origin.z);
         }
         else {
             return BlockPos.PooledMutableBlockPos.retain(entity.posX, entity.getEntityBoundingBox().minY - 1.0D, entity.posZ);
@@ -187,7 +187,7 @@ public class Hooks {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).xCoord;
+            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).x;
         }
         else {
             return entity.posX;
@@ -203,7 +203,7 @@ public class Hooks {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).yCoord;
+            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).y;
         }
         else {
             return entity.posY;
@@ -219,7 +219,7 @@ public class Hooks {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).zCoord;
+            return gBB.getDirection().getInverseAdjustmentFromDOWNDirection().adjustLookVec(gBB.getOrigin()).z;
         }
         else {
             return entity.posZ;
@@ -248,7 +248,7 @@ public class Hooks {
 
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float)(Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
     }
 
     /**
@@ -331,7 +331,7 @@ public class Hooks {
 
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        return (float)-(Math.asin(adjustedVec.y) * (180D/Math.PI));
     }
 
     /**
@@ -358,7 +358,7 @@ public class Hooks {
 
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        return (float)-(Math.asin(adjustedVec.y) * (180D/Math.PI));
     }
 
     /**
@@ -663,7 +663,7 @@ public class Hooks {
     public static double getOriginPosX(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getOrigin().xCoord;
+            return ((GravityAxisAlignedBB) bb).getOrigin().x;
         }
         else {
             return entity.posX;
@@ -673,7 +673,7 @@ public class Hooks {
     public static double getOriginPosY(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getOrigin().yCoord;
+            return ((GravityAxisAlignedBB) bb).getOrigin().y;
         }
         else {
             return entity.posY;
@@ -683,7 +683,7 @@ public class Hooks {
     public static double getOriginPosZ(Entity entity) {
         AxisAlignedBB bb = entity.getEntityBoundingBox();
         if (bb instanceof GravityAxisAlignedBB) {
-            return ((GravityAxisAlignedBB) bb).getOrigin().zCoord;
+            return ((GravityAxisAlignedBB) bb).getOrigin().z;
         }
         else {
             return entity.posZ;
@@ -742,7 +742,7 @@ public class Hooks {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
             Vec3d origin = ((GravityAxisAlignedBB) entityBoundingBox).offset(0, -1, 0).getOrigin();
-            return mutableBlockPos.setPos(origin.xCoord, origin.yCoord, origin.zCoord);
+            return mutableBlockPos.setPos(origin.x, origin.y, origin.z);
         }
         else {
             return mutableBlockPos.setPos(entity.posX, entityBoundingBox.minY - 1.0D, entity.posZ);
@@ -763,13 +763,13 @@ public class Hooks {
 
         GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
         Vec3d origin = gBB.offset(-playerWithGravity.width * 0.35, 0.5, playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.x, origin.y, origin.z);
         origin = gBB.offset(-playerWithGravity.width * 0.35, 0.5, -playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.x, origin.y, origin.z);
         origin = gBB.offset(playerWithGravity.width * 0.35, 0.5, -playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.x, origin.y, origin.z);
         origin = gBB.offset(playerWithGravity.width * 0.35, 0.5, playerWithGravity.width * 0.35).getOrigin();
-        playerWithGravity.pushOutOfBlocks(origin.xCoord, origin.yCoord, origin.zCoord);
+        playerWithGravity.pushOutOfBlocks(origin.x, origin.y, origin.z);
     }
 
     /**
@@ -964,7 +964,7 @@ public class Hooks {
         if (bb instanceof GravityAxisAlignedBB) {
             EnumGravityDirection direction = ((GravityAxisAlignedBB) bb).getDirection().getInverseAdjustmentFromDOWNDirection();
             normal = direction.adjustLookVec(normal);
-            return new Vec3d(normal.xCoord, normal.yCoord, normal.zCoord);
+            return new Vec3d(normal.x, normal.y, normal.z);
         }
         else {
             return normal;
@@ -999,7 +999,7 @@ public class Hooks {
 
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
 //        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float)(Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
     }
 
     public static final int YAW = 0;
@@ -1018,8 +1018,8 @@ public class Hooks {
         Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
 
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        double yawOut = (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
-        double pitchOut = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        double yawOut = (Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
+        double pitchOut = -(Math.asin(adjustedVec.y) * (180D/Math.PI));
         return new double[]{yawOut, pitchOut};
     }
 
@@ -1036,8 +1036,8 @@ public class Hooks {
         Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
 
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
-        double yawOut = (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
-        double pitchOut = -(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        double yawOut = (Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
+        double pitchOut = -(Math.asin(adjustedVec.y) * (180D/Math.PI));
         return new double[]{yawOut, pitchOut};
     }
 
@@ -1063,7 +1063,7 @@ public class Hooks {
 
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float) (Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D / Math.PI));
+        return (float) (Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D / Math.PI));
     }
 
     public static float getRelativeYawHead(EntityLivingBase entity) {
@@ -1083,7 +1083,7 @@ public class Hooks {
 
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float)(Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
     }
 
     public static float getAbsoluteYaw(Entity entity) {
@@ -1103,7 +1103,7 @@ public class Hooks {
 
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
 //        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float)(Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
     }
 
 
@@ -1129,7 +1129,7 @@ public class Hooks {
 
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
 //        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        return (float)-(Math.asin(adjustedVec.y) * (180D/Math.PI));
     }
 
     /**
@@ -1151,7 +1151,7 @@ public class Hooks {
         Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
 //        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float)(Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
     }
 
     public static float getRelativePrevYaw(Entity entity) {
@@ -1170,7 +1170,7 @@ public class Hooks {
         Vec3d lookVecWithDoubleAccuracy =  new Vec3d(f1 * f2, f3, f * f2);
 //        Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
         Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)(Math.atan2(-adjustedVec.xCoord, adjustedVec.zCoord) * (180D/Math.PI));
+        return (float)(Math.atan2(-adjustedVec.x, adjustedVec.z) * (180D/Math.PI));
     }
 
     //TODO: If we work out which input x, y and z value is needed in lookVecWithDoubleAccuracy, we can skip calculating two of the doubles
@@ -1194,7 +1194,7 @@ public class Hooks {
 
         Vec3d adjustedVec = Hooks.adjustVec(lookVecWithDoubleAccuracy, entity);
 //        Vec3d adjustedVec = Hooks.inverseAdjustVec(lookVecWithDoubleAccuracy, entity);
-        return (float)-(Math.asin(adjustedVec.yCoord) * (180D/Math.PI));
+        return (float)-(Math.asin(adjustedVec.y) * (180D/Math.PI));
     }
 
     public static float getCosOfAngleBetweenVecsOnRelativeXYPlane(Entity entity, Vec3d normal1, Vec3d normal2) {
@@ -1204,7 +1204,7 @@ public class Hooks {
             normal1 = direction.adjustLookVec(normal1);
             normal2 = direction.adjustLookVec(normal2);
         }
-        return (float)(normal1.xCoord * normal2.xCoord + normal1.zCoord * normal2.zCoord);
+        return (float)(normal1.x * normal2.x + normal1.z * normal2.z);
     }
 
     /**
@@ -1393,7 +1393,7 @@ public class Hooks {
         AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
         if (entityBoundingBox instanceof GravityAxisAlignedBB) {
             Vec3d origin = ((GravityAxisAlignedBB) entityBoundingBox).getOrigin();
-            ((WorldServer) entity.world).spawnParticle(EnumParticleTypes.BLOCK_DUST, origin.xCoord, origin.yCoord, origin.zCoord, i, 0.0D, 0.0D, 0.0D,
+            ((WorldServer) entity.world).spawnParticle(EnumParticleTypes.BLOCK_DUST, origin.x, origin.y, origin.z, i, 0.0D, 0.0D, 0.0D,
                     0.15000000596046448D, Block.getStateId(blockState));
         }
         else {
@@ -1544,9 +1544,9 @@ public class Hooks {
                     vec3d = vec3d.addVector(doubles[0], doubles[1], doubles[2]);
                     break;
             }
-            player.posX = vec3d.xCoord;
-            player.posY = vec3d.yCoord;
-            player.posZ = vec3d.zCoord;
+            player.posX = vec3d.x;
+            player.posY = vec3d.y;
+            player.posZ = vec3d.z;
             return true;
         }
         FMLLog.warning("Player BB is not GravityAxisAlignedBB");

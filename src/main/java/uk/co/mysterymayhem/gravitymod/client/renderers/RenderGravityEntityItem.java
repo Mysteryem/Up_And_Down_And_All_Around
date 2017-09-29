@@ -31,7 +31,7 @@ public class RenderGravityEntityItem extends RenderEntityItem {
     @Override
     public int transformModelCount(EntityItem itemIn, double xPos, double yPos, double zPos, float partialTicks, IBakedModel bakedModel) {
         if (itemIn instanceof EntityGravityItem) {
-            ItemStack itemstack = itemIn.getEntityItem();
+            ItemStack itemstack = itemIn.getItem();
 
             if (itemstack.isEmpty()) {
                 return 0;

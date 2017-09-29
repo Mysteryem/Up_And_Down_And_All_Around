@@ -104,7 +104,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
 
             double heightExpansion = (this.height - oldHeight) / 2d;
             double widthExpansion = (this.width - oldWidth) / 2d;
-            AxisAlignedBB newAABB = oldAABB.expand(widthExpansion, heightExpansion, widthExpansion).offset(0, heightExpansion, 0);
+            AxisAlignedBB newAABB = oldAABB.grow(widthExpansion, heightExpansion, widthExpansion).offset(0, heightExpansion, 0);
 
             this.setEntityBoundingBox(newAABB);
 
@@ -240,9 +240,9 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 double zMovement = (double)(((float)((i >> 2) % 2) - 0.5F) * this.width * 0.8F);
                 double[] d = direction.adjustXYZValues(xMovement, yMovement, zMovement);
 
-                int j = MathHelper.floor(origin.yCoord + d[1]);
-                int k = MathHelper.floor(origin.xCoord + d[0]);
-                int l = MathHelper.floor(origin.zCoord + d[2]);
+                int j = MathHelper.floor(origin.y + d[1]);
+                int k = MathHelper.floor(origin.x + d[0]);
+                int l = MathHelper.floor(origin.z + d[2]);
 
                 if (blockpos$pooledmutableblockpos.getX() != k || blockpos$pooledmutableblockpos.getY() != j || blockpos$pooledmutableblockpos.getZ() != l) {
                     blockpos$pooledmutableblockpos.setPos(k, j, l);
@@ -385,8 +385,8 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
                 Vec3d lookVec = attacker.getLookVec();
                 EnumGravityDirection direction = API.getGravityDirection(this);
                 Vec3d adjustedLook = direction.adjustLookVec(lookVec);
-                xRatio = -adjustedLook.xCoord;
-                zRatio = -adjustedLook.zCoord;
+                xRatio = -adjustedLook.x;
+                zRatio = -adjustedLook.z;
                 super.knockBack(attacker, strength, xRatio, zRatio);
             }
             else {
@@ -599,19 +599,19 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
         if (bb instanceof GravityAxisAlignedBB) {
             // Based on the super implementation
             GravityAxisAlignedBB gBB = (GravityAxisAlignedBB)bb;
-            Vec3d belowBlock = gBB.addCoord(0, -0.20000000298023224D, 0).getOrigin();
+            Vec3d belowBlock = gBB.expand(0, -0.20000000298023224D, 0).getOrigin();
             BlockPos blockpos = new BlockPos(belowBlock);
             IBlockState iblockstate = this.world.getBlockState(blockpos);
 
             if (iblockstate.getRenderType() != EnumBlockRenderType.INVISIBLE) {
-                Vec3d particleSpawnPoint = gBB.addCoord(((double)this.rand.nextFloat() - 0.5D) * (double)this.width, 0.1D, ((double)this.rand.nextFloat() -
+                Vec3d particleSpawnPoint = gBB.expand(((double)this.rand.nextFloat() - 0.5D) * (double)this.width, 0.1D, ((double)this.rand.nextFloat() -
                         0.5D) * (double)this.width)
                         .getOrigin();
                 double[] d = gBB.getDirection().adjustXYZValues(-this.motionX * 4.0D, 1.5D, -this.motionZ * 4.0D);
                 this.world.spawnParticle(EnumParticleTypes.BLOCK_CRACK,
-                        particleSpawnPoint.xCoord,
-                        particleSpawnPoint.yCoord,
-                        particleSpawnPoint.zCoord,
+                        particleSpawnPoint.x,
+                        particleSpawnPoint.y,
+                        particleSpawnPoint.z,
                         d[0],
                         d[1],
                         d[2],
@@ -712,7 +712,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
             // .minY + (double)f1, axisalignedbb.minZ + (double)f);
             double heightExpansion = (f1 - this.height) / 2d;
             double widthExpansion = (f - this.width) / 2d;
-            axisalignedbb = axisalignedbb.expand(widthExpansion, heightExpansion, widthExpansion).offset(0, heightExpansion, 0);
+            axisalignedbb = axisalignedbb.grow(widthExpansion, heightExpansion, widthExpansion).offset(0, heightExpansion, 0);
             //end ASM
 //            axisalignedbb = Hooks.getGravityAdjustedHitbox(this, f, f1);
 

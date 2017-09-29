@@ -1,15 +1,16 @@
 package uk.co.mysterymayhem.mystlib.setup.singletons;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 /**
@@ -22,7 +23,11 @@ public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject
         String modID = this.getModID();
         String name = this.getModObjectName();
         potion.setPotionName("potion." + modID + "." + name);
-        GameRegistry.register(potion, new ResourceLocation(modID, name));
+        potion.setRegistryName(new ResourceLocation(modID, name));
+    }
+
+    default void register(IForgeRegistry<Potion> registry) {
+        registry.register(this.getPotion());
     }
 
     @SuppressWarnings("unchecked")
@@ -57,7 +62,7 @@ public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject
         }
         Minecraft.getMinecraft().renderEngine.bindTexture(textureResource);
         Tessellator tessellator = Tessellator.getInstance();
-        VertexBuffer buf = tessellator.getBuffer();
+        BufferBuilder buf = tessellator.getBuffer();
         buf.begin(7, DefaultVertexFormats.POSITION_TEX);
         GlStateManager.color(1, 1, 1, alpha);
 

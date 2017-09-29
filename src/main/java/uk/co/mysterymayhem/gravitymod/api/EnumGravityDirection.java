@@ -710,7 +710,7 @@ public enum EnumGravityDirection implements IStringSerializable {
                     Vec3d newEyePos = player.getPositionVector().addVector(0, player.getEyeHeight(), 0);
                     Vec3d eyesDifference = oldEyePos.subtract(newEyePos);
                     Vec3d adjustedDifference = this.getInverseAdjustmentFromDOWNDirection().adjustLookVec(eyesDifference);
-                    AxisAlignedBB givenUp = axisAlignedBB.offset(adjustedDifference.xCoord, adjustedDifference.yCoord, adjustedDifference.zCoord);
+                    AxisAlignedBB givenUp = axisAlignedBB.offset(adjustedDifference.x, adjustedDifference.y, adjustedDifference.z);
                     //TODO: Set position at feet to closest int so we don't fall through blocks
                     double relativeBottomOfBB = GravityAxisAlignedBB.getRelativeBottom(givenUp);
                     long rounded = Math.round(relativeBottomOfBB);
@@ -747,7 +747,7 @@ public enum EnumGravityDirection implements IStringSerializable {
     }
 
     public Vec3d adjustLookVec(Vec3d input) {
-        double[] d = this.adjustXYZValues(input.xCoord, input.yCoord, input.zCoord);
+        double[] d = this.adjustXYZValues(input.x, input.y, input.z);
         return new Vec3d(d[0], d[1], d[2]);
     }
 

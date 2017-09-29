@@ -142,9 +142,9 @@ public class EntityFloatingItem extends EntityItem {
             motionVec = motionVec.scale(MathHelper.sqrt(minMovementSquared / squareLength));
         }
         double maxSpeed = 0.1;
-        this.motionX = motionVec.xCoord;
-        this.motionY = motionVec.yCoord;
-        this.motionZ = motionVec.zCoord;
+        this.motionX = motionVec.x;
+        this.motionY = motionVec.y;
+        this.motionZ = motionVec.z;
         this.motionX = MathHelper.clamp(this.motionX, -maxSpeed, maxSpeed);
         this.motionY = MathHelper.clamp(this.motionY, -maxSpeed, maxSpeed);
         this.motionZ = MathHelper.clamp(this.motionZ, -maxSpeed, maxSpeed);
@@ -213,10 +213,10 @@ public class EntityFloatingItem extends EntityItem {
         if (!this.world.isRemote
                 && ReflectionLambdas.get_EntityItem$age.applyAsInt(this) < this.lifespan
                 && ReflectionLambdas.get_EntityItem$health.applyAsInt(this) > 0
-                && !this.getEntityItem().isEmpty()
+                && !this.getItem().isEmpty()
                 /*&& stack.stackSize <= 0*/) {
             World world;
-            if (this.getEntityItem().getItem() != StaticItems.GRAVITY_DUST) {
+            if (this.getItem().getItem() != StaticItems.GRAVITY_DUST) {
                 EntityItem newItem = new EntityItem(world = this.world, this.posX, this.posY, this.posZ, new ItemStack(StaticItems.GRAVITY_DUST,
                         ConfigHandler.gravityDustAmountDropped));
 //                newItem.setNoPickupDelay();
