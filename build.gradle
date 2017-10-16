@@ -20,9 +20,9 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "2.7.4"
+version = "2.8.0"
 group= "uk.co.mysterymayhem.gravitymod" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "UpAndDownAndAllAround-1.11.2"
+archivesBaseName = "UpAndDownAndAllAround-1.12.2"
 targetCompatibility = "1.8"
 sourceCompatibility = "1.8"
 
