@@ -1,7 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.asm;
 
 import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraftforge.fml.common.FMLLog;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.StringFormatterMessageFactory;
@@ -38,7 +37,7 @@ public class Transformer implements IClassTransformer {
 
     // Maps classes to their patch methods
     private static final HashMap<String, ClassPatcher> classNameToMethodMap = new HashMap<>();
-    private static final Logger logger = LogManager.getLogger("UpAndDown-Core", StringFormatterMessageFactory.INSTANCE);
+    public static final Logger logger = LogManager.getLogger("UpAndDown-Core", StringFormatterMessageFactory.INSTANCE);
 
     public static final boolean DEBUG_AUTO_JUMP = false;
     //Set up bit mask
@@ -158,7 +157,7 @@ public class Transformer implements IClassTransformer {
     public static void printClassToFMLLogger(byte[] bytes) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         printClassToStream(bytes, byteArrayOutputStream);
-        FMLLog.info("\n%s", byteArrayOutputStream);
+        logger.info("\n%s", byteArrayOutputStream);
     }
 
     public static void printMethodToStdOut(MethodNode methodNode) {
@@ -177,7 +176,7 @@ public class Transformer implements IClassTransformer {
     public static void printMethodToFMLLogger(MethodNode methodNode) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         printMethodToStream(methodNode, byteArrayOutputStream);
-        FMLLog.info("\n%s", byteArrayOutputStream);
+        logger.info("\n%s", byteArrayOutputStream);
     }
 
     public static void logPatchStarting(DeobfAwareString deobfAwareString) {
@@ -332,7 +331,7 @@ public class Transformer implements IClassTransformer {
     }
 
     private static void warn(String string, Object... objects) {
-        FMLLog.warning("[UpAndDown] " + string, objects);
+        logger.warn(string, objects);
     }
 
     /**

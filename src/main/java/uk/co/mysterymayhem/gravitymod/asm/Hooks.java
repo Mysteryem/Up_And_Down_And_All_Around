@@ -21,7 +21,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.util.vector.Vector3f;
@@ -1549,7 +1548,7 @@ public class Hooks {
             player.posZ = vec3d.z;
             return true;
         }
-        FMLLog.warning("Player BB is not GravityAxisAlignedBB");
+        Transformer.logger.warn("Player BB is not GravityAxisAlignedBB");
         return false;
 //        switch (API.getGravityDirection(player)) {
 //            case DOWN:

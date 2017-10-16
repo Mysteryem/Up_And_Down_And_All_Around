@@ -15,7 +15,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -630,7 +629,7 @@ public abstract class EntityPlayerWithGravity extends EntityPlayer {
     @SuppressWarnings("WeakerAccess")
     @SideOnly(Side.CLIENT)
     protected void updateAutoJump(float xChange, float zChange) {
-        FMLLog.warning("Erroneously tried to call func_189810_i(auto-jump method) from " + this);
+        Transformer.logger.warn("Erroneously tried to call func_189810_i(auto-jump method) from " + this);
 //        throw new RuntimeException("Unreachable code reached");
     }
 
