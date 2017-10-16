@@ -1,12 +1,10 @@
 package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
-import com.google.common.collect.Lists;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
@@ -19,20 +17,17 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.RecipeSorter;
+import net.minecraftforge.registries.IForgeRegistry;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
-import uk.co.mysterymayhem.mystlib.RecipeCreationWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by Mysteryem on 21/02/2017.
@@ -65,36 +60,27 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitClient() {
+    public void registerClient(IForgeRegistry<Item> registry) {
         //TODO: Change to different translation strings
         String ANY_NON_STACKABLE_TEXT = I18n.format("crafting.mysttmtgravitymod.inducerinfo.noinducer");
         String ANY_NON_STACKABLE_WITH_INDUCER_TEXT = I18n.format("crafting.mysttmtgravitymod.inducerinfo.inducer");
-        GravityDustInducerRemoval.DUMMY_RECIPE_INPUT.getMatchingStacks()[0].setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
+        GravityDustInducerRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
         GravityDustInducerRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_NON_STACKABLE_TEXT);
-        GravityDustInducerRecipe.DUMMY_RECIPE_INPUT.getMatchingStacks()[0].setStackDisplayName(ANY_NON_STACKABLE_TEXT);
+        GravityDustInducerRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_NON_STACKABLE_TEXT);
         GravityDustInducerRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
-        IGravityModItem.super.preInitClient();
+        IGravityModItem.super.registerClient(registry);
     }
 
     @Override
     public void postInit() {
-        RecipeCreationWrapper.addShapedRecipe(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer"),
-                new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer"),
-                new ItemStack(this),
-                "A",
-                "D",
-                "C",
-                'A', StaticItems.GRAVITY_DUST,
-                'D', StaticItems.DESTABILISED_GRAVITY_DUST,
-                'C', Items.COMPASS);
         ForgeRegistries.RECIPES.register(new GravityDustInducerRecipe(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer")).setRegistryName(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer_recipe")));
         ForgeRegistries.RECIPES.register(new GravityDustInducerRemoval(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer")).setRegistryName(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer_removal")));
     }
 
     private static class GravityDustInducerRecipe extends ShapelessRecipes {
 
-        static final Ingredient DUMMY_RECIPE_INPUT = Ingredient.fromItem(Items.DIAMOND_PICKAXE);
-        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.DIAMOND_PICKAXE, 1);
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.DIAMOND_PICKAXE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.DIAMOND_PICKAXE);
 
         static {
             NBTTagCompound tagCompound = DUMMY_RECIPE_OUTPUT.getTagCompound();
@@ -106,7 +92,10 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
         }
 
         public GravityDustInducerRecipe(ResourceLocation group) {
-            super(group.toString(), DUMMY_RECIPE_OUTPUT, NonNullList.from(DUMMY_RECIPE_INPUT, Ingredient.fromItem(StaticItems.SPACETIME_DISTORTER)));
+            super(
+                    group.toString(),
+                    DUMMY_RECIPE_OUTPUT,
+                    NonNullList.from(Ingredient.EMPTY, Ingredient.fromStacks(DUMMY_RECIPE_INPUT), Ingredient.fromItem(StaticItems.SPACETIME_DISTORTER)));
         }
 
         @Override
@@ -179,21 +168,23 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
 
     private static class GravityDustInducerRemoval extends ShapelessRecipes {
 
-        static final Ingredient DUMMY_RECIPE_INPUT = Ingredient.fromItem(Items.STONE_PICKAXE);
+        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.STONE_PICKAXE);
         static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.STONE_PICKAXE);
 
         static {
-            ItemStack stack = DUMMY_RECIPE_INPUT.getMatchingStacks()[0];
-            NBTTagCompound tagCompound = stack.getTagCompound();
+            NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
             if (tagCompound == null) {
                 tagCompound = new NBTTagCompound();
-                stack.setTagCompound(tagCompound);
+                DUMMY_RECIPE_INPUT.setTagCompound(tagCompound);
             }
             tagCompound.setBoolean(NBT_KEY, true);
         }
 
         public GravityDustInducerRemoval(ResourceLocation group) {
-            super(group.toString(), DUMMY_RECIPE_OUTPUT, NonNullList.from(DUMMY_RECIPE_INPUT, Ingredient.fromItem(Items.WATER_BUCKET)));
+            super(
+                    group.toString(),
+                    DUMMY_RECIPE_OUTPUT,
+                    NonNullList.from(Ingredient.EMPTY, Ingredient.fromStacks(DUMMY_RECIPE_INPUT), Ingredient.fromItem(Items.WATER_BUCKET)));
         }
 
         @Nullable

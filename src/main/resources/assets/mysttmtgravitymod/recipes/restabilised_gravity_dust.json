@@ -1,0 +1,22 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:restabilisedgravitydust",
+    "data": 0,
+    "count": 2
+  },
+  "pattern": [
+    "DDD",
+    "DCD",
+    "DDD"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "D": {
+      "item": "#DESTABILISED_GRAVITY_DUST"
+    },
+    "C": {
+      "item": "minecraft:coal",
+      "data": 0
+    }
+  }
+}

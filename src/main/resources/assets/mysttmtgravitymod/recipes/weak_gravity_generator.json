@@ -1,0 +1,25 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitygenerator",
+    "data": 0
+  },
+  "pattern": [
+    "SCS",
+    "CRC",
+    "SCS"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "R": {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    "S": {
+      "type": "forge:ore_dict",
+      "ore": "stone"
+    },
+    "C": {
+      "type": "forge:ore_dict",
+      "ore": "cobblestone"
+    }
+  }
+}

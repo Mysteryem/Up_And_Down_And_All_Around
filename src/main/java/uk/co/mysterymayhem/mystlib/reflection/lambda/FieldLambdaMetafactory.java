@@ -1,11 +1,11 @@
 package uk.co.mysterymayhem.mystlib.reflection.lambda;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
-import net.minecraftforge.fml.common.FMLLog;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.util.TraceClassVisitor;
 import sun.misc.Unsafe;
+import uk.co.mysterymayhem.mystlib.MystLib;
 import uk.co.mysterymayhem.mystlib.reflection.LookupHelper;
 
 import javax.annotation.Nonnull;
@@ -170,7 +170,7 @@ public class FieldLambdaMetafactory {
     private static void printClassToFMLLogger(byte[] bytes) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         printClassToStream(bytes, byteArrayOutputStream);
-        FMLLog.info("Loading generated inner class lambda:\n%s", byteArrayOutputStream);
+        MystLib.logger.info("Loading generated inner class lambda:\n%s", byteArrayOutputStream);
     }
 
     /**

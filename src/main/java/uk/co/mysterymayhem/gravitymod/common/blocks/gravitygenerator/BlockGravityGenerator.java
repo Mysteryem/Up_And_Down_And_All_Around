@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.blocks.gravitygenerator;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MapColor;
@@ -26,16 +27,14 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.ShapedOreRecipe;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
 import uk.co.mysterymayhem.gravitymod.common.blocks.AbstractGravityModBlockWithItem;
 import uk.co.mysterymayhem.gravitymod.common.blocks.GenericItemBlock;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticGUIs;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.block.metaconverters.AbstractMetaMapper.MetaHelper;
 
 import java.util.Collection;
@@ -181,11 +180,11 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
     }
 
     @Override
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
+    public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> items) {
         for (Boolean isReversed : REVERSED.getAllowedValues()) {
             for (EnumGravityTier tier : EnumGravityTier.values()) {
 //                list.add(new ItemStack(this, 1, tier.ordinal()/*this.getMetaFromState(defaultState.withProperty(TIER, tier))*/));
-                list.add(new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier).withProperty(REVERSED, isReversed))));
+                items.add(new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier).withProperty(REVERSED, isReversed))));
             }
         }
     }
@@ -227,77 +226,10 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
         return "gravitygenerator";
     }
 
-    @Override
-    public void postInit() {
-        super.postInit();
-
-        ItemStack weakGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.WEAK)));
-        ItemStack normalGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.NORMAL)));
-        ItemStack strongGenerator = new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.STRONG)));
-        ItemStack weakReverseGenerator =
-                new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.WEAK).withProperty(REVERSED, true)));
-        ItemStack normalReverseGenerator =
-                new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.NORMAL).withProperty(REVERSED, true)));
-        ItemStack strongReverseGenerator =
-                new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TIER, EnumGravityTier.STRONG).withProperty(REVERSED, true)));
-
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                weakGenerator,
-                "SCS",
-                "CRC",
-                "SCS",
-                'S', "stone",
-                'C', "cobblestone",
-                'R', StaticItems.RESTABILISED_GRAVITY_DUST));
-
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                normalGenerator,
-                "GWG",
-                "WIW",
-                "GWG",
-                'G', StaticItems.GRAVITY_INGOT,
-                'W', weakGenerator,
-                'I', "ingotIron"));
-
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                normalReverseGenerator,
-                "GWG",
-                "WIW",
-                "GWG",
-                'G', StaticItems.GRAVITY_INGOT,
-                'W', weakReverseGenerator,
-                'I', "ingotIron"));
-
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                strongGenerator,
-                "GNG",
-                "NLN",
-                "GNG",
-                'G', "ingotGold",
-                'N', normalGenerator,
-                'L', "blockLapis"));
-
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                strongReverseGenerator,
-                "GNG",
-                "NLN",
-                "GNG",
-                'G', "ingotGold",
-                'N', normalReverseGenerator,
-                'L', "blockLapis"));
-
-        GameRegistry.addShapelessRecipe(weakGenerator, weakReverseGenerator);
-        GameRegistry.addShapelessRecipe(normalGenerator, normalReverseGenerator);
-        GameRegistry.addShapelessRecipe(strongGenerator, strongReverseGenerator);
-        GameRegistry.addShapelessRecipe(weakReverseGenerator, weakGenerator);
-        GameRegistry.addShapelessRecipe(normalReverseGenerator, normalGenerator);
-        GameRegistry.addShapelessRecipe(strongReverseGenerator, strongGenerator);
-    }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitClient() {
-
+    public void registerItemClient(IForgeRegistry<Item> registry) {
         for (Boolean isReversed : REVERSED.getAllowedValues()) {
             for (EnumGravityTier tier : EnumGravityTier.values()) {
                 int meta = this.getMetaFromState(this.getDefaultState().withProperty(TIER, tier).withProperty(REVERSED, isReversed));
@@ -313,9 +245,9 @@ public class BlockGravityGenerator extends AbstractGravityModBlockWithItem<Block
     }
 
     @Override
-    public void preInit() {
+    public void register(IForgeRegistry<Block> registry) {
         this.setDefaultState(this.getDefaultState().withProperty(FACING, EnumFacing.UP).withProperty(REVERSED, Boolean.FALSE));
 
-        super.preInit();
+        super.register(registry);
     }
 }

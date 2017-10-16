@@ -1,0 +1,17 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:restabilisedgravitydust_block",
+    "data": 0
+  },
+  "pattern": [
+    "RRR",
+    "RRR",
+    "RRR"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "R": {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    }
+  }
+}

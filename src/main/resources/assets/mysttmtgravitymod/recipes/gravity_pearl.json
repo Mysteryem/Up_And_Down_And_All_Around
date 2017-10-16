@@ -1,0 +1,21 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitypearl",
+    "data": 0
+  },
+  "pattern": [
+    " R ",
+    "RPR",
+    " R "
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "R": {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    "P": {
+      "type": "forge:ore_dict",
+      "ore": "enderpearl"
+    }
+  }
+}

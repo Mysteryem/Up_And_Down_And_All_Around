@@ -6,7 +6,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -14,6 +13,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.asm.EntityPlayerWithGravity;
 import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.events.ItemStackUseEvent;
@@ -55,11 +55,11 @@ public class ItemStackUseListener {
         if (split.length != 2) {
             ModContainer activeModContainer = Loader.instance().activeModContainer();
             if (activeModContainer != null) {
-                FMLLog.warning("[UpAndDownAndAllAround] Failed to register PrePostModifier. Failed to parse item registry name %s. Mod responsible: %s(%s)",
+                GravityMod.logWarning("Failed to register PrePostModifier. Failed to parse item registry name %s. Mod responsible: %s(%s)",
                         fullModAndItemName, activeModContainer.getName(), activeModContainer.getModId());
             }
             else {
-                FMLLog.warning("[UpAndDownAndAllAround] Failed to register PrePostModifier. Failed to parse item registry name %s.",
+                GravityMod.logWarning("Failed to register PrePostModifier. Failed to parse item registry name %s.",
                         fullModAndItemName);
             }
         }
@@ -91,7 +91,7 @@ public class ItemStackUseListener {
 
         Item item = ForgeRegistries.ITEMS.getValue(Objects.requireNonNull(itemRegistryName, "itemRegistryName cannot be null"));
         if (item == null) {
-            FMLLog.warning("[UpAndDownAndAllAround] Failed to register PrePostModifier for %s. The item could not be found", itemRegistryName);
+            GravityMod.logWarning("Failed to register PrePostModifier for %s. The item could not be found", itemRegistryName);
             return;
         }
 
@@ -124,7 +124,9 @@ public class ItemStackUseListener {
                     map.put(item, damageToPrePostMap);
                 }
                 if (damageToPrePostMap.containsKey(damageValue)) {
-                    FMLLog.warning("[UpAndDownAndAllAround] A mapping for %s with damage value %s already exists in %s. Proceeding to overwrite it.", itemRegistryName, damageValue, mapName);
+                    GravityMod.logWarning("A mapping for %s with damage value %s already exists in %s. Proceeding to overwrite it.",
+                            itemRegistryName,
+                            damageValue, mapName);
                 }
                 damageToPrePostMap.put(damageValue, prePostModifier);
             }

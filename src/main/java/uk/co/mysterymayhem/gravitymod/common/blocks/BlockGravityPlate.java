@@ -12,8 +12,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -26,16 +24,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityTier;
 import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.setup.singletons.AbstractModBlockWithItem;
 
 import javax.annotation.Nonnull;
@@ -43,6 +41,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
+ * Concerning crafting recipes:
+ * Maybe I should add a slime ball to each recipe?
+ * For weak, 4 anti-mass gets 11x11 (121) cross sectional coverage with a generator, 1 anti-mass would be equivalent to ~30
+ *
  * Created by Mysteryem on 20/02/2017.
  */
 public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlate, GenericItemBlock<BlockGravityPlate>> implements IGravityModCommon {
@@ -106,37 +108,9 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitClient() {
-        super.preInitClient();
+    public void registerItemClient(IForgeRegistry<Item> registry) {
+        super.registerItemClient(registry);
         ModelLoader.setCustomModelResourceLocation(this.getItem(), 1, new ModelResourceLocation(this.getItem().getRegistryName(), "inventory"));
-    }
-
-    @Override
-    public void postInit() {
-        super.postInit();
-        // Maybe I should add a slime ball to each recipe
-        // For weak, 4 anti-mass gets 11x11 (121) cross sectional coverage with a generator, 1 anti-mass would be equivalent to ~30
-        switch (this.tier) {
-            case WEAK:
-                GameRegistry.addShapelessRecipe(new ItemStack(this, 32),
-                        StaticItems.DESTABILISED_GRAVITY_DUST, Blocks.STONE_PRESSURE_PLATE);
-                break;
-            case NORMAL:
-                GameRegistry.addShapelessRecipe(new ItemStack(this, 32),
-                        StaticItems.RESTABILISED_GRAVITY_DUST, Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE);
-                break;
-            case STRONG:
-                GameRegistry.addShapelessRecipe(new ItemStack(this, 32),
-                        StaticItems.RESTABILISED_GRAVITY_DUST, StaticItems.RESTABILISED_GRAVITY_DUST,
-                        StaticItems.RESTABILISED_GRAVITY_DUST, StaticItems.RESTABILISED_GRAVITY_DUST, Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
-                break;
-        }
-        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1),
-                this, Items.GLOWSTONE_DUST, Items.GLOWSTONE_DUST, Items.GLOWSTONE_DUST, Items.GLOWSTONE_DUST);
-        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1),
-                this, Blocks.GLOWSTONE);
-        GameRegistry.addShapelessRecipe(new ItemStack(this, 1, 1),
-                this, Blocks.TORCH);
     }
 
     @Override
@@ -199,8 +173,9 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
     }
 
     @Override
-    public boolean blocksMovement(IBlockAccess worldIn, BlockPos pos) {
-        return false;
+    public boolean isPassable(IBlockAccess worldIn, BlockPos pos) {
+        FMLLog.log.info("Message {} {} {}", 12, 3, 44);
+        return true;
     }
 
     /**

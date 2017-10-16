@@ -1,0 +1,13 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:restabilisedgravitydust",
+    "data": 0,
+    "count": 9
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "#RESTABILISED_GRAVITY_DUST_BLOCK"
+    }
+  ]
+}

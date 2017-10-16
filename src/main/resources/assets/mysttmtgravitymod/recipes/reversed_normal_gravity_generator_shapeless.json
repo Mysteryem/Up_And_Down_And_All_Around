@@ -1,0 +1,12 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitygenerator",
+    "data": 5
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "#NORMAL_GRAVITY_GENERATOR"
+    }
+  ]
+}

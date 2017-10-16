@@ -1,0 +1,30 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitygoggles",
+    "data": 0
+  },
+  "pattern": [
+    "IBI",
+    "GIG"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "B": {
+      "item": "#LIQUID_ANTI_MASS_BUCKET"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    },
+    "G": [
+      {
+        "type": "forge:ore_dict",
+        "ore": "blockGlass"
+      },
+      {
+        "type": "forge:ore_dict",
+        "ore": "paneGlass"
+      }
+    ]
+  }
+}

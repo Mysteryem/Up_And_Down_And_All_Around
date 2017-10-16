@@ -1,0 +1,25 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitygenerator",
+    "data": 2
+  },
+  "pattern": [
+    "GNG",
+    "NLN",
+    "GNG"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "N": {
+      "item": "#NORMAL_GRAVITY_GENERATOR"
+    },
+    "L": {
+      "type": "forge:ore_dict",
+      "ore": "blockLapis"
+    },
+    "G": {
+      "type": "forge:ore_dict",
+      "ore": "ingotGold"
+    }
+  }
+}

@@ -4,6 +4,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -28,6 +29,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticBlocks;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -37,7 +39,7 @@ public class ItemGravityDust extends Item implements IGravityModItem<ItemGravity
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydust.line1"));
     }
 

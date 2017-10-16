@@ -1,0 +1,28 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:stronggravityplate",
+    "data": 1
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "#STRONG_GRAVITY_PLATE"
+    },
+    {
+      "type": "forge:ore_dict",
+      "ore": "dustGlowstone"
+    },
+    {
+      "type": "forge:ore_dict",
+      "ore": "dustGlowstone"
+    },
+    {
+      "type": "forge:ore_dict",
+      "ore": "dustGlowstone"
+    },
+    {
+      "type": "forge:ore_dict",
+      "ore": "dustGlowstone"
+    }
+  ]
+}

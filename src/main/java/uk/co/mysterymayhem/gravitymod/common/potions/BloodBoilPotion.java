@@ -2,7 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.potions;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraftforge.fml.common.FMLLog;
+import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.listeners.FallOutOfWorldUpwardsListenerCommon;
 
@@ -18,7 +18,7 @@ public class BloodBoilPotion extends AbstractGravityModPotion<BloodBoilPotion> {
 
     @Override
     public void affectEntity(@Nullable Entity source, @Nullable Entity indirectSource, EntityLivingBase entityLivingBaseIn, int amplifier, double health) {
-        FMLLog.info("affectingentity");
+        GravityMod.logInfo("affectingentity");
     }
 
     @Override

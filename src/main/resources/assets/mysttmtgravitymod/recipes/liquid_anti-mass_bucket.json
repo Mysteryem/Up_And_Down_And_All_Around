@@ -1,0 +1,22 @@
+{
+  "result": {
+    "type": "minecraft:item_nbt",
+    "item": "forge:bucketfilled",
+    "nbt": {
+      "FluidName": "liquidantimass",
+      "Amount": 1000
+    }
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:lava_bucket"
+    },
+    {
+      "item": "minecraft:bucket"
+    },
+    {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    }
+  ]
+}

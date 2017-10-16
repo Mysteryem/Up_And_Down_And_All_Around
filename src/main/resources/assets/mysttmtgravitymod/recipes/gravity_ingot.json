@@ -1,0 +1,19 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravityingot",
+    "data": 0
+  },
+  "pattern": [
+    "DID"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "D": {
+      "item": "#DESTABILISED_GRAVITY_DUST"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  }
+}

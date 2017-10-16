@@ -1,0 +1,16 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravityhelmet",
+    "data": 0
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:iron_helmet",
+      "data": 0
+    },
+    {
+      "item": "#LIQUID_ANTI_MASS_BUCKET"
+    }
+  ]
+}

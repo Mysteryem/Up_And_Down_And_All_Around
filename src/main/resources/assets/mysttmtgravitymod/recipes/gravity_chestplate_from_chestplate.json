@@ -1,0 +1,16 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitychestplate",
+    "data": 0
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:iron_chestplate",
+      "data": 0
+    },
+    {
+      "item": "#LIQUID_ANTI_MASS_BUCKET"
+    }
+  ]
+}

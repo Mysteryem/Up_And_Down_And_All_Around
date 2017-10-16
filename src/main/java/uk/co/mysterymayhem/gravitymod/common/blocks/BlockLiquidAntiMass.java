@@ -1,6 +1,5 @@
 package uk.co.mysterymayhem.gravitymod.common.blocks;
 
-import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -9,25 +8,24 @@ import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.ShapelessRecipes;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fluids.BlockFluidClassic;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.RecipeSorter;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.liquids.LiquidAntiMass;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.setup.singletons.IModBlock;
 
-import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -53,21 +51,19 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IModBlock<
 
     @Override
     public void postInit() {
+        //TODO: Replace with recipe factory that produces recipes that do not return container items
         // Recipe whereby the input bucket (as a part of the lava bucket) becomes the output bucket
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ShapelessVoidOneBucket.class.getSimpleName().toLowerCase(Locale.ENGLISH), ShapelessVoidOneBucket.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ShapelessVoidOneBucket(
-                StaticItems.LIQUID_ANTI_MASS_BUCKET,
-                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
-        // Recipe whereby an extra bucket is used in the input, which will become a returned bucket
-        GameRegistry.addRecipe(new ShapelessRecipes(
-                StaticItems.LIQUID_ANTI_MASS_BUCKET,
-                Lists.newArrayList(new ItemStack(Items.LAVA_BUCKET), new ItemStack(Items.BUCKET), new ItemStack(StaticItems.RESTABILISED_GRAVITY_DUST))));
+        ForgeRegistries.RECIPES.register(
+                new ShapelessVoidOneBucket(
+                        new ResourceLocation(GravityMod.MOD_ID, "special_shapeless"),
+                        StaticItems.LIQUID_ANTI_MASS_BUCKET,
+                        Ingredient.fromItem(Items.LAVA_BUCKET), Ingredient.fromItem(StaticItems.RESTABILISED_GRAVITY_DUST)
+                ).setRegistryName(GravityMod.MOD_ID, "shapeless_void_one_bucket"));
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitClient() {
-        IModBlock.super.preInitClient();
+    public void registerClient(IForgeRegistry<Block> registry) {
         ModelLoader.setCustomStateMapper(this, new StateMapperBase() {
             @Override
             protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
@@ -83,10 +79,10 @@ public class BlockLiquidAntiMass extends BlockFluidClassic implements IModBlock<
     @Override
     public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {/**/}
 
-    private static class ShapelessVoidOneBucket extends ShapelessRecipes {
+    private static class ShapelessVoidOneBucket extends ShapelessOreRecipe {
 
-        public ShapelessVoidOneBucket(ItemStack output, List<ItemStack> inputList) {
-            super(output, inputList);
+        public ShapelessVoidOneBucket(ResourceLocation resourceLocation, ItemStack output, Object... inputs) {
+            super(resourceLocation, output, inputs);
         }
 
         @Override

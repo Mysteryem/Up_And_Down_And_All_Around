@@ -7,7 +7,6 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -16,18 +15,16 @@ import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 /**
  * Created by Mysteryem on 15/03/2017.
  */
-public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject {
+public interface IModPotion<T extends Potion & IModPotion<T>> extends IModObject, IModRegistryEntry<Potion> {
+
     @Override
-    default void preInit() {
+    default void register(IForgeRegistry<Potion> registry) {
         T potion = this.getPotion();
         String modID = this.getModID();
         String name = this.getModObjectName();
         potion.setPotionName("potion." + modID + "." + name);
         potion.setRegistryName(new ResourceLocation(modID, name));
-    }
-
-    default void register(IForgeRegistry<Potion> registry) {
-        registry.register(this.getPotion());
+        registry.register(potion);
     }
 
     @SuppressWarnings("unchecked")

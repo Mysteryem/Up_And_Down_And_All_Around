@@ -1,0 +1,16 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:weakgravityplate",
+    "data": 1
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "#WEAK_GRAVITY_PLATE"
+    },
+    {
+      "type": "forge:ore_dict",
+      "ore": "torch"
+    }
+  ]
+}

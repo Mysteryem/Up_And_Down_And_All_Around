@@ -19,13 +19,14 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModCommon;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.setup.singletons.AbstractModBlockWithItem;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.Random;
 
@@ -51,8 +52,8 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
     }
 
     @Override
-    public void preInit() {
-        super.preInit();
+    public void registerItem(IForgeRegistry<Item> registry) {
+        super.registerItem(registry);
         OreDictionary.registerOre("oreGravity", new ItemStack(this, 1, OreDictionary.WILDCARD_VALUE));
     }
 
@@ -100,7 +101,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitClient() {
+    public void registerItemClient(IForgeRegistry<Item> registry) {
         for (Type blockType : Type.values()) {
             int meta = this.getMetaFromState(this.getDefaultState().withProperty(TYPE, blockType));
             ModelResourceLocation modelResourceLocation = new ModelResourceLocation(this.getRegistryName(),
@@ -110,6 +111,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
         }
     }
 
+    @Nonnull
     @Override
     public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
         return new ItemStack(this, 1, this.getMetaFromState(state));
@@ -117,9 +119,11 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
-        for (Type blockType : Type.values()) {
-            list.add(new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TYPE, blockType))));
+    public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> items) {
+        if (tab == ModItems.UP_AND_DOWN_CREATIVE_TAB) {
+            for (Type blockType : Type.values()) {
+                items.add(new ItemStack(this, 1, this.getMetaFromState(this.getDefaultState().withProperty(TYPE, blockType))));
+            }
         }
     }
 
@@ -134,7 +138,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
 //        return false;
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Item getItemDropped(IBlockState state, Random rand, int fortune) {
         return StaticItems.GRAVITY_DUST;
@@ -143,7 +147,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
     //TODO: Re-test, these values are no longer correct
     // ~7.2526 drops with no fortune (1.7M trials), ~15.1809 drops with fortune 3 (1.9M trials)
     @Override
-    public int quantityDropped(IBlockState state, int fortune, Random random) {
+    public int quantityDropped(IBlockState state, int fortune, @Nonnull Random random) {
         int baseAmount = this.quantityDropped(random);
 
         // From BlockOre
@@ -175,7 +179,7 @@ public class BlockGravityOre extends AbstractModBlockWithItem<BlockGravityOre, G
         return BlockRenderLayer.SOLID;
     }
 
-    @Nullable
+    @Nonnull
     @Override
     protected ItemStack getSilkTouchDrop(IBlockState state) {
         return new ItemStack(this);

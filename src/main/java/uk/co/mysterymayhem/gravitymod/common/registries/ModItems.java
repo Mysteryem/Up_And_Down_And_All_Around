@@ -3,8 +3,9 @@ package uk.co.mysterymayhem.gravitymod.common.registries;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
-import net.minecraftforge.common.ForgeModContainer;
-import net.minecraftforge.fluids.UniversalBucket;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
@@ -96,7 +97,7 @@ public class ModItems extends AbstractItemRegistry<IGravityModItem<?>, ArrayList
 
     @Override
     protected void addToCollection(ArrayList<IGravityModItem<?>> modObjects) {
-        liquidAntiMassBucket = UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, LiquidAntiMass.INSTANCE);
+        liquidAntiMassBucket = FluidUtil.getFilledBucket(new FluidStack(LiquidAntiMass.INSTANCE, Fluid.BUCKET_VOLUME));
         modObjects.add(creativeTabIcon = new ItemCreativeTabIcon());
         modObjects.add(personalGravityController = new ItemPersonalGravityController());
         modObjects.add(weakGravityController = new ItemWeakGravityController());

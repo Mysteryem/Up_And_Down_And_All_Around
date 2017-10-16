@@ -1,0 +1,23 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:spacetimeanomaly",
+    "data": 0
+  },
+  "pattern": [
+    "DPD",
+    "PSP",
+    "DPD"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "D": {
+      "item": "#RESTABILISED_GRAVITY_DUST_BLOCK"
+    },
+    "P": {
+      "item": "#GRAVITY_PEARL"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    }
+  }
+}

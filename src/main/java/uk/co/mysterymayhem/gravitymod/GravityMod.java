@@ -1,6 +1,7 @@
 package uk.co.mysterymayhem.gravitymod;
 
 import net.minecraft.item.EnumRarity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -97,6 +98,8 @@ public class GravityMod {
     public static void logInfo(String formattableString, Object... objects) {
         logger.info(formattableString, objects);
     }
+
+    public static ResourceLocation resource(String path) {return new ResourceLocation(GravityMod.MOD_ID, path);}
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {

@@ -2,12 +2,12 @@ package uk.co.mysterymayhem.gravitymod.common.items.materials;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IProjectile;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
@@ -20,13 +20,11 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.ShapedOreRecipe;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
 
 import javax.annotation.Nullable;
@@ -176,7 +174,7 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitypearl"));
     }
 
@@ -227,28 +225,17 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
         return false;
     }
 
-    @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                this,
-                " D ",
-                "DPD",
-                " D ",
-                'D', StaticItems.RESTABILISED_GRAVITY_DUST,
-                'P', Items.ENDER_PEARL));
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
-    public void preInitClient() {
+    public void registerClient(IForgeRegistry<Item> registry) {
         ModelLoader.registerItemVariants(this,
                 new ModelResourceLocation(this.getRegistryName() + "_push", "inventory"),
                 new ModelResourceLocation(this.getRegistryName() + "_pull", "inventory"));
-        IGravityModItem.super.preInitClient();
+        IGravityModItem.super.registerClient(registry);
     }
 
     @Override
-    public void preInit() {
+    public void register(IForgeRegistry<Item> registry) {
         this.addPropertyOverride(new ResourceLocation("use"), new IItemPropertyGetter() {
             @Override
             @SideOnly(Side.CLIENT)
@@ -272,6 +259,6 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
         });
         this.setMaxStackSize(16);
 
-        IGravityModItem.super.preInit();
+        IGravityModItem.super.register(registry);
     }
 }

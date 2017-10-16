@@ -5,11 +5,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.EnumHelper;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.oredict.ShapedOreRecipe;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
 /**
  * Armour crafted out of this material is affected by weak gravity fields
@@ -26,17 +24,8 @@ public class ItemGravityIngot extends Item implements IGravityModItem<ItemGravit
     }
 
     @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                this,
-                "DID",
-                'D', StaticItems.DESTABILISED_GRAVITY_DUST,
-                'I', "ingotIron"));
-    }
-
-    @Override
-    public void preInit() {
+    public void register(IForgeRegistry<Item> registry) {
         ARMOUR_MATERIAL.repairMaterial = new ItemStack(this);
-        IGravityModItem.super.preInit();
+        IGravityModItem.super.register(registry);
     }
 }

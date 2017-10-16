@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:ultimategravitycontroller",
+    "data": 6
+  },
+  "pattern": [
+    "PIP",
+    "ISI",
+    "PGP"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "I": {
+      "item": "#GRAVITY_INGOT"
+    },
+    "P": {
+      "item": "#GRAVITY_PEARL"
+    },
+    "G": {
+      "item": "#NORMAL_GRAVITY_CONTROLLER_ANY"
+    },
+    "S": {
+      "item": "#SPACETIME_ANOMALY"
+    }
+  }
+}

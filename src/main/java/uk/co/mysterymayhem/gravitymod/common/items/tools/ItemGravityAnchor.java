@@ -5,13 +5,13 @@ import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
@@ -24,10 +24,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.ShapedOreRecipe;
+import net.minecraftforge.registries.IForgeRegistry;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
@@ -37,7 +36,7 @@ import uk.co.mysterymayhem.gravitymod.asm.Hooks;
 import uk.co.mysterymayhem.gravitymod.common.entities.EntityGravityItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
-import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
 
 import javax.annotation.Nullable;
@@ -54,7 +53,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
 //            tooltip.add("Affects gravity in inventory or on mouse cursor");
@@ -96,11 +95,13 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
         return stack.isItemEnchanted() ? EnumRarity.RARE : GravityMod.RARITY_NORMAL;
     }
 
-    @Override
     @SideOnly(Side.CLIENT)
-    public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> subItems) {
-        for (int damage = 0; damage < EnumGravityDirection.values().length; damage++) {
-            subItems.add(new ItemStack(itemIn, 1, damage));
+    @Override
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+        if (tab == ModItems.UP_AND_DOWN_CREATIVE_TAB) {
+            for (int damage = 0; damage < EnumGravityDirection.values().length; damage++) {
+                items.add(new ItemStack(this, 1, damage));
+            }
         }
     }
 
@@ -175,83 +176,15 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
     }
 
     @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.DOWN.ordinal()),
-                "  C",
-                "GI ",
-                "GG ",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.DOWN.ordinal()),
-                "C  ",
-                " IG",
-                " GG",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.UP.ordinal()),
-                "GG ",
-                "GI ",
-                "  C",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.UP.ordinal()),
-                " GG",
-                " IG",
-                "C  ",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.NORTH.ordinal()),
-                "GGG",
-                " I ",
-                " C ",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.SOUTH.ordinal()),
-                " C ",
-                " I ",
-                "GGG",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.EAST.ordinal()),
-                "  G",
-                "CIG",
-                "  G",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-        GameRegistry.addRecipe(new ShapedOreRecipe(
-                new ItemStack(this, 1, EnumGravityDirection.WEST.ordinal()),
-                "G  ",
-                "GIC",
-                "G  ",
-                'C', Items.COMPASS,
-                'G', StaticItems.GRAVITY_INGOT,
-                'I', "ingotIron"));
-    }
-
-    @Override
-    public void preInit() {
+    public void register(IForgeRegistry<Item> registry) {
         this.setHasSubtypes(true);
         this.addPropertyOverride(new ResourceLocation("facing"), new FacingPropertyGetter());
-        IGravityModItem.super.preInit();
+        IGravityModItem.super.register(registry);
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void preInitClient() {
+    public void registerClient(IForgeRegistry<Item> registry) {
         // ItemFacing used to produce the ModelResourceLocations
         for (ItemFacing direction : ItemFacing.values()) {
             ModelBakery.registerItemVariants(this, new ModelResourceLocation(this.getRegistryName() + "_" + direction.name().toLowerCase(Locale.ENGLISH), "inventory"));

@@ -1,0 +1,23 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitydustinducer",
+    "data": 0
+  },
+  "pattern": [
+    "A",
+    "D",
+    "C"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "D": {
+      "item": "#DESTABILISED_GRAVITY_DUST"
+    },
+    "A": {
+      "item": "#GRAVITY_DUST"
+    },
+    "C": {
+      "item": "minecraft:compass"
+    }
+  }
+}

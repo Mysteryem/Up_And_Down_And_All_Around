@@ -15,9 +15,11 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.registries.IForgeRegistry;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
+import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -62,15 +64,18 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
     }
 
     @Override
-    public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> subItems) {
-        for (int i = 0; i < DAMAGE_TO_NAME_MAP.size(); i++) {
-            subItems.add(new ItemStack(this, 1, i));
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+        if (tab == ModItems.UP_AND_DOWN_CREATIVE_TAB) {
+            for (int i = 0; i < DAMAGE_TO_NAME_MAP.size(); i++) {
+                items.add(new ItemStack(this, 1, i));
+            }
         }
+        super.getSubItems(tab, items);
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void preInitClient() {
+    public void registerClient(IForgeRegistry<Item> registry) {
         MeshDefinitions meshDefinitions = new MeshDefinitions();
         ModelResourceLocation[] modelResourceLocations = meshDefinitions.list.toArray(new ModelResourceLocation[meshDefinitions.list.size()]);
         ModelBakery.registerItemVariants(this, (ResourceLocation[])modelResourceLocations);
@@ -78,7 +83,7 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
     }
 
     @Override
-    public void preInit() {
+    public void register(IForgeRegistry<Item> registry) {
         if (Loader.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
             // This code will not be run unless the baubles mod is loaded
             //
@@ -99,7 +104,7 @@ public class ItemGravityBauble extends Item implements IBauble, IGravityModItem<
         }
         this.setHasSubtypes(true);
         this.setMaxStackSize(1);
-        IGravityModItem.super.preInit();
+        IGravityModItem.super.register(registry);
     }
 
     // Implements client only interface

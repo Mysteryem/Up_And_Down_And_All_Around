@@ -1,0 +1,24 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravitygenerator",
+    "data": 1
+  },
+  "pattern": [
+    "GWG",
+    "WIW",
+    "GWG"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "G": {
+      "item": "#GRAVITY_INGOT"
+    },
+    "W": {
+      "item": "#WEAK_GRAVITY_GENERATOR"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  }
+}

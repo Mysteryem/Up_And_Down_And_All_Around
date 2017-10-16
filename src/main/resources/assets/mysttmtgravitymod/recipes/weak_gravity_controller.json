@@ -1,0 +1,23 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:weakgravitycontroller",
+    "data": 6
+  },
+  "pattern": [
+    "RLR",
+    "LAL",
+    "RLR"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "R": {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    "L": {
+      "item": "minecraft:lever"
+    },
+    "A": {
+      "item": "#GRAVITY_ANCHOR_ANY"
+    }
+  }
+}

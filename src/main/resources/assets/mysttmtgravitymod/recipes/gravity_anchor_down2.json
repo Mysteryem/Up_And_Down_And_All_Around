@@ -1,0 +1,24 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravityanchor",
+    "data": 1
+  },
+  "pattern": [
+    "C  ",
+    " IG",
+    " GG"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "C": {
+      "item": "minecraft:compass"
+    },
+    "G": {
+      "item": "#GRAVITY_INGOT"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  }
+}

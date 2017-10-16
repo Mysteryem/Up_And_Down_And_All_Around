@@ -19,6 +19,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.registries.IForgeRegistry;
 import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
@@ -292,16 +293,16 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
     abstract int getPriority(EntityPlayerMP target);
 
     @Override
-    public void preInit() {
+    public void register(IForgeRegistry<Item> registry) {
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
-        IGravityModItem.super.preInit();
+        IGravityModItem.super.register(registry);
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void preInitClient() {
+    public void registerClient(IForgeRegistry<Item> registry) {
         MeshDefinitions meshDefinitions = new MeshDefinitions();
         ModelResourceLocation[] modelResourceLocations = meshDefinitions.modelLookup.valueCollection().toArray(new ModelResourceLocation[meshDefinitions.modelLookup.valueCollection().size()]);
         ModelBakery.registerItemVariants(this, (ResourceLocation[])modelResourceLocations);

@@ -1,0 +1,20 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:gravityhelmet",
+    "data": 0
+  },
+  "pattern": [
+    "III",
+    "IBI"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "B": {
+      "item": "#LIQUID_ANTI_MASS_BUCKET"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  }
+}

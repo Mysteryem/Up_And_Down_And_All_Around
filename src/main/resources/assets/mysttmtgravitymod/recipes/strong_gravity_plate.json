@@ -1,0 +1,25 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:stronggravityplate",
+    "data": 0,
+    "count": 32
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    {
+      "item": "#RESTABILISED_GRAVITY_DUST"
+    },
+    {
+      "item": "minecraft:light_weighted_pressure_plate"
+    }
+  ]
+}

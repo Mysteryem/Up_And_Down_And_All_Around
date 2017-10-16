@@ -3,9 +3,9 @@ package uk.co.mysterymayhem.gravitymod.common.items.materials;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,6 +24,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 import uk.co.mysterymayhem.mystlib.annotations.UsedReflexively;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
@@ -34,7 +35,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         if (ConfigHandler.destabilisedGravityDustDissipatesWhenDropped) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.destabilisedgravitydust.warning"));
         }

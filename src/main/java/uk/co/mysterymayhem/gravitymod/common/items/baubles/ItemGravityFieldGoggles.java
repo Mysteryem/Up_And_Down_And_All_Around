@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -26,10 +27,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.common.Optional;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.ShapedOreRecipe;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IGravityFieldsVisible;
 import uk.co.mysterymayhem.gravitymod.client.model.ModelGravityGoggles;
@@ -37,6 +36,7 @@ import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -69,9 +69,10 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
 //        super(materialIn, renderIndexIn, equipmentSlotIn);
 //    }
 
+
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravityfieldgoggles.line1"));
     }
 
@@ -171,16 +172,6 @@ public class ItemGravityFieldGoggles extends ItemArmor implements IBauble, IRend
             GlStateManager.enableLighting();
             GlStateManager.popMatrix();
         }
-    }
-
-    @Override
-    public void postInit() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(this,
-                "IBI",
-                "GIG",
-                'I', "ingotIron",
-                'B', StaticItems.LIQUID_ANTI_MASS_BUCKET,
-                'G', "blockGlass"));
     }
 
     //    @SideOnly(Side.CLIENT)

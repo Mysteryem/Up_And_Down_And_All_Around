@@ -1,0 +1,16 @@
+{
+  "result": {
+    "item": "mysttmtgravitymod:weakgravityplate",
+    "data": 0,
+    "count": 32
+  },
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "#DESTABILISED_GRAVITY_DUST"
+    },
+    {
+      "item": "minecraft:stone_pressure_plate"
+    }
+  ]
+}

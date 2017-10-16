@@ -41,4 +41,54 @@ public interface IModObject extends IFMLStaged {
     default CreativeTabs getModCreativeTab() {
         return null;
     }
+
+//    default void registerBlock(IForgeRegistry<Block> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerBlockClient(IForgeRegistry<Block> registry) {}
+//
+//    default void registerItem(IForgeRegistry<Item> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerItemClient(IForgeRegistry<Item> registry) {}
+//
+//    default void registerPotion(IForgeRegistry<Potion> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerPotionClient(IForgeRegistry<Potion> registry) {}
+//
+//    default void registerBiome(IForgeRegistry<Biome> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerBiomeClient(IForgeRegistry<Biome> registry) {}
+//
+//    default void registerSoundEvent(IForgeRegistry<SoundEvent> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerSoundEventClient(IForgeRegistry<SoundEvent> registry) {}
+//
+//    default void registerPotionType(IForgeRegistry<PotionType> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerPotionTypeClient(IForgeRegistry<PotionType> registry) {}
+//
+//    default void registerEnchantment(IForgeRegistry<Enchantment> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerEnchantmentClient(IForgeRegistry<Enchantment> registry) {}
+//
+//    default void registerIRecipe(IForgeRegistry<IRecipe> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerIRecipeClient(IForgeRegistry<IRecipe> registry) {}
+//
+//    default void registerVillagerProfession(IForgeRegistry<VillagerRegistry.VillagerProfession> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerVillagerProfessionClient(IForgeRegistry<VillagerRegistry.VillagerProfession> registry) {}
+//
+//    default void registerEntityEntry(IForgeRegistry<EntityEntry> registry) {}
+//
+//    @SideOnly(Side.CLIENT)
+//    default void registerEntityEntryClient(IForgeRegistry<EntityEntry> registry) {}
 }
