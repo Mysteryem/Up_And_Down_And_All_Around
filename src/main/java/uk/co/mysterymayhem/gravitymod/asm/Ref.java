@@ -39,12 +39,12 @@ public class Ref {
     public static final MethodName Entity$getLookVec_name = new MethodName("getLookVec", "func_70040_Z");
     public static final MethodName Entity$isOffsetPositionInLiquid_name = new MethodName("isOffsetPositionInLiquid", "func_70038_c");
     public static final MethodName Entity$move_name = new MethodName("move", "func_70091_d");
-    public static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_70060_a");
+    public static final MethodName Entity$moveRelative_name = new MethodName("moveRelative", "func_191958_b");
     public static final MethodName Entity$onUpdate_name = new MethodName("onUpdate", "func_70071_h_");
     public static final MethodName Entity$pushOutOfBlocks = new MethodName("pushOutOfBlocks", "func_145771_j");
     public static final MethodName EntityItem$combineItems_name = new MethodName("combineItems", "func_70289_a");
     public static final MethodName EntityLivingBase$jump_name = new MethodName("jump", "func_70664_aZ");
-    public static final MethodName EntityLivingBase$moveEntityWithHeading_name = new MethodName("moveEntityWithHeading", "func_70612_e");
+    public static final MethodName EntityLivingBase$travel_name = new MethodName("travel", "func_191986_a");
     public static final MethodName EntityLivingBase$onLivingUpdate_name = new MethodName("onLivingUpdate", "func_70636_d");
     public static final MethodName EntityLivingBase$updateDistance_name = new MethodName("updateDistance", "func_110146_f");
     public static final MethodName EntityPlayer$getFoodStats_name = new MethodName("getFoodStats", "func_71024_bL");

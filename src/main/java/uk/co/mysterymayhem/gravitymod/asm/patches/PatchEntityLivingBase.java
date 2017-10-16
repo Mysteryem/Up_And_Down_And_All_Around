@@ -24,7 +24,7 @@ public class PatchEntityLivingBase extends ClassPatcher {
         // FIXME: Elytra flying doesn't work
         // I didn't write a comment for patching this method.
         // Go look at the comments for each patch added in its constructor
-        this.addMethodPatch(new MoveEntityWithHeading());
+        this.addMethodPatch(new Travel());
 
         // This method is pretty badly named in my opinion, it seems to set up the turn of the player's head or body
         // (I'm not sure), however it's rendering based and the rotation needs to be made relative. Only the
@@ -69,9 +69,9 @@ public class PatchEntityLivingBase extends ClassPatcher {
         );
     }
 
-    private class MoveEntityWithHeading extends MethodPatcher {
+    private class Travel extends MethodPatcher {
 
-        MoveEntityWithHeading() {
+        Travel() {
 
             //FIXME: Elyta flying doesn't work!
             // Replaces getLookVec in the Elytra movement with a relative version
@@ -122,7 +122,7 @@ public class PatchEntityLivingBase extends ClassPatcher {
                         return true;
                     }
                     else {
-                        Transformer.die("Failed to find 3 uses of ALOAD 0 before inserted \"" + Ref.Hooks$getBlockPostBelowEntity + "\" in " + Ref.EntityLivingBase$moveEntityWithHeading_name);
+                        Transformer.die("Failed to find 3 uses of ALOAD 0 before inserted \"" + Ref.Hooks$getBlockPostBelowEntity + "\" in " + Ref.EntityLivingBase$travel_name);
                     }
                 }
                 return false;
@@ -156,7 +156,7 @@ public class PatchEntityLivingBase extends ClassPatcher {
                         return true;
                     }
                     else {
-                        Transformer.die("Failed to find 3 uses of ALOAD 0 before inserted \"" + Ref.Hooks$setPooledMutableBlockPosToBelowEntity + "\" in " + Ref.EntityLivingBase$moveEntityWithHeading_name);
+                        Transformer.die("Failed to find 3 uses of ALOAD 0 before inserted \"" + Ref.Hooks$setPooledMutableBlockPosToBelowEntity + "\" in " + Ref.EntityLivingBase$travel_name);
                     }
                 }
                 return false;
@@ -253,7 +253,7 @@ public class PatchEntityLivingBase extends ClassPatcher {
 
         @Override
         protected boolean shouldPatchMethod(MethodNode methodNode) {
-            return Ref.EntityLivingBase$moveEntityWithHeading_name.is(methodNode);
+            return Ref.EntityLivingBase$travel_name.is(methodNode);
         }
     }
 }
