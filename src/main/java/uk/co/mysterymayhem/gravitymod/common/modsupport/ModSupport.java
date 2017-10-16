@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Loader;
  * Created by Mysteryem on 2016-11-05.
  */
 public class ModSupport {
-    public static final String BAUBLES_MOD_ID = "Baubles";
+    public static final String BAUBLES_MOD_ID = "baubles";
     public static final String INTERFACE_IBAUBLE = "baubles.api.IBauble";
     public static final String INTERFACE_IRENDERBAUBLE = "baubles.api.render.IRenderBauble";
     private static final byte FALSE = 0;
