@@ -158,7 +158,7 @@ public class TileGravityGenerator extends TileEntity implements ITickable {
         double[] relativeXYZExpansion = this.gravityDirection.adjustXYZValuesMaintainSigns(this.relativeXRadius, yIncrease,
                 this.relativeZRadius);
         double[] relativeYMovement = this.gravityDirection.adjustXYZValues(0, yIncrease + 1, 0);
-        this.searchVolume = offset.expand(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
+        this.searchVolume = offset.grow(relativeXYZExpansion[0], relativeXYZExpansion[1], relativeXYZExpansion[2])
                 .offset(relativeYMovement[0], relativeYMovement[1], relativeYMovement[2]);
 //        this.MAX_DISTANCE = (relativeXRadius + 0.5) * (relativeZRadius + 0.5) * relativeYHeight;
         this.percentOfMaxVolume = this.getVolume() / (double)ConfigHandler.gravityGeneratorMaxVolume;

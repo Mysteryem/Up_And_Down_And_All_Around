@@ -59,7 +59,7 @@ public class ItemDestabilisedGravityDust extends Item implements IGravityModItem
             dissipationEntity.prevPosX = location.prevPosX;
             dissipationEntity.prevPosY = location.prevPosY;
             dissipationEntity.prevPosZ = location.prevPosZ;
-            dissipationEntity.originalStackSize = ((EntityItem)location).getEntityItem().getCount();
+            dissipationEntity.originalStackSize = ((EntityItem)location).getItem().getCount();
 
             return dissipationEntity;
         }

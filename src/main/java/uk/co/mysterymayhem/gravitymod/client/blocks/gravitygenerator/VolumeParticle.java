@@ -3,9 +3,9 @@ package uk.co.mysterymayhem.gravitymod.client.blocks.gravitygenerator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
@@ -65,7 +65,7 @@ public class VolumeParticle extends Particle {
     }
 
     @Override
-    public void renderParticle(VertexBuffer worldRendererIn, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
+    public void renderParticle(BufferBuilder worldRendererIn, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
 //        GlStateManager.translate(-interpPosX, -interpPosY, -interpPosZ);
 //        GlStateManager.color(this.red, this.green, this.blue, this.alpha);
         EntityPlayerSP thePlayer = Minecraft.getMinecraft().player;
@@ -111,7 +111,7 @@ public class VolumeParticle extends Particle {
             else {
                 alpha = this.alphaUnpowered;
             }
-            AxisAlignedBB bbToRender = this.owner.getSearchVolume().offset(-d0, -d1, -d2).expandXyz(-0.01);
+            AxisAlignedBB bbToRender = this.owner.getSearchVolume().offset(-d0, -d1, -d2).grow(-0.01);
 
             RenderGlobal.renderFilledBox(bbToRender, this.red, this.green, this.blue, alpha);
             RenderGlobal.drawSelectionBoundingBox(bbToRender, this.red, this.green, this.blue, alpha);

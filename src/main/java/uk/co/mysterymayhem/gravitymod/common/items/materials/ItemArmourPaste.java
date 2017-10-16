@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -13,11 +14,14 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -29,6 +33,7 @@ import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.RecipeCreationWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -70,7 +75,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag advanced) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
             if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
@@ -99,13 +104,11 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
 
     @Override
     public void postInit() {
-        GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone"));
+        RecipeCreationWrapper.addShapelessRecipe(new ResourceLocation(GravityMod.MOD_ID, "armour_paste"), new ResourceLocation(GravityMod.MOD_ID, "armour_paste"), new ItemStack(this), StaticItems.DESTABILISED_GRAVITY_DUST, "slimeball", "dustGlowstone");
 //        GameRegistry.addShapelessRecipe(new ItemStack(this), ModItems.GRAVITY_DUST, Items.SLIME_BALL, Items.GLOWSTONE_DUST);
 
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ArmourPasteRecipe());
-        RecipeSorter.register(GravityMod.MOD_ID + ":" + ArmourPasteRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH), ArmourPasteRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new ArmourPasteRemoval());
+        ForgeRegistries.RECIPES.register(new ArmourPasteRecipe(new ResourceLocation(GravityMod.MOD_ID, "armour_paste")).setRegistryName(new ResourceLocation(GravityMod.MOD_ID, "armour_paste_recipe")));
+        ForgeRegistries.RECIPES.register(new ArmourPasteRemoval(new ResourceLocation(GravityMod.MOD_ID, "armour_paste")).setRegistryName(new ResourceLocation(GravityMod.MOD_ID, "armour_paste_removal")));
     }
 
     @SideOnly(Side.CLIENT)
@@ -113,16 +116,16 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     public void preInitClient() {
         String ANY_ARMOUR_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.nopaste");
         String ANY_ARMOUR_WITH_PASTE_TEXT = I18n.format("crafting.mysttmtgravitymod.armorpasteinfo.paste");
-        ArmourPasteRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
+        ArmourPasteRemoval.DUMMY_RECIPE_INPUT.getMatchingStacks()[0].setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
         ArmourPasteRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
-        ArmourPasteRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_ARMOUR_TEXT);
+        ArmourPasteRecipe.DUMMY_RECIPE_INPUT.getMatchingStacks()[0].setStackDisplayName(ANY_ARMOUR_TEXT);
         ArmourPasteRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_ARMOUR_WITH_PASTE_TEXT);
         IGravityModItem.super.preInitClient();
     }
 
     private static class ArmourPasteRecipe extends ShapelessRecipes {
 
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static final Ingredient DUMMY_RECIPE_INPUT = Ingredient.fromItem(Items.CHAINMAIL_CHESTPLATE);
         static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE, 1);
 
         static {
@@ -135,8 +138,8 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         }
 
 
-        public ArmourPasteRecipe() {
-            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(StaticItems.ARMOUR_PASTE)));
+        public ArmourPasteRecipe(ResourceLocation group) {
+            super(group.toString(), DUMMY_RECIPE_OUTPUT, NonNullList.from(DUMMY_RECIPE_INPUT, Ingredient.fromItem(StaticItems.ARMOUR_PASTE)));
         }
 
         @Override
@@ -192,11 +195,6 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
         }
 
         @Override
-        public int getRecipeSize() {
-            return 2;
-        }
-
-        @Override
         public ItemStack getRecipeOutput() {
             return super.getRecipeOutput();
         }
@@ -209,20 +207,21 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
 
     private static class ArmourPasteRemoval extends ShapelessRecipes {
 
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+        static final Ingredient DUMMY_RECIPE_INPUT = Ingredient.fromItem(Items.CHAINMAIL_CHESTPLATE);
         static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
 
         static {
-            NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
+            ItemStack stack = DUMMY_RECIPE_INPUT.getMatchingStacks()[0];
+            NBTTagCompound tagCompound = stack.getTagCompound();
             if (tagCompound == null) {
                 tagCompound = new NBTTagCompound();
-                DUMMY_RECIPE_INPUT.setTagCompound(tagCompound);
+                stack.setTagCompound(tagCompound);
             }
             tagCompound.setBoolean(NBT_KEY, true);
         }
 
-        public ArmourPasteRemoval() {
-            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
+        public ArmourPasteRemoval(ResourceLocation group) {
+            super(group.toString(), DUMMY_RECIPE_OUTPUT, NonNullList.from(DUMMY_RECIPE_INPUT, Ingredient.fromItem(Items.WATER_BUCKET)));
         }
 
         @Override
@@ -282,12 +281,6 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
 //            copy.stackSize = 1;
             return copy;
         }
-
-        @Override
-        public int getRecipeSize() {
-            return 2;
-        }
-
 
         @Override
         public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {

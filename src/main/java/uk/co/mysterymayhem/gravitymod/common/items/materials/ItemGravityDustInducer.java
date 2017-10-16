@@ -5,16 +5,20 @@ import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -23,6 +27,7 @@ import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.RecipeCreationWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +47,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydustinducer.line1"));
@@ -64,36 +69,32 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
         //TODO: Change to different translation strings
         String ANY_NON_STACKABLE_TEXT = I18n.format("crafting.mysttmtgravitymod.inducerinfo.noinducer");
         String ANY_NON_STACKABLE_WITH_INDUCER_TEXT = I18n.format("crafting.mysttmtgravitymod.inducerinfo.inducer");
-        GravityDustInducerRemoval.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
+        GravityDustInducerRemoval.DUMMY_RECIPE_INPUT.getMatchingStacks()[0].setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
         GravityDustInducerRemoval.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_NON_STACKABLE_TEXT);
-        GravityDustInducerRecipe.DUMMY_RECIPE_INPUT.setStackDisplayName(ANY_NON_STACKABLE_TEXT);
+        GravityDustInducerRecipe.DUMMY_RECIPE_INPUT.getMatchingStacks()[0].setStackDisplayName(ANY_NON_STACKABLE_TEXT);
         GravityDustInducerRecipe.DUMMY_RECIPE_OUTPUT.setStackDisplayName(ANY_NON_STACKABLE_WITH_INDUCER_TEXT);
         IGravityModItem.super.preInitClient();
     }
 
     @Override
     public void postInit() {
-        GameRegistry.addShapedRecipe(new ItemStack(this),
+        RecipeCreationWrapper.addShapedRecipe(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer"),
+                new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer"),
+                new ItemStack(this),
                 "A",
                 "D",
                 "C",
                 'A', StaticItems.GRAVITY_DUST,
                 'D', StaticItems.DESTABILISED_GRAVITY_DUST,
                 'C', Items.COMPASS);
-        RecipeSorter.register(
-                GravityMod.MOD_ID + ":" + GravityDustInducerRecipe.class.getSimpleName().toLowerCase(Locale.ENGLISH),
-                GravityDustInducerRecipe.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        RecipeSorter.register(
-                GravityMod.MOD_ID + ":" + GravityDustInducerRemoval.class.getSimpleName().toLowerCase(Locale.ENGLISH),
-                GravityDustInducerRemoval.class, RecipeSorter.Category.SHAPELESS, "after:minecraft:shapeless");
-        GameRegistry.addRecipe(new GravityDustInducerRecipe());
-        GameRegistry.addRecipe(new GravityDustInducerRemoval());
+        ForgeRegistries.RECIPES.register(new GravityDustInducerRecipe(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer")).setRegistryName(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer_recipe")));
+        ForgeRegistries.RECIPES.register(new GravityDustInducerRemoval(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer")).setRegistryName(new ResourceLocation(GravityMod.MOD_ID, "gravity_dust_inducer_removal")));
     }
 
     private static class GravityDustInducerRecipe extends ShapelessRecipes {
 
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.DIAMOND_PICKAXE);
-        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.DIAMOND_PICKAXE);
+        static final Ingredient DUMMY_RECIPE_INPUT = Ingredient.fromItem(Items.DIAMOND_PICKAXE);
+        static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.DIAMOND_PICKAXE, 1);
 
         static {
             NBTTagCompound tagCompound = DUMMY_RECIPE_OUTPUT.getTagCompound();
@@ -104,9 +105,8 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
             tagCompound.setBoolean(NBT_KEY, true);
         }
 
-
-        public GravityDustInducerRecipe() {
-            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(StaticItems.SPACETIME_DISTORTER)));
+        public GravityDustInducerRecipe(ResourceLocation group) {
+            super(group.toString(), DUMMY_RECIPE_OUTPUT, NonNullList.from(DUMMY_RECIPE_INPUT, Ingredient.fromItem(StaticItems.SPACETIME_DISTORTER)));
         }
 
         @Override
@@ -167,11 +167,6 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
         }
 
         @Override
-        public int getRecipeSize() {
-            return 2;
-        }
-
-        @Override
         public ItemStack getRecipeOutput() {
             return super.getRecipeOutput();
         }
@@ -184,20 +179,21 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
 
     private static class GravityDustInducerRemoval extends ShapelessRecipes {
 
-        static final ItemStack DUMMY_RECIPE_INPUT = new ItemStack(Items.STONE_PICKAXE);
+        static final Ingredient DUMMY_RECIPE_INPUT = Ingredient.fromItem(Items.STONE_PICKAXE);
         static final ItemStack DUMMY_RECIPE_OUTPUT = new ItemStack(Items.STONE_PICKAXE);
 
         static {
-            NBTTagCompound tagCompound = DUMMY_RECIPE_INPUT.getTagCompound();
+            ItemStack stack = DUMMY_RECIPE_INPUT.getMatchingStacks()[0];
+            NBTTagCompound tagCompound = stack.getTagCompound();
             if (tagCompound == null) {
                 tagCompound = new NBTTagCompound();
-                DUMMY_RECIPE_INPUT.setTagCompound(tagCompound);
+                stack.setTagCompound(tagCompound);
             }
             tagCompound.setBoolean(NBT_KEY, true);
         }
 
-        public GravityDustInducerRemoval() {
-            super(DUMMY_RECIPE_OUTPUT, Lists.newArrayList(DUMMY_RECIPE_INPUT, new ItemStack(Items.WATER_BUCKET)));
+        public GravityDustInducerRemoval(ResourceLocation group) {
+            super(group.toString(), DUMMY_RECIPE_OUTPUT, NonNullList.from(DUMMY_RECIPE_INPUT, Ingredient.fromItem(Items.WATER_BUCKET)));
         }
 
         @Nullable
@@ -258,12 +254,6 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
 //            copy.stackSize = 1;
             return copy;
         }
-
-        @Override
-        public int getRecipeSize() {
-            return 2;
-        }
-
 
         @Override
         public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {

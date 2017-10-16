@@ -155,11 +155,9 @@ public class BlockGravityPlate extends AbstractModBlockWithItem<BlockGravityPlat
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
-        super.getSubBlocks(itemIn, tab, list);
-        if (itemIn == this.getItem()) {
-            list.add(new ItemStack(itemIn, 1, 1));
-        }
+    public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list) {
+        super.getSubBlocks(tab, list);
+        list.add(new ItemStack(getItem(), 1, 1));
     }
 
     @Override

@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,7 +75,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag advanced) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitycontroller.sneak.line1"));
@@ -83,7 +84,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
         else {
             tooltip.add(keyBindSneak.getDisplayName() + I18n.format("mouseovertext.mysttmtgravitymod.presskeyfordetails"));
         }
-        if (advanced) {
+        if (advanced.isAdvanced()) {
             int meta = stack.getItemDamage();
             EnumControllerActiveDirection activeDirection = EnumControllerActiveDirection.getFromCombinedMeta(meta);
             EnumControllerVisibleState visibleState = EnumControllerVisibleState.getFromCombinedMeta(meta);
@@ -124,7 +125,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> subItems) {
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems) {
         if (tab == ModItems.UP_AND_DOWN_CREATIVE_TAB) {
             subItems.add(new ItemStack(this, 1, DEFAULT_META));
         }

@@ -120,7 +120,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
         entityItem.hoverStart = 0;
-        final EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(entityItem.getEntityItem().getItemDamage());
+        final EnumGravityDirection direction = EnumGravityDirection.getSafeDirectionFromOrdinal(entityItem.getItem().getItemDamage());
         if (direction == EnumGravityDirection.DOWN) {
             return false;
         }

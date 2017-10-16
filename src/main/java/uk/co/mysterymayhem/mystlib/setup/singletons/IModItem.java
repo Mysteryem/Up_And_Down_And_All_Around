@@ -3,11 +3,13 @@ package uk.co.mysterymayhem.mystlib.setup.singletons;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.registries.IForgeRegistry;
 
 /**
  * It may be frowned upon, but this is so I can have some item classes that extend Item and some that extend ItemArmor
@@ -21,6 +23,10 @@ public interface IModItem<T extends Item & IModItem<T>> extends IModObject {
     default void preInitClient() {
         T cast = this.getItem();
         ModelLoader.setCustomModelResourceLocation((Item)this, 0, new ModelResourceLocation(cast.getRegistryName(), "inventory"));
+    }
+
+    default void register(IForgeRegistry<Item> registry) {
+        registry.register(this.getItem());
     }
 
     @SuppressWarnings("unchecked")
@@ -37,7 +43,6 @@ public interface IModItem<T extends Item & IModItem<T>> extends IModObject {
         if (creativeTab != null) {
             cast.setCreativeTab(creativeTab);
         }
-        GameRegistry.register(cast);
         IModObject.super.preInit();
     }
 }

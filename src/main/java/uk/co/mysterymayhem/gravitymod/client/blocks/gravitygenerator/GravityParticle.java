@@ -1,7 +1,7 @@
 package uk.co.mysterymayhem.gravitymod.client.blocks.gravitygenerator;
 
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.renderer.VertexBuffer;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
@@ -25,9 +25,9 @@ public class GravityParticle extends Particle {
         this.direction = direction;
         final Vec3d pos = this.getRandomPositionInside(boundingbox);
         double[] d = direction.adjustXYZValues(0, 0.5, 0);
-        double x = pos.xCoord + d[0];
-        double y = pos.yCoord + d[1];
-        double z = pos.zCoord + d[2];
+        double x = pos.x + d[0];
+        double y = pos.y + d[1];
+        double z = pos.z + d[2];
         this.setPosition(x, y, z);
         this.prevPosX = x;
         this.prevPosY = y;
@@ -107,7 +107,7 @@ public class GravityParticle extends Particle {
     }
 
     @Override
-    public void renderParticle(VertexBuffer worldRendererIn, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
+    public void renderParticle(BufferBuilder worldRendererIn, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
         super.renderParticle(worldRendererIn, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
     }
 

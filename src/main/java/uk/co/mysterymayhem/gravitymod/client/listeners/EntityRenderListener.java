@@ -112,7 +112,7 @@ public class EntityRenderListener {
             Vec3d origin = gAABB.getOrigin();
             Vec3d subtract = origin.subtract(positionVector);
 //
-            GlStateManager.translate(-subtract.xCoord, -subtract.yCoord, -subtract.zCoord);
+            GlStateManager.translate(-subtract.x, -subtract.y, -subtract.z);
 //
             Vec3i cameraTransformVars = gravityDirection.getCameraTransformVars();
             Vec3i prevCameraTransformVars = capability.getPrevDirection().getCameraTransformVars();
@@ -125,7 +125,7 @@ public class EntityRenderListener {
             GlStateManager.rotate((float)(-cameraTransformVars.getY() * oneMinusMultiplier), 0, 1, 0);
             GlStateManager.rotate((float)(-cameraTransformVars.getZ() * oneMinusMultiplier), 0, 0, 1);
 //
-            GlStateManager.translate(subtract.xCoord, subtract.yCoord, subtract.zCoord);
+            GlStateManager.translate(subtract.x, subtract.y, subtract.z);
         }
         gravityDirection.runCameraTransformation();
 

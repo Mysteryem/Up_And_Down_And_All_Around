@@ -16,16 +16,16 @@ public class Vec3dHelper {
     private static final double[] ASINE_TAB = ReflectionLambdas.get_MathHelper$ASINE_TAB.get();
 
     public static double getAbsolutePitchPrecise(Vec3d lookVec) {
-        return -(Math.asin(lookVec.yCoord) * (180D / Math.PI));
+        return -(Math.asin(lookVec.y) * (180D / Math.PI));
     }
 
     public static double getAbsoluteYawPrecise(Vec3d lookVec) {
-        return (Math.atan2(-lookVec.xCoord, lookVec.zCoord) * (180D / Math.PI));
+        return (Math.atan2(-lookVec.x, lookVec.z) * (180D / Math.PI));
     }
 
     public static double[] getFastPitchAndYawFromVector(Vec3d xyz) {
-        double pitch = -fastASin(xyz.yCoord) * ONE_HUNDRED_EIGHTY_OVER_PI;
-        double yaw = MathHelper.atan2(-xyz.xCoord, xyz.zCoord) * ONE_HUNDRED_EIGHTY_OVER_PI;
+        double pitch = -fastASin(xyz.y) * ONE_HUNDRED_EIGHTY_OVER_PI;
+        double yaw = MathHelper.atan2(-xyz.x, xyz.z) * ONE_HUNDRED_EIGHTY_OVER_PI;
         return new double[]{pitch, yaw};
     }
 
@@ -53,12 +53,12 @@ public class Vec3dHelper {
     }
 
     public static float getPitch(Vec3d lookVec) {
-        return (float)-(Math.asin(lookVec.yCoord) * (180D / Math.PI));
+        return (float)-(Math.asin(lookVec.y) * (180D / Math.PI));
     }
 
     public static double[] getPrecisePitchAndYawFromVector(Vec3d xyz) {
-        double pitch = -(Math.asin(xyz.yCoord) * ONE_HUNDRED_EIGHTY_OVER_PI);
-        double yaw = Math.atan2(-xyz.xCoord, xyz.zCoord) * ONE_HUNDRED_EIGHTY_OVER_PI;
+        double pitch = -(Math.asin(xyz.y) * ONE_HUNDRED_EIGHTY_OVER_PI);
+        double yaw = Math.atan2(-xyz.x, xyz.z) * ONE_HUNDRED_EIGHTY_OVER_PI;
         return new double[]{pitch, yaw};
     }
 
@@ -71,6 +71,6 @@ public class Vec3dHelper {
     }
 
     public static float getYaw(Vec3d lookVec) {
-        return (float)(Math.atan2(-lookVec.xCoord, lookVec.zCoord) * (180D / Math.PI));
+        return (float)(Math.atan2(-lookVec.x, lookVec.z) * (180D / Math.PI));
     }
 }

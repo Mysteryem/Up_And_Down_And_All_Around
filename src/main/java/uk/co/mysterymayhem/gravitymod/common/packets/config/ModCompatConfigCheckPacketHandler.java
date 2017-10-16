@@ -1,5 +1,6 @@
 package uk.co.mysterymayhem.gravitymod.common.packets.config;
 
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -39,7 +40,7 @@ public class ModCompatConfigCheckPacketHandler implements IMessageHandler<ModCom
                     if (ConfigHandler.kickPlayersWithMismatchingModCompatHashes) {
                         GravityMod.logInfo("%s has a different mod compatibility config to the server, kicking them", playerName);
                         FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(()
-                                -> ctx.getServerHandler().disconnect("UpAndDown mod compatibility config doesn't match server"));
+                                -> ctx.getServerHandler().disconnect(new TextComponentString("UpAndDown mod compatibility config doesn't match server")));
                     }
                     else {
                         GravityMod.logWarning("%s has a different mod compatibility config to the server", playerName);

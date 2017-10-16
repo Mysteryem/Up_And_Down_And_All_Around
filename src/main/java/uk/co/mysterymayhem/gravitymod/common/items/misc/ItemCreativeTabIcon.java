@@ -2,6 +2,7 @@ package uk.co.mysterymayhem.gravitymod.common.items.misc;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
@@ -54,7 +55,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
             tooltip.add("Lawnmowers are overrated");
@@ -155,9 +156,9 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
         if (squareLength < minMovementSquared) {
             motionVec = motionVec.scale(MathHelper.sqrt(minMovementSquared / squareLength));
         }
-        entityItem.motionX = motionVec.xCoord;
-        entityItem.motionY = motionVec.yCoord;
-        entityItem.motionZ = motionVec.zCoord;
+        entityItem.motionX = motionVec.x;
+        entityItem.motionY = motionVec.y;
+        entityItem.motionZ = motionVec.z;
 
         if (remote) {
             // Smoke trail effect

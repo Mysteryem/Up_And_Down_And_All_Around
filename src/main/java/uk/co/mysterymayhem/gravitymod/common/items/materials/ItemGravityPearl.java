@@ -92,9 +92,9 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
                     movementVector = movementVector.normalize();
                 }
 
-                double xMotionToAdd = movementVector.xCoord * strength;
-                double yMotionToAdd = movementVector.yCoord * strength;
-                double zMotionToAdd = movementVector.zCoord * strength;
+                double xMotionToAdd = movementVector.x * strength;
+                double yMotionToAdd = movementVector.y * strength;
+                double zMotionToAdd = movementVector.z * strength;
 
                 double entMotionX = nearbyEntity.motionX;
                 double entMotionY = nearbyEntity.motionY;
@@ -127,9 +127,9 @@ public class ItemGravityPearl extends Item implements IGravityModItem<ItemGravit
                     movementVector = movementVector.normalize();
                 }
 
-                double xMotionToAdd = movementVector.xCoord * strength;
-                double yMotionToAdd = movementVector.yCoord * strength;
-                double zMotionToAdd = movementVector.zCoord * strength;
+                double xMotionToAdd = movementVector.x * strength;
+                double yMotionToAdd = movementVector.y * strength;
+                double zMotionToAdd = movementVector.z * strength;
 
                 double entMotionX = nearbyEntity.motionX;
                 double entMotionY = nearbyEntity.motionY;
