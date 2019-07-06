@@ -35,11 +35,9 @@ public class PatchSoundManager extends ClassPatcher {
 
         //TODO: Try replacing with a patch that makes rotation variables relative at the start and then back to absolute afterwards
         this.addMethodPatch(
-                Ref.SoundManager$setListener_name::is,
+                methodNode -> Ref.SoundManager$setListener_name.is(methodNode) && Ref.SoundSystem$setListenerOrientation_desc.is(methodNode.desc),
                 (node) -> Transformer.patchMethodUsingAbsoluteRotations(
                         node,
                         Transformer.GET_ROTATIONYAW | Transformer.GET_PREVROTATIONYAW | Transformer.GET_ROTATIONPITCH | Transformer.GET_PREVROTATIONPITCH));
     }
-
-
 }
