@@ -6,7 +6,6 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,9 +16,9 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.util.ReflectionLambdas;
+import uk.co.mysterymayhem.mystlib.util.KeyBindingUtil;
 
 import java.util.List;
 
@@ -57,7 +56,7 @@ public class ItemCreativeTabIcon extends Item implements IGravityModItem<ItemCre
     @Override
     public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+        if (KeyBindingUtil.isKeyPressed(keyBindSneak)) {
             tooltip.add("Lawnmowers are overrated");
         }
         else {

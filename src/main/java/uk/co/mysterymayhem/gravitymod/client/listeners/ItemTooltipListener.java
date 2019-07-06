@@ -13,12 +13,12 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.config.ConfigHandler;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemArmourPaste;
 import uk.co.mysterymayhem.gravitymod.common.items.materials.ItemGravityDustInducer;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
+import uk.co.mysterymayhem.mystlib.util.KeyBindingUtil;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -68,7 +68,7 @@ public class ItemTooltipListener {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
         int numWeakEnablerCountsAs = ConfigHandler.numNormalEnablersWeakEnablersCountsAs;
         boolean weakEnablersDontCount = numWeakEnablerCountsAs == 0;
-        if (!weakEnablersDontCount && Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+        if (!weakEnablersDontCount && KeyBindingUtil.isKeyPressed(keyBindSneak)) {
             toolTips.add(I18n.format(
                     "mouseovertext.mysttmtgravitymod.normaltooltip.sneak",
                     getNumWeakEnablersWorn(player),

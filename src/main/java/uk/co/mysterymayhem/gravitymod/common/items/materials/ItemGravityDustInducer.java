@@ -20,10 +20,10 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
-import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.util.KeyBindingUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,7 +44,7 @@ public class ItemGravityDustInducer extends Item implements IGravityModItem<Item
     @Override
     public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+        if (KeyBindingUtil.isKeyPressed(keyBindSneak)) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydustinducer.line1"));
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitydustinducer.line2"));
         }

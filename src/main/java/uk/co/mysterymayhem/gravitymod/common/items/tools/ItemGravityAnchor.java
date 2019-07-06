@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
-import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
@@ -38,6 +37,7 @@ import uk.co.mysterymayhem.gravitymod.common.registries.GravityPriorityRegistry;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
 import uk.co.mysterymayhem.gravitymod.common.util.boundingboxes.GravityAxisAlignedBB;
+import uk.co.mysterymayhem.mystlib.util.KeyBindingUtil;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -55,7 +55,7 @@ public class ItemGravityAnchor extends Item implements ITickOnMouseCursor, IGrav
     @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+        if (KeyBindingUtil.isKeyPressed(keyBindSneak)) {
 //            tooltip.add("Affects gravity in inventory or on mouse cursor");
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravityanchor.sneak.line1"));
 //            tooltip.add("Take care when crafting");

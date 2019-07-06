@@ -20,12 +20,12 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
-import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.api.API;
 import uk.co.mysterymayhem.gravitymod.api.EnumGravityDirection;
 import uk.co.mysterymayhem.gravitymod.api.ITickOnMouseCursor;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.ModItems;
+import uk.co.mysterymayhem.mystlib.util.KeyBindingUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,7 +78,7 @@ public abstract class ItemAbstractGravityController extends Item implements ITic
     @Override
     public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag advanced) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+        if (KeyBindingUtil.isKeyPressed(keyBindSneak)) {
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitycontroller.sneak.line1"));
             tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.gravitycontroller.sneak.line2"));
         }

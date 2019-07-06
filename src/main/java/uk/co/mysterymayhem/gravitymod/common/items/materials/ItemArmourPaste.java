@@ -23,12 +23,12 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
-import org.lwjgl.input.Keyboard;
 import uk.co.mysterymayhem.gravitymod.GravityMod;
 import uk.co.mysterymayhem.gravitymod.api.IWeakGravityEnabler;
 import uk.co.mysterymayhem.gravitymod.common.modsupport.ModSupport;
 import uk.co.mysterymayhem.gravitymod.common.registries.IGravityModItem;
 import uk.co.mysterymayhem.gravitymod.common.registries.StaticItems;
+import uk.co.mysterymayhem.mystlib.util.KeyBindingUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -71,7 +71,7 @@ public class ItemArmourPaste extends Item implements IGravityModItem<ItemArmourP
     @Override
     public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag advanced) {
         KeyBinding keyBindSneak = Minecraft.getMinecraft().gameSettings.keyBindSneak;
-        if (Keyboard.isKeyDown(keyBindSneak.getKeyCode())) {
+        if (KeyBindingUtil.isKeyPressed(keyBindSneak)) {
             if (ModSupport.isModLoaded(ModSupport.BAUBLES_MOD_ID)) {
                 tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.infobaubles"));
                 tooltip.add(I18n.format("mouseovertext.mysttmtgravitymod.armourpaste.inforemovalbaubles"));
