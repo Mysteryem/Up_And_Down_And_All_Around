@@ -1275,15 +1275,19 @@ public class Hooks {
      * @param upX
      * @param upY
      * @param upZ
-     * @param player
+     * @param entity
      */
     @SideOnly(Side.CLIENT)
-    public static void setListenerOrientationHook(SoundSystem soundSystem, float lookX, float lookY, float lookZ, float upX, float upY, float upZ, EntityPlayer player) {
-        EnumGravityDirection gravityDirection = API.getGravityDirection(player);
-        double[] d = gravityDirection.adjustXYZValues(lookX, lookY, lookZ);
-        double[] d1 = gravityDirection.adjustXYZValues(upX, upY, upZ);
+    public static void setListenerOrientationHook(SoundSystem soundSystem, float lookX, float lookY, float lookZ, float upX, float upY, float upZ, Entity entity) {
+        if (entity instanceof EntityPlayer) {
+            EnumGravityDirection gravityDirection = API.getGravityDirection((EntityPlayer) entity);
+            double[] d = gravityDirection.adjustXYZValues(lookX, lookY, lookZ);
+            double[] d1 = gravityDirection.adjustXYZValues(upX, upY, upZ);
 
-        soundSystem.setListenerOrientation((float)d[0], (float)d[1], (float)d[2], (float)d1[0], (float)d1[1], (float)d1[2]);
+            soundSystem.setListenerOrientation((float)d[0], (float)d[1], (float)d[2], (float)d1[0], (float)d1[1], (float)d1[2]);
+        } else {
+            soundSystem.setListenerOrientation(lookX, lookY, lookZ, upX, upY, upZ);
+        }
     }
 
     //TODO: Add to transformer

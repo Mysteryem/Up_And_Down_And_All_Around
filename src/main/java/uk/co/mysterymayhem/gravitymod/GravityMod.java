@@ -35,7 +35,7 @@ public class GravityMod {
     // Major changes, 1 was used for TMT, 2 is main development, 3 will likely be for initial full release and beyond
     private static final int MAJOR_VERSION = 2;
     // Indicates a breaking change in the mod, requiring both client and server updates
-    private static final int MINOR_VERSION = 8;
+    private static final int MINOR_VERSION = 9;
     // Indicates a non-breaking change in the mod
     // Different patch numbers but the same major and minor version should be compatible with one another
     private static final int PATCH_NUMBER = 0;
@@ -48,7 +48,7 @@ public class GravityMod {
     public static final String MINECRAFT_VERSION = "1.12.2";
     //Forge 12.18.2.2107 adds Block#getStateForPlacement
     //Baubles 1.3.BETA9 adds default methods to IRenderBauble
-    public static final String DEPENDENCIES_LIST = "required-after:forge@[12.18.2.2107,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
+    public static final String DEPENDENCIES_LIST = "required-after:forge@[14.23.2.2646,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
     public static final String GUI_FACTORY = "uk.co.mysterymayhem.gravitymod.client.config.GravityModGuiFactory";
 

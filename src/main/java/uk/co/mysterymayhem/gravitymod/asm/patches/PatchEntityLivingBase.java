@@ -21,6 +21,12 @@ public class PatchEntityLivingBase extends ClassPatcher {
     public PatchEntityLivingBase() {
         super("net.minecraft.entity.EntityLivingBase", 0, ClassWriter.COMPUTE_MAXS);
 
+        // Movement of the player is based off of their yaw and their forwards and strafing input
+        // We need to get the relative yaw when calculating the resultant movement due to strafe/forwards input
+        this.addMethodPatch(Ref.Entity$moveRelative_name::is,
+                methodNode -> Transformer.patchMethodUsingAbsoluteRotations(methodNode, Transformer.GET_ROTATIONYAW));
+
+
         // FIXME: Elytra flying doesn't work
         // I didn't write a comment for patching this method.
         // Go look at the comments for each patch added in its constructor

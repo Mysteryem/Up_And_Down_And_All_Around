@@ -66,7 +66,7 @@ public class Ref {
     public static final MethodName ItemStack$onPlayerStoppedUsing_name = new MethodName("onPlayerStoppedUsing", "func_77974_b");
     public static final MethodName ItemStack$useItemRightClick_name = new MethodName("useItemRightClick", "func_77957_a");
     public static final MethodName RenderLivingBase$doRender_name = new MethodName("doRender", "func_76986_a");
-    public static final MethodName SoundManager$setListener_name = new MethodName("setListener", "func_148615_a");
+    public static final MethodName SoundManager$setListener_name = new MethodName("setListener");
     public static final MethodName Vec3d$addVector_name = new MethodName("addVector", "func_72441_c");
     public static final MethodName Vec3d$scale_name = new MethodName("scale", "func_186678_a");
     public static final MethodName World$getCollisionBoxes_name = new MethodName("getCollisionBoxes", "func_184144_a");
@@ -267,9 +267,12 @@ public class Ref {
     public static final HookInsn Hooks$reverseYOffset = new HookInsn("reverseYOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
     public static final HookInsn Hooks$reverseZOffset = new HookInsn("reverseZOffset", new MethodDesc(DOUBLE, AxisAlignedBB, AxisAlignedBB, DOUBLE));
     public static final HookInsn Hooks$runNameplateCorrection = new HookInsn("runNameplateCorrection", new MethodDesc(VOID, BOOLEAN));
-    public static final HookInsn Hooks$setListenerOrientationHook = new HookInsn("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, EntityPlayer));
+    public static final HookInsn Hooks$setListenerOrientationHook = new HookInsn("setListenerOrientationHook", new MethodDesc(VOID, SoundSystem, FLOAT,
+            FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, Entity));
     public static final HookInsn Hooks$setPooledMutableBlockPosToBelowEntity =
             new HookInsn("setPooledMutableBlockPosToBelowEntity", new MethodDesc(BlockPos$PooledMutableBlockPos, BlockPos$PooledMutableBlockPos, Entity));
+
+    public static final MethodDesc SoundSystem$setListenerOrientation_desc = new MethodDesc(VOID, Entity, FLOAT);
 
     /*
         Debug only (currently only used in patchEntityPlayerSP when DEBUG_AUTO_JUMP is true)

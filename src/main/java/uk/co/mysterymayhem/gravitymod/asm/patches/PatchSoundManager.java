@@ -21,12 +21,13 @@ import uk.co.mysterymayhem.gravitymod.asm.util.patching.MethodPatcher;
 public class PatchSoundManager extends ClassPatcher {
     public PatchSoundManager() {
         super("net.minecraft.client.audio.SoundManager", 0, ClassWriter.COMPUTE_MAXS);
-        MethodPatcher patch_setListener = this.addMethodPatch(Ref.SoundManager$setListener_name::is);
+        MethodPatcher patch_setListener = this.addMethodPatch(
+                methodNode -> Ref.SoundManager$setListener_name.is(methodNode) && Ref.SoundSystem$setListenerOrientation_desc.is(methodNode.desc));
         patch_setListener.addInsnPatch((node, iterator) -> {
             if (Ref.SoundSystem$setListenerOrientation_name.is(node)) {
                 Ref.Hooks$setListenerOrientationHook.replace(iterator);
                 iterator.previous();
-                iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // load EntityPlayer method argument
+                iterator.add(new VarInsnNode(Opcodes.ALOAD, 1)); // load Entity method argument
                 return true;
             }
             return false;
@@ -39,4 +40,6 @@ public class PatchSoundManager extends ClassPatcher {
                         node,
                         Transformer.GET_ROTATIONYAW | Transformer.GET_PREVROTATIONYAW | Transformer.GET_ROTATIONPITCH | Transformer.GET_PREVROTATIONPITCH));
     }
+
+
 }
