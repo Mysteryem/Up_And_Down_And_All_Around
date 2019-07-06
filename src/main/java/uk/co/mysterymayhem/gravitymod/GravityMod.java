@@ -48,7 +48,7 @@ public class GravityMod {
     public static final String MINECRAFT_VERSION = "1.12.2";
     //Forge 12.18.2.2107 adds Block#getStateForPlacement
     //Baubles 1.3.BETA9 adds default methods to IRenderBauble
-    public static final String DEPENDENCIES_LIST = "required-after:forge@[14.23.2.2646,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
+    public static final String DEPENDENCIES_LIST = "required-after:forge@[14.23.4.2744,];after:" + ModSupport.BAUBLES_MOD_ID + "@[1.3.BETA9,]";
     public static final String USER_FRIENDLY_NAME = "Up And Down And All Around";
     public static final String GUI_FACTORY = "uk.co.mysterymayhem.gravitymod.client.config.GravityModGuiFactory";
 
