@@ -225,13 +225,13 @@ public class GUIContainerGravityGenerator extends GuiContainer {
         String generatorLangKey;
         switch (gravityTier) {
             case WEAK:
-                generatorLangKey = "tile.gravitygenerator.weak.name";
+                generatorLangKey = "tile.mysttmtgravitymod.gravitygenerator.weak.name";
                 break;
             case NORMAL:
-                generatorLangKey = "tile.gravitygenerator.normal.name";
+                generatorLangKey = "tile.mysttmtgravitymod.gravitygenerator.normal.name";
                 break;
             default://case STRONG:
-                generatorLangKey = "tile.gravitygenerator.strong.name";
+                generatorLangKey = "tile.mysttmtgravitymod.gravitygenerator.strong.name";
                 break;
         }
 
